@@ -2,6 +2,7 @@
   "name": "@meal-planner/api",
   "version": "1.0.0",
   "devDependencies": {
-    "serverless": "3.38.0"
+    "serverless": "3.38.0",
+    "serverless-go-plugin": "2.2.0"
   }
 }

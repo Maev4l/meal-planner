@@ -1,6 +1,9 @@
 {
   "name": "meal-planner",
   "version": "1.0.0",
+  "scripts": {
+    "deploy-api": "npx sls api:deploy"
+  },
   "private": true,
   "workspaces": [
     "packages/api",
