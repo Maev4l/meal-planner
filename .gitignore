@@ -1,0 +1,10 @@
+.DS_Store
+
+yarn.lock
+yarn-error.log
+
+dist/
+node_modules/
+.serverless/
+.webpack/
+

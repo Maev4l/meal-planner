@@ -1,0 +1,7 @@
+{
+  "name": "@meal-planner/api",
+  "version": "1.0.0",
+  "devDependencies": {
+    "serverless": "3.38.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "meal-planner",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/api",
+    "packages/web-client"
+  ],
+  "devDependencies": {
+    "@serverless/compose": "1.3.0"
+  }
+}
