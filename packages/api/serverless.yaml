@@ -3,6 +3,9 @@ service: meal-planner-api
 plugins:
   - serverless-go-plugin
 
+package:
+  individually: true
+
 provider:
   name: aws
   architecture: arm64
@@ -36,17 +39,73 @@ custom:
     cmd: GOARCH=arm64 GOOS=linux go build -ldflags="-s -w"
 
 functions:
+  authorizer:
+    handler: cmd/authorizer/main.go
+    name: meal-planner-authorizer
+    role: AuthorizerRole
+    environment:
+      COGNITO_URL: # https://cognito-idp.<Region>.amazonaws.com/<userPoolId>/.well-known/jwks.json
+        Fn::Join:
+          - ""
+          - - "https://cognito-idp."
+            - Ref: "AWS::Region"
+            - .amazonaws.com/
+            - Ref: UserPool
+            - /.well-known/jwks.json
+      CLIENT_ID: !Ref UserPoolClient
+      TOKEN_ISSUER:
+        Fn::Join:
+          - ""
+          - - "https://cognito-idp."
+            - Ref: "AWS::Region"
+            - .amazonaws.com/
+            - Ref: UserPool
   api:
-    handler: cmd/main.go
+    handler: cmd/api/main.go
     name: meal-planner-api
     role: ApiRole
     events:
       - http:
+          authorizer:
+            name: authorizer
+            resultTtlInSeconds: 30
+            identitySource: method.request.header.Authorization
+            type: token
           method: any
           path: /{proxy+}
 
 resources:
   Resources:
+    AuthorizerRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: meal-planner-authorizer
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: meal-planner-authorizer
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - logs:TagResource
+                  Resource:
+                    - Fn::Join:
+                        - ":"
+                        - - "arn:aws:logs"
+                          - Ref: "AWS::Region"
+                          - Ref: "AWS::AccountId"
+                          - "log-group:/aws/lambda/*:*:*"
     ApiRole:
       Type: AWS::IAM::Role
       Properties:
@@ -77,3 +136,59 @@ resources:
                           - Ref: "AWS::Region"
                           - Ref: "AWS::AccountId"
                           - "log-group:/aws/lambda/*:*:*"
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: meal-planner
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: true
+        UsernameConfiguration:
+          CaseSensitive: false
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: admin_only
+              Priority: 1
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+            TemporaryPasswordValidityDays: 7
+        UserPoolAddOns:
+          AdvancedSecurityMode: OFF
+        Schema:
+          - Name: TenantId
+            AttributeDataType: String
+            StringAttributeConstraints:
+              MinLength: 3
+              MaxLength: 50
+          - Name: TenantAdmin
+            AttributeDataType: Boolean
+        UserPoolTags:
+          application: "meal-planner"
+          owner: "serverless"
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref UserPool
+        ClientName: meal-planner-auth-client
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+
+  Outputs:
+    Region:
+      Value: ${self:provider.region}
+      Export:
+        Name: mealPlannerRegion
+    UserPoolId:
+      Value: !Ref UserPool
+      Export:
+        Name: mealPlannerUserPoolId
+    UserPoolClientId:
+      Value: !Ref UserPoolClient
+      Export:
+        Name: mealPlannerClientId
