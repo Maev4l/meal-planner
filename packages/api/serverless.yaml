@@ -21,16 +21,16 @@ provider:
     disableDefaultEndpoint: false
     minimumCompressionSize: 1024 # in bytes
   tags:
-    application: "meal-planner"
-    owner: "serverless"
+    application: 'meal-planner'
+    owner: 'serverless'
   stackTags:
-    application: "meal-planner"
-    owner: "serverless"
+    application: 'meal-planner'
+    owner: 'serverless'
   deploymentBucket:
     blockPublicAccess: true
     tags:
-      application: "meal-planner"
-      owner: "serverless"
+      application: 'meal-planner'
+      owner: 'serverless'
 
 custom:
   go:
@@ -39,27 +39,27 @@ custom:
     cmd: GOARCH=arm64 GOOS=linux go build -ldflags="-s -w"
 
 functions:
-  authorizer:
-    handler: cmd/authorizer/main.go
-    name: meal-planner-authorizer
-    role: AuthorizerRole
-    environment:
-      COGNITO_URL: # https://cognito-idp.<Region>.amazonaws.com/<userPoolId>/.well-known/jwks.json
-        Fn::Join:
-          - ""
-          - - "https://cognito-idp."
-            - Ref: "AWS::Region"
-            - .amazonaws.com/
-            - Ref: UserPool
-            - /.well-known/jwks.json
-      CLIENT_ID: !Ref UserPoolClient
-      TOKEN_ISSUER:
-        Fn::Join:
-          - ""
-          - - "https://cognito-idp."
-            - Ref: "AWS::Region"
-            - .amazonaws.com/
-            - Ref: UserPool
+  #authorizer:
+  #  handler: cmd/authorizer/main.go
+  #  name: meal-planner-authorizer
+  #  role: AuthorizerRole
+  #  environment:
+  #    COGNITO_URL: # https://cognito-idp.<Region>.amazonaws.com/<userPoolId>/.well-known/jwks.json
+  #      Fn::Join:
+  #        - ''
+  #        - - 'https://cognito-idp.'
+  #          - Ref: 'AWS::Region'
+  #          - .amazonaws.com/
+  #          - Ref: UserPool
+  #          - /.well-known/jwks.json
+  #    CLIENT_ID: !Ref UserPoolClient
+  #    TOKEN_ISSUER:
+  #      Fn::Join:
+  #        - ''
+  #        - - 'https://cognito-idp.'
+  #          - Ref: 'AWS::Region'
+  #          - .amazonaws.com/
+  #          - Ref: UserPool
   api:
     handler: cmd/api/main.go
     name: meal-planner-api
@@ -67,10 +67,12 @@ functions:
     events:
       - http:
           authorizer:
-            name: authorizer
-            resultTtlInSeconds: 30
-            identitySource: method.request.header.Authorization
-            type: token
+            type: COGNITO_USER_POOLS
+            authorizerId: !Ref ApiGatewayAuthorizer
+            #name: authorizer
+            #resultTtlInSeconds: 30
+            #identitySource: method.request.header.Authorization
+            #type: token
           method: any
           path: /{proxy+}
 
@@ -81,7 +83,7 @@ resources:
       Properties:
         RoleName: meal-planner-authorizer
         AssumeRolePolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Principal:
@@ -91,7 +93,7 @@ resources:
         Policies:
           - PolicyName: meal-planner-authorizer
             PolicyDocument:
-              Version: "2012-10-17"
+              Version: '2012-10-17'
               Statement:
                 - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
                   Action:
@@ -101,17 +103,17 @@ resources:
                     - logs:TagResource
                   Resource:
                     - Fn::Join:
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
+                        - ':'
+                        - - 'arn:aws:logs'
+                          - Ref: 'AWS::Region'
+                          - Ref: 'AWS::AccountId'
+                          - 'log-group:/aws/lambda/*:*:*'
     ApiRole:
       Type: AWS::IAM::Role
       Properties:
         RoleName: meal-planner-api
         AssumeRolePolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Principal:
@@ -121,7 +123,7 @@ resources:
         Policies:
           - PolicyName: meal-planner-api
             PolicyDocument:
-              Version: "2012-10-17"
+              Version: '2012-10-17'
               Statement:
                 - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
                   Action:
@@ -131,11 +133,11 @@ resources:
                     - logs:TagResource
                   Resource:
                     - Fn::Join:
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
+                        - ':'
+                        - - 'arn:aws:logs'
+                          - Ref: 'AWS::Region'
+                          - Ref: 'AWS::AccountId'
+                          - 'log-group:/aws/lambda/*:*:*'
     UserPool:
       Type: AWS::Cognito::UserPool
       Properties:
@@ -167,8 +169,8 @@ resources:
           - Name: TenantAdmin
             AttributeDataType: Boolean
         UserPoolTags:
-          application: "meal-planner"
-          owner: "serverless"
+          application: 'meal-planner'
+          owner: 'serverless'
     UserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
@@ -178,6 +180,23 @@ resources:
           - ALLOW_USER_PASSWORD_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
           - ALLOW_USER_SRP_AUTH
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        AuthorizerResultTtlInSeconds: 10
+        IdentitySource: method.request.header.Authorization
+        Name: meal-planner-api-authorizer
+        RestApiId: !Ref ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - Fn::Join:
+              - ''
+              - - 'arn:aws:cognito-idp:'
+                - Ref: 'AWS::Region'
+                - ':'
+                - Ref: 'AWS::AccountId'
+                - ':userpool/'
+                - Ref: UserPool
 
   Outputs:
     Region:
@@ -192,3 +211,7 @@ resources:
       Value: !Ref UserPoolClient
       Export:
         Name: mealPlannerClientId
+    GatewayId:
+      Value: !Ref ApiGatewayRestApi
+      Export:
+        Name: mealPlannerApiGatewayId
