@@ -3,19 +3,26 @@
   "version": "1.0.0",
   "devDependencies": {
     "clean-webpack-plugin": "4.0.0",
+    "copy-webpack-plugin": "11.0.0",
     "html-webpack-plugin": "5.6.0",
     "mini-css-extract-plugin": "2.7.6",
     "terser-webpack-plugin": "5.3.9",
     "webpack": "5.89.0",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "4.15.1",
-    "webpack-merge": "5.10.0"
+    "webpack-merge": "5.10.0",
+    "workbox-webpack-plugin": "7.0.0"
   },
   "dependencies": {
     "@emotion/react": "11.11.3",
     "@emotion/styled": "11.11.0",
     "@mui/material": "5.15.2",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "workbox-core": "7.0.0",
+    "workbox-precaching": "7.0.0",
+    "workbox-routing": "7.0.0",
+    "workbox-strategies": "7.0.0",
+    "workbox-window": "7.0.0"
   }
 }

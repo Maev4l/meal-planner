@@ -1,4 +1,5 @@
 import path from 'path';
+import CopyPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
@@ -20,6 +21,14 @@ export default {
       template: path.resolve(__dirname, 'public', 'index.html'),
       filename: 'index.html',
       inject: 'head',
+    }),
+    new CopyPlugin({
+      patterns: [
+        path.resolve(__dirname, 'public', 'favicon.ico'),
+        path.resolve(__dirname, 'public', 'logo192.png'),
+        path.resolve(__dirname, 'public', 'logo512.png'),
+        path.resolve(__dirname, 'public', 'manifest.json'),
+      ],
     }),
   ],
   resolve: {
