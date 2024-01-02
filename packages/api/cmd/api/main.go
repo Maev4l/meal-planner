@@ -15,7 +15,7 @@ func init() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	r.GET("/members/:id", func(c *gin.Context) {
+	r.GET("/api/members/:id", func(c *gin.Context) {
 
 		c.JSON(200, gin.H{
 			"id": c.Param("id"),

@@ -1,3 +1,10 @@
 services:
   api:
     path: packages/api
+  web-client:
+    path: packages/web-client
+  shared-infra:
+    path: packages/shared-infra
+    params:
+      webClientBucket: ${web-client.BucketName}
+      apiGatewayId: ${api.GatewayId}

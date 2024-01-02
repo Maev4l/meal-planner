@@ -1,0 +1,46 @@
+service: meal-planner-web-client
+
+provider:
+  name: aws
+  region: eu-central-1
+  stage: dev
+  tags:
+    application: 'meal-planner'
+    owner: 'serverless'
+  stackTags:
+    application: 'meal-planner'
+    owner: 'serverless'
+  deploymentBucket:
+    blockPublicAccess: true
+    tags:
+      application: 'meal-planner'
+      owner: 'serverless'
+
+custom:
+  webClientBucketName: meal-planner-web-client
+
+resources:
+  Resources:
+    WebClientBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.webClientBucketName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        Tags:
+          - Key: application
+            Value: meal-planner
+          - Key: owner
+            Value: serverless
+  Outputs:
+    BucketName:
+      Value: ${self:custom.webClientBucketName}
+      Export:
+        Name: mealPlannerWebClientBucketName

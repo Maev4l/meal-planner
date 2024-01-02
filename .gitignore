@@ -3,7 +3,7 @@
 yarn.lock
 yarn-error.log
 
-dist/
+.dist/
 node_modules/
 .serverless/
 .webpack/
