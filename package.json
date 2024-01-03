@@ -4,6 +4,7 @@
   "scripts": {
     "deploy-api": "sls api:deploy",
     "deploy-web-client": "sls web-client:deploy",
+    "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client/output.json",
     "build-web-client": "webpack --config ./packages/web-client/webpack.config.prod.babel.js --progress",
     "upload-web-client": "aws s3 sync ./packages/web-client/.dist s3://meal-planner-web-client",
     "serve-web-client-dev": "webpack serve --config ./packages/web-client/webpack.config.dev.babel.js",

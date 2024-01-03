@@ -8,12 +8,12 @@ export default function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     const wb = new Workbox('sw.js');
 
+    /*
     wb.addEventListener('installed', (event) => {
-      /**
-       * We have the condition - event.isUpdate because we don't want to show
-       * this message on the very first service worker installation,
-       * only on the updated
-       */
+      // We have the condition - event.isUpdate because we don't want to show
+      // this message on the very first service worker installation,
+      // only on the updated
+
       if (event.isUpdate) {
         // eslint-disable-next-line no-restricted-globals, no-alert
         if (confirm(`New app update is available!. Click OK to refresh`)) {
@@ -21,6 +21,8 @@ export default function registerServiceWorker() {
         }
       }
     });
+    */
+
     wb.register();
   }
 }

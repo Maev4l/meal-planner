@@ -16,9 +16,12 @@
   "dependencies": {
     "@emotion/react": "11.11.3",
     "@emotion/styled": "11.11.0",
+    "@mui/icons-material": "5.15.2",
     "@mui/material": "5.15.2",
+    "aws-amplify": "6.0.9",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-router-dom": "6.21.1",
     "workbox-core": "7.0.0",
     "workbox-precaching": "7.0.0",
     "workbox-routing": "7.0.0",

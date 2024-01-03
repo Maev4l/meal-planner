@@ -1,5 +1,12 @@
-import { Container } from '@mui/material/';
+import { CssBaseline } from '@mui/material';
+import AppRoutes from './AppRoutes';
+import { AuthProvider } from './security';
 
-const App = () => <Container>Hello world !</Container>;
+const App = () => (
+  <AuthProvider>
+    <CssBaseline />
+    <AppRoutes />
+  </AuthProvider>
+);
 
 export default App;

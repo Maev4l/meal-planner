@@ -1,8 +1,11 @@
 import path from 'path';
+import webpack from 'webpack';
 import CopyPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+
+import config from './output.json';
 
 export default {
   target: 'web',
@@ -29,6 +32,13 @@ export default {
         path.resolve(__dirname, 'public', 'logo512.png'),
         path.resolve(__dirname, 'public', 'manifest.json'),
       ],
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        clientId: JSON.stringify(config.mealPlannerClientId),
+        userPoolId: JSON.stringify(config.mealPlannerUserPoolId),
+        region: JSON.stringify(config.mealPlannerRegion),
+      },
     }),
   ],
   resolve: {
