@@ -1,21 +1,21 @@
-package helper
+package handlers
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/lestrrat-go/jwx/jwt"
+	"isnan.eu/meal-planner/api/internal/core/domain"
 )
 
-type TokenInfo struct {
-	TenantId    string
-	Username    string
-	TenantAdmin bool
+type tokenInfo struct {
+	TenantId string
+	Username string
+	Role     domain.ROLE
 }
 
-func ParseAuthHeader(raw string) *TokenInfo {
+func parseAuthHeader(raw string) *tokenInfo {
 
-	var info TokenInfo
+	var info tokenInfo
 
 	token, _ := jwt.Parse([]byte(raw))
 
@@ -29,13 +29,10 @@ func ParseAuthHeader(raw string) *TokenInfo {
 		info.TenantId = fmt.Sprintf("%v", tenantId)
 	}
 
-	tenantAdmin, exists := token.Get("custom:TenantAdmin")
+	role, exists := token.Get("custom:Role")
 	if exists {
-		val, err := strconv.ParseBool(fmt.Sprintf("%v", tenantAdmin))
-		if err != nil {
-			val = false
-		}
-		info.TenantAdmin = val
+		info.Role = domain.ROLE(fmt.Sprintf("%v", role))
 	}
+
 	return &info
 }

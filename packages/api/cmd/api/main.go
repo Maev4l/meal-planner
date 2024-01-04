@@ -7,6 +7,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
+	"isnan.eu/meal-planner/api/internal/core/handlers"
+	"isnan.eu/meal-planner/api/internal/core/repositories"
+	"isnan.eu/meal-planner/api/internal/core/services"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -14,8 +17,16 @@ var ginLambda *ginadapter.GinLambda
 func init() {
 
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
-	r.GET("/api/members/:id", func(c *gin.Context) {
+	router := gin.Default()
+
+	r := repositories.NewDynamoDB()
+	c := repositories.NewCognito()
+	s := services.New(r, c)
+	h := handlers.NewHTTPHandler(s)
+
+	router.POST("/api/tenants", h.CreateTenant)
+
+	router.GET("/api/members/:id", func(c *gin.Context) {
 
 		c.JSON(200, gin.H{
 			"id": c.Param("id"),
@@ -24,7 +35,7 @@ func init() {
 		})
 	})
 
-	ginLambda = ginadapter.New(r)
+	ginLambda = ginadapter.New(router)
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
