@@ -4,6 +4,7 @@ import {
   fetchAuthSession,
 } from 'aws-amplify/auth';
 import { useState, createContext, useContext, useMemo } from 'react';
+import log from 'loglevel';
 
 // see: https://www.robinwieruch.de/react-router-authentication/
 const AuthContext = createContext(null);
@@ -33,8 +34,8 @@ export const AuthProvider = ({ children }) => {
     try {
       await cognitoSignIn({ username, password });
     } catch (e) {
-      console.log(`Sign in error: ${e.name} - ${e.message}`);
       if (e.name !== 'UserAlreadyAuthenticatedException') {
+        log.error(`Sign in error: ${e.name} - ${e.message}`);
         throw e;
       }
     }
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await cognitoSignOut();
     } catch (e) {
-      console.log(`Sign out error: ${e.message}`);
+      log.error(`Sign out error: ${e.message}`);
       throw e;
     }
   };
