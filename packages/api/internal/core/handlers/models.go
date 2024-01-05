@@ -13,6 +13,12 @@ type CreateTenantResponse struct {
 	Admin     *CreateUserResponse `json:"admin"`
 }
 
+type CreateUserRequest struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	Admin    bool   `json:"admin"`
+}
+
 type CreateUserResponse struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`

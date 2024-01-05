@@ -25,6 +25,7 @@ func init() {
 	h := handlers.NewHTTPHandler(s)
 
 	router.POST("/api/tenants", h.CreateTenant)
+	router.POST("/api/members", h.CreateUser)
 
 	router.GET("/api/members/:id", func(c *gin.Context) {
 

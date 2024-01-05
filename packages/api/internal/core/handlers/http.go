@@ -28,7 +28,51 @@ func NewHTTPHandler(service ports.PlannerService) *HTTPHandler {
 
 /*
 Payload:
-{"tenantName":"tenant name","adminName":"tenant admin user name","adminPassword":"tenant admin password"}
+{"name":"user name","password":"user name","admin": false}
+*/
+func (hdl *HTTPHandler) CreateUser(c *gin.Context) {
+
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	if info.Role != domain.TenantAdmin {
+		log.Error().Msgf("'%s' is not Tenant Admin.", info.Username)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Not Tenant Admin.",
+		})
+		return
+	}
+
+	var request CreateUserRequest
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Error().Msgf("Invalid request: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid request.",
+		})
+
+		return
+	}
+
+	user, err := hdl.svc.CreateUser(info.TenantId, request.Name, request.Password, request.Admin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to create user.",
+		})
+		return
+	}
+
+	response := &CreateUserResponse{
+		Id:        user.Id,
+		Name:      user.Name,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+	}
+
+	c.JSON(http.StatusCreated, response)
+}
+
+/*
+Payload:
+{"tenantName":"tenant name","adminName":"tenant admin user password","adminPassword":"tenant admin password"}
 */
 func (hdl *HTTPHandler) CreateTenant(c *gin.Context) {
 
