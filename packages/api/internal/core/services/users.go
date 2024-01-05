@@ -2,45 +2,31 @@ package services
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
-	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
-func (s *service) CreateUser(tenantId string, name string, password string, admin bool) (*domain.User, error) {
+func (s *service) DeleteUser(tenantId string, userId string) error {
+
+	return nil
+}
+
+func (s *service) RegisterUser(name string, password string) (string, error) {
 	valid := validateUsername(name)
 	if !valid {
 		log.Error().Msgf("username '%s' is reserved.", name)
-		return nil, fmt.Errorf("failed to register username: '%s'", name)
+		return "", fmt.Errorf("failed to register username: '%s'", name)
 	}
 
-	var role domain.ROLE
-	if admin {
-		role = domain.TenantAdmin
-	} else {
-		role = domain.Member
-	}
-	subject, err := s.idp.RegisterUser(name, password, tenantId, string(role))
+	subject, err := s.idp.RegisterUser(name, password, string(roles.RegularUser))
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	id := normalize(subject)
-	current := time.Now().UTC()
-	user := domain.User{
-		Id:        id,
-		Name:      name,
-		CreatedAt: &current,
-		TenantId:  tenantId,
-		Role:      role,
-	}
+	id := helper.Normalize(subject)
 
-	err = s.repo.SaveUser(&user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return id, nil
 }

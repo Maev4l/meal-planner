@@ -3,6 +3,7 @@ package ports
 import "isnan.eu/meal-planner/api/internal/core/domain"
 
 type PlannerService interface {
-	CreateTenant(tenantName string, adminTenantName string, adminPassword string) (*domain.Tenant, *domain.User, error)
-	CreateUser(tenantId string, name string, password string, admin bool) (*domain.User, error)
+	RegisterUser(name string, password string) (string, error)
+	DeleteUser(tenantId string, userId string) error
+	CreateGroup(memberId string, memberName string, groupName string) (*domain.Group, error)
 }

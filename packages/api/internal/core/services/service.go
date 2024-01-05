@@ -2,9 +2,7 @@ package services
 
 import (
 	"slices"
-	"strings"
 
-	"github.com/google/uuid"
 	"isnan.eu/meal-planner/api/internal/core/ports"
 )
 
@@ -25,13 +23,4 @@ func New(repo ports.PlannerRepository, idp ports.PlannerIdP) *service {
 		repo: repo,
 		idp:  idp,
 	}
-}
-
-func newId() string {
-	id := uuid.NewString()
-	return normalize(id)
-}
-
-func normalize(val string) string {
-	return strings.ToUpper(strings.Replace(val, "-", "", -1))
 }

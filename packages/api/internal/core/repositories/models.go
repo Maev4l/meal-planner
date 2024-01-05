@@ -3,38 +3,41 @@ package repositories
 import (
 	"fmt"
 	"time"
+
+	"isnan.eu/meal-planner/api/internal/core/domain"
 )
 
-type Tenant struct {
-	PK        string     `dynamodbav:"PK"` // tenant#1234
-	SK        string     `dynamodbav:"SK"` // tenant#1234
-	Id        string     `dynamodbav:"TenantId"`
-	Name      string     `dynamodbav:"TenantName"`
+type Group struct {
+	PK        string     `dynamodbav:"PK"` // group#1234
+	SK        string     `dynamodbav:"SK"` // group#1234
+	Id        string     `dynamodbav:"GroupId"`
+	Name      string     `dynamodbav:"GroupName"`
 	CreatedAt *time.Time `dynamodbav:"CreatedAt"`
 }
 
-func createTenantPK(id string) string {
-	return fmt.Sprintf("tenant#%s", id)
+func createGroupPK(g *domain.Group) string {
+	return fmt.Sprintf("group#%s", g.Id)
 }
 
-func createTenantSK(id string) string {
-	return fmt.Sprintf("tenant#%s", id)
+func createGroupSK(g *domain.Group) string {
+	return fmt.Sprintf("group#%s", g.Id)
 }
 
 type User struct {
-	PK        string     `dynamodbav:"PK"` // tenant#1234#user#1234
+	PK        string     `dynamodbav:"PK"` // group#1234
 	SK        string     `dynamodbav:"SK"` // user#1234
 	Id        string     `dynamodbav:"UserId"`
 	Name      string     `dynamodbav:"UserName"`
-	TenantId  string     `dynamodbav:"TenantId"`
+	GroupId   string     `dynamodbav:"GroupId"`
+	GroupName string     `dynamodbav:"GroupName"`
 	Role      string     `dynamodbav:"Role"`
 	CreatedAt *time.Time `dynamodbav:"CreatedAt"`
 }
 
-func createUserSK(userId string) string {
-	return fmt.Sprintf("user#%s", userId)
+func createMemberSK(u *domain.Member) string {
+	return fmt.Sprintf("user#%s", u.Id)
 }
 
-func createUserPK(tenantId string) string {
-	return fmt.Sprintf("tenant#%s", tenantId)
+func createMemberPK(g *domain.Group) string {
+	return fmt.Sprintf("group#%s", g.Id)
 }

@@ -24,8 +24,17 @@ func init() {
 	s := services.New(r, c)
 	h := handlers.NewHTTPHandler(s)
 
-	router.POST("/api/tenants", h.CreateTenant)
-	router.POST("/api/members", h.CreateUser)
+	// Enroll user into IdP
+	router.POST("/api/users", h.RegisterUser)
+
+	// Offboard user
+	router.DELETE("/api/users/:id", h.UnregisterUser)
+
+	// Create a group
+	router.POST("/api/groups", h.CreateGroup)
+
+	// Enroll a user within a group
+	router.POST("/api/groups/:groupId/members", h.CreateMember)
 
 	router.GET("/api/members/:id", func(c *gin.Context) {
 

@@ -1,25 +1,21 @@
 package handlers
 
-type CreateTenantRequest struct {
-	TenantName    string `json:"tenantName"`
-	AdminName     string `json:"adminName"`
-	AdminPassword string `json:"adminPassword"`
+type CreateGroupRequest struct {
+	Name string `json:"name"`
 }
 
-type CreateTenantResponse struct {
-	Id        string              `json:"id"`
-	Name      string              `json:"name"`
-	CreatedAt string              `json:"createdAt"`
-	Admin     *CreateUserResponse `json:"admin"`
+type CreateGroupResponse struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"createdAt"`
 }
 
-type CreateUserRequest struct {
+type RegisterUserRequest struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
-	Admin    bool   `json:"admin"`
 }
 
-type CreateUserResponse struct {
+type RegisterUserResponse struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`

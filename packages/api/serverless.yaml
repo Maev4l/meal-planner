@@ -74,10 +74,11 @@ functions:
           authorizer:
             type: COGNITO_USER_POOLS
             authorizerId: !Ref ApiGatewayAuthorizer
-            #name: authorizer
-            #resultTtlInSeconds: 30
-            #identitySource: method.request.header.Authorization
-            #type: token
+          # custom authorizer configuration
+          #name: authorizer
+          #resultTtlInSeconds: 30
+          #identitySource: method.request.header.Authorization
+          #type: token
           method: any
           path: /{proxy+}
 
@@ -189,11 +190,6 @@ resources:
         UserPoolAddOns:
           AdvancedSecurityMode: OFF
         Schema:
-          - Name: TenantId
-            AttributeDataType: String
-            StringAttributeConstraints:
-              MinLength: 3
-              MaxLength: 50
           - Name: Role
             AttributeDataType: String
             StringAttributeConstraints:

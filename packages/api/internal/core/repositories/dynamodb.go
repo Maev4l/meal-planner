@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog/log"
 	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 )
 
 type dynamo struct {
@@ -23,20 +24,21 @@ func NewDynamoDB() *dynamo {
 	}
 }
 
-func (d *dynamo) SaveUser(u *domain.User) error {
+func (d *dynamo) SaveMember(g *domain.Group, m *domain.Member, role roles.GROUP_ROLE) error {
 	record := User{
-		PK:        createUserPK(u.TenantId),
-		SK:        createUserSK(u.Id),
-		Id:        u.Id,
-		Name:      u.Name,
-		TenantId:  u.TenantId,
-		CreatedAt: u.CreatedAt,
-		Role:      string(u.Role),
+		PK:        createMemberPK(g),
+		SK:        createMemberSK(m),
+		Id:        m.Id,
+		Name:      m.Name,
+		GroupName: g.Name,
+		GroupId:   g.Id,
+		CreatedAt: m.CreatedAt,
+		Role:      string(m.Role),
 	}
 
 	item, err := attributevalue.MarshalMap(record)
 	if err != nil {
-		log.Error().Msgf("Failed to marshal user '%s': %s", u.Name, err.Error())
+		log.Error().Msgf("Failed to marshal member '%s': %s", m.Name, err.Error())
 		return err
 	}
 
@@ -46,25 +48,25 @@ func (d *dynamo) SaveUser(u *domain.User) error {
 	})
 
 	if err != nil {
-		log.Error().Msgf("Failed to put user '%s': %s", u.Name, err.Error())
+		log.Error().Msgf("Failed to put member '%s': %s", m.Name, err.Error())
 		return err
 	}
 	return nil
 }
 
-func (d *dynamo) SaveTenant(t *domain.Tenant) error {
+func (d *dynamo) SaveGroup(g *domain.Group) error {
 
-	record := Tenant{
-		PK:        createTenantPK(t.Id),
-		SK:        createTenantSK(t.Id),
-		Id:        t.Id,
-		Name:      t.Name,
-		CreatedAt: t.CreatedAt,
+	record := Group{
+		PK:        createGroupPK(g),
+		SK:        createGroupSK(g),
+		Id:        g.Id,
+		Name:      g.Name,
+		CreatedAt: g.CreatedAt,
 	}
 
 	item, err := attributevalue.MarshalMap(record)
 	if err != nil {
-		log.Error().Msgf("Failed to marshal tenant '%s': %s", t.Name, err.Error())
+		log.Error().Msgf("Failed to marshal group '%s': %s", g.Name, err.Error())
 		return err
 	}
 
@@ -74,7 +76,7 @@ func (d *dynamo) SaveTenant(t *domain.Tenant) error {
 	})
 
 	if err != nil {
-		log.Error().Msgf("Failed to put tenant '%s': %s", t.Name, err.Error())
+		log.Error().Msgf("Failed to put group '%s': %s", g.Name, err.Error())
 		return err
 	}
 	return nil

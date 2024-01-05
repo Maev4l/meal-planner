@@ -2,18 +2,19 @@ package domain
 
 import (
 	"time"
+
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 )
 
-type Tenant struct {
+type Group struct {
 	Id        string
 	Name      string
 	CreatedAt *time.Time
 }
 
-type User struct {
+type Member struct {
 	Id        string
 	Name      string
 	CreatedAt *time.Time
-	TenantId  string
-	Role      ROLE
+	Role      roles.GROUP_ROLE
 }

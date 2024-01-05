@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/lestrrat-go/jwx/jwt"
-	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type tokenInfo struct {
-	TenantId string
-	Username string
-	Role     domain.ROLE
+	userId   string
+	userName string
+	role     roles.APPLICATION_ROLE
 }
 
 func parseAuthHeader(raw string) *tokenInfo {
@@ -19,19 +20,21 @@ func parseAuthHeader(raw string) *tokenInfo {
 
 	token, _ := jwt.Parse([]byte(raw))
 
-	username, exists := token.Get("cognito:username")
+	id, exists := token.Get("sub")
 	if exists {
-		info.Username = fmt.Sprintf("%v", username)
+		info.userId = helper.Normalize(fmt.Sprintf("%v", id))
 	}
 
-	tenantId, exists := token.Get("custom:TenantId")
+	username, exists := token.Get("cognito:username")
 	if exists {
-		info.TenantId = fmt.Sprintf("%v", tenantId)
+		info.userName = fmt.Sprintf("%v", username)
 	}
 
 	role, exists := token.Get("custom:Role")
 	if exists {
-		info.Role = domain.ROLE(fmt.Sprintf("%v", role))
+		info.role = roles.APPLICATION_ROLE(fmt.Sprintf("%v", role))
+	} else {
+		info.role = roles.RegularUser
 	}
 
 	return &info

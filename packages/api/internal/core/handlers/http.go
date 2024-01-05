@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 	"isnan.eu/meal-planner/api/internal/core/ports"
 )
 
@@ -26,23 +26,36 @@ func NewHTTPHandler(service ports.PlannerService) *HTTPHandler {
 	}
 }
 
+func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	if info.role != roles.AppAdmin {
+		log.Error().Msgf("'%s' is not App Admin.", info.userName)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Not Administrator.",
+		})
+		return
+	}
+	// userId := c.Param("id")
+}
+
 /*
 Payload:
-{"name":"user name","password":"user name","admin": false}
+{"name":"user name","password":"user name"}
 */
-func (hdl *HTTPHandler) CreateUser(c *gin.Context) {
+func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
-	if info.Role != domain.TenantAdmin {
-		log.Error().Msgf("'%s' is not Tenant Admin.", info.Username)
+	if info.role != roles.AppAdmin {
+		log.Error().Msgf("'%s' is not App Admin.", info.userName)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Not Tenant Admin.",
+			"message": "Not Administrator.",
 		})
 		return
 	}
 
-	var request CreateUserRequest
+	var request RegisterUserRequest
 	err := c.BindJSON(&request)
 	if err != nil {
 		log.Error().Msgf("Invalid request: %s", err.Error())
@@ -53,40 +66,40 @@ func (hdl *HTTPHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := hdl.svc.CreateUser(info.TenantId, request.Name, request.Password, request.Admin)
+	id, err := hdl.svc.RegisterUser(request.Name, request.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to create user.",
+			"message": "Failed to register user.",
 		})
 		return
 	}
 
-	response := &CreateUserResponse{
-		Id:        user.Id,
-		Name:      user.Name,
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+	current := time.Now().UTC().Format(time.RFC3339)
+	response := &RegisterUserResponse{
+		Id:        id,
+		Name:      request.Name,
+		CreatedAt: current,
 	}
 
 	c.JSON(http.StatusCreated, response)
 }
 
+func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
+	// info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	// groupId := c.Param("groupId")
+
+}
+
 /*
 Payload:
-{"tenantName":"tenant name","adminName":"tenant admin user password","adminPassword":"tenant admin password"}
+{"name":"group name"}
 */
-func (hdl *HTTPHandler) CreateTenant(c *gin.Context) {
+func (hdl *HTTPHandler) CreateGroup(c *gin.Context) {
 
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
-	if info.Role != domain.AppAdmin {
-		log.Error().Msgf("'%s' is not Application Admin.", info.Username)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Not Application Admin.",
-		})
-		return
-	}
-
-	var request CreateTenantRequest
+	var request CreateGroupRequest
 	err := c.BindJSON(&request)
 	if err != nil {
 		log.Error().Msgf("Invalid request: %s", err.Error())
@@ -97,23 +110,18 @@ func (hdl *HTTPHandler) CreateTenant(c *gin.Context) {
 		return
 	}
 
-	tenant, admin, err := hdl.svc.CreateTenant(request.TenantName, request.AdminName, request.AdminPassword)
+	group, err := hdl.svc.CreateGroup(info.userId, info.userName, request.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to create tenant.",
+			"message": "Failed to create group.",
 		})
 		return
 	}
 
-	response := CreateTenantResponse{
-		Id:        tenant.Id,
-		Name:      tenant.Name,
-		CreatedAt: tenant.CreatedAt.Format(time.RFC3339),
-		Admin: &CreateUserResponse{
-			Id:        admin.Id,
-			Name:      admin.Name,
-			CreatedAt: admin.CreatedAt.Format(time.RFC3339),
-		},
+	response := CreateGroupResponse{
+		Id:        group.Id,
+		Name:      group.Name,
+		CreatedAt: group.CreatedAt.Format(time.RFC3339),
 	}
 	c.JSON(http.StatusCreated, response)
 }

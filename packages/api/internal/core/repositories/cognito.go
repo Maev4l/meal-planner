@@ -23,17 +23,13 @@ func NewCognito() *idp {
 	}
 }
 
-func (i *idp) RegisterUser(name string, password string, tenantId string, role string) (string, error) {
+func (i *idp) RegisterUser(name string, password string, role string) (string, error) {
 
 	resp, err := i.client.AdminCreateUser(context.TODO(), &cognitoidentityprovider.AdminCreateUserInput{
 		UserPoolId:        aws.String(userPoolId),
 		Username:          aws.String(name),
 		TemporaryPassword: aws.String(password),
 		UserAttributes: []types.AttributeType{
-			{
-				Name:  aws.String("custom:TenantId"),
-				Value: aws.String(tenantId),
-			},
 			{
 				Name:  aws.String("custom:Role"),
 				Value: aws.String(role),
