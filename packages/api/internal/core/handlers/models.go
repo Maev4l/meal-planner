@@ -20,3 +20,14 @@ type RegisterUserResponse struct {
 	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`
 }
+
+type CreateMemberRequest struct {
+	Name  string `json:"name"`
+	Admin bool   `json:"role"`
+}
+
+type CreateMemberReponse struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"createdAt"`
+}

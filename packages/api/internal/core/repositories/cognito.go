@@ -9,6 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/rs/zerolog/log"
+	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/core/domain/roles"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type idp struct {
@@ -23,7 +26,48 @@ func NewCognito() *idp {
 	}
 }
 
-func (i *idp) RegisterUser(name string, password string, role string) (string, error) {
+func parseUserAttributes(attributes []types.AttributeType) (string, string) {
+	var id, appRole string
+	for _, att := range attributes {
+		if *(att.Name) == "sub" {
+			id = helper.Normalize((*att.Value))
+		}
+
+		if *(att.Name) == "custom:Role" {
+			appRole = (*att.Value)
+		}
+	}
+
+	return id, appRole
+}
+
+func (i *idp) GetUser(name string) (*domain.User, error) {
+	resp, err := i.client.AdminGetUser(context.TODO(), &cognitoidentityprovider.AdminGetUserInput{
+		UserPoolId: aws.String(userPoolId),
+		Username:   aws.String(name),
+	})
+
+	if err != nil {
+		log.Error().Msgf("Failed to get user '%s': %s", name, err.Error())
+		return nil, err
+	}
+
+	if resp == nil {
+		log.Warn().Msgf("User '%s' does not exist.", name)
+		return nil, nil
+	}
+
+	id, role := parseUserAttributes(resp.UserAttributes)
+
+	return &domain.User{
+		Id:        id,
+		Name:      *resp.Username,
+		CreatedAt: resp.UserCreateDate,
+		Role:      roles.APPLICATION_ROLE(role),
+	}, nil
+}
+
+func (i *idp) RegisterUser(name string, password string, role string) (*domain.User, error) {
 
 	resp, err := i.client.AdminCreateUser(context.TODO(), &cognitoidentityprovider.AdminCreateUserInput{
 		UserPoolId:        aws.String(userPoolId),
@@ -39,7 +83,7 @@ func (i *idp) RegisterUser(name string, password string, role string) (string, e
 
 	if err != nil {
 		log.Error().Msgf("Failed to register user '%s': %s", name, err.Error())
-		return "", err
+		return nil, err
 	}
 
 	_, err = i.client.AdminSetUserPassword(context.TODO(), &cognitoidentityprovider.AdminSetUserPasswordInput{
@@ -51,21 +95,20 @@ func (i *idp) RegisterUser(name string, password string, role string) (string, e
 
 	if err != nil {
 		log.Error().Msgf("Failed to set password for user '%s': %s", name, err.Error())
-		return "", err
+		return nil, err
 	}
 
-	var id string
-	for _, att := range resp.User.Attributes {
-		if *(att.Name) == "sub" {
-			id = (*att.Value)
-			break
-		}
-	}
+	id, _ := parseUserAttributes(resp.User.Attributes)
 
 	if id == "" {
 		log.Error().Msgf("No sub attribute for user '%s'", name)
-		return "", fmt.Errorf("no sub attribute for user '%s'", name)
+		return nil, fmt.Errorf("no sub attribute for user '%s'", name)
 	}
 
-	return id, nil
+	return &domain.User{
+		Id:        id,
+		Name:      *resp.User.Username,
+		CreatedAt: resp.User.UserCreateDate,
+		Role:      roles.APPLICATION_ROLE(role),
+	}, nil
 }

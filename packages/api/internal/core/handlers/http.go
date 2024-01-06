@@ -40,8 +40,10 @@ func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
 }
 
 /*
+Endpoint: /api/users
+
 Payload:
-{"name":"user name","password":"user name"}
+{"name":"user name","password":"user password"}
 */
 func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 
@@ -66,7 +68,7 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	id, err := hdl.svc.RegisterUser(request.Name, request.Password)
+	user, err := hdl.svc.RegisterUser(request.Name, request.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to register user.",
@@ -74,24 +76,56 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 		return
 	}
 
-	current := time.Now().UTC().Format(time.RFC3339)
 	response := &RegisterUserResponse{
-		Id:        id,
-		Name:      request.Name,
-		CreatedAt: current,
+		Id:        user.Id,
+		Name:      user.Name,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 	}
 
 	c.JSON(http.StatusCreated, response)
 }
 
+/*
+Endpoint: /api/groups/:groupId/members
+Payload:
+{"name":"name of the new member", "admin":false}
+*/
 func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
-	// info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
-	// groupId := c.Param("groupId")
+	groupId := c.Param("groupId")
+	var request CreateMemberRequest
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Error().Msgf("Invalid request: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid request.",
+		})
+
+		return
+	}
+
+	member, err := hdl.svc.CreateMember(info.userId, groupId, request.Name, request.Admin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to enroll user.",
+		})
+		return
+	}
+
+	response := &CreateMemberReponse{
+		Id:        member.Id,
+		Name:      member.Name,
+		CreatedAt: member.CreatedAt.Format(time.RFC3339),
+	}
+
+	c.JSON(http.StatusCreated, response)
 
 }
 
 /*
+Endpoint: /api/groups
+
 Payload:
 {"name":"group name"}
 */

@@ -166,6 +166,7 @@ resources:
                     - cognito-idp:AdminDeleteUser
                     - cognito-idp:AdminSetUserPassword
                     - cognito-idp:AdminEnableUser
+                    - cognito-idp:AdminGetUser
                   Resource: !GetAtt UserPool.Arn
     UserPool:
       Type: AWS::Cognito::UserPool

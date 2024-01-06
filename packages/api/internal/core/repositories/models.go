@@ -3,8 +3,6 @@ package repositories
 import (
 	"fmt"
 	"time"
-
-	"isnan.eu/meal-planner/api/internal/core/domain"
 )
 
 type Group struct {
@@ -15,29 +13,29 @@ type Group struct {
 	CreatedAt *time.Time `dynamodbav:"CreatedAt"`
 }
 
-func createGroupPK(g *domain.Group) string {
-	return fmt.Sprintf("group#%s", g.Id)
+func createGroupPK(groupId string) string {
+	return fmt.Sprintf("group#%s", groupId)
 }
 
-func createGroupSK(g *domain.Group) string {
-	return fmt.Sprintf("group#%s", g.Id)
+func createGroupSK(groupId string) string {
+	return fmt.Sprintf("group#%s", groupId)
 }
 
-type User struct {
+type Member struct {
 	PK        string     `dynamodbav:"PK"` // group#1234
 	SK        string     `dynamodbav:"SK"` // user#1234
-	Id        string     `dynamodbav:"UserId"`
-	Name      string     `dynamodbav:"UserName"`
+	Id        string     `dynamodbav:"MemberId"`
+	Name      string     `dynamodbav:"MemberName"`
 	GroupId   string     `dynamodbav:"GroupId"`
 	GroupName string     `dynamodbav:"GroupName"`
 	Role      string     `dynamodbav:"Role"`
 	CreatedAt *time.Time `dynamodbav:"CreatedAt"`
 }
 
-func createMemberSK(u *domain.Member) string {
-	return fmt.Sprintf("user#%s", u.Id)
+func createMemberSK(memberId string) string {
+	return fmt.Sprintf("member#%s", memberId)
 }
 
-func createMemberPK(g *domain.Group) string {
-	return fmt.Sprintf("group#%s", g.Id)
+func createMemberPK(groupId string) string {
+	return fmt.Sprintf("group#%s", groupId)
 }

@@ -30,9 +30,11 @@ func (s *service) CreateGroup(memberId string, memberName string, groupName stri
 		Name:      memberName,
 		CreatedAt: &current,
 		Role:      roles.GroupAdmin,
+		GroupId:   group.Id,
+		GroupName: groupName,
 	}
 
-	err = s.repo.SaveMember(&group, &member, roles.GroupAdmin)
+	err = s.repo.SaveMember(&member)
 
 	if err != nil {
 		return nil, err
