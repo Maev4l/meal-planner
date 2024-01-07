@@ -26,6 +26,9 @@ func NewHTTPHandler(service ports.PlannerService) *HTTPHandler {
 	}
 }
 
+/*
+Endpoint: DELETE /api/appadmin/users/:userId
+*/
 func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
@@ -40,7 +43,7 @@ func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
 }
 
 /*
-Endpoint: /api/users
+Endpoint: POST /api/appadmin/users
 
 Payload:
 {"name":"user name","password":"user password"}
@@ -86,7 +89,7 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 }
 
 /*
-Endpoint: /api/groups/:groupId/schedules
+Endpoint: POST /api/groups/:groupId/schedules
 Payload:
 {"name":"name of the new member", "admin":false}
 */
@@ -127,7 +130,7 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 }
 
 /*
-Endpoint: /api/groups/:groupId/members
+Endpoint: POST /api/groups/:groupId/members
 Payload:
 {"name":"name of the new member", "admin":false}
 */
@@ -165,7 +168,7 @@ func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
 }
 
 /*
-Endpoint: /api/groups
+Endpoint: POST /api/groups
 
 Payload:
 {"name":"group name"}

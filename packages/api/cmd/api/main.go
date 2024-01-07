@@ -25,10 +25,10 @@ func init() {
 	h := handlers.NewHTTPHandler(s)
 
 	// Enroll user into IdP
-	router.POST("/api/users", h.RegisterUser)
+	router.POST("/api/appadmin/users", h.RegisterUser)
 
 	// Offboard user
-	router.DELETE("/api/users/:id", h.UnregisterUser)
+	router.DELETE("/api/appadmin/users/:userId", h.UnregisterUser)
 
 	// Create a group
 	router.POST("/api/groups", h.CreateGroup)
@@ -36,17 +36,8 @@ func init() {
 	// Enroll a user within a group
 	router.POST("/api/groups/:groupId/members", h.CreateMember)
 
-	// Create / Update a schedule for a group
+	// Create / Update a schedule for a given group
 	router.POST("/api/groups/:groupId/schedules")
-
-	router.GET("/api/members/:id", func(c *gin.Context) {
-
-		c.JSON(200, gin.H{
-			"id": c.Param("id"),
-			// "q":  c.Query("q"),
-
-		})
-	})
 
 	ginLambda = ginadapter.New(router)
 }
