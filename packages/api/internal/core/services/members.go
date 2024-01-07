@@ -90,10 +90,15 @@ func (s *service) CreateMember(requesterMemberId string, groupId string, memberN
 		return nil, fmt.Errorf("group '%s' does not exists", groupId)
 	}
 
-	// Check if the requestor is admin of the given group
+	// Check if the requestor is belong to the given group and is admin of the group
 	getMemberRes := <-getMemberOut
 	if getMemberRes.err != nil {
 		return nil, getMemberRes.err
+	}
+
+	if getMemberRes.member == nil {
+		log.Error().Msgf("Requester '%s' does not belong to group '%s'.", requesterMemberId, groupId)
+		return nil, fmt.Errorf("requester '%s' does not belong to group '%s'", requesterMemberId, groupId)
 	}
 
 	if getMemberRes.member.Role != roles.GroupAdmin {

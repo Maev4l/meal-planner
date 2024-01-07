@@ -42,6 +42,10 @@ func (m *MemberDefaultSchedule) GetId() string {
 	return "default"
 }
 
+func (m *MemberDefaultSchedule) IsDefault() bool {
+	return true
+}
+
 // 0: no lunch, no dinner
 // 1: lunch, no dinner
 // 2: no luch, dinner
@@ -72,6 +76,10 @@ type MemberSchedule struct {
 	MemberDefaultSchedule
 }
 
+func (m *MemberSchedule) IsDefault() bool {
+	return false
+}
+
 func (s *MemberSchedule) GetId() string {
-	return fmt.Sprintf("%d-CW%d", s.Year, s.WeekNumber)
+	return fmt.Sprintf("%d-CW%02d", s.Year, s.WeekNumber)
 }

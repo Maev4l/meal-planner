@@ -39,7 +39,7 @@ func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
 		})
 		return
 	}
-	// userId := c.Param("id")
+	c.Status(http.StatusNotImplemented)
 }
 
 /*
@@ -85,13 +85,27 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 	}
 
+	log.Info().Msgf("User '%s' registered with id '%s'.", user.Id, user.Name)
+
 	c.JSON(http.StatusCreated, response)
 }
 
 /*
 Endpoint: POST /api/groups/:groupId/schedules
 Payload:
-{"name":"name of the new member", "admin":false}
+
+	{
+		"default":false,
+		"year": 2024,
+		"weekNumber":2,
+		"monday":1,
+		"tuesday": 0,
+		"wednesday": 2,
+		"thursday": 3,
+		"friday": 3,
+		"saturday": 2,
+		"sunday":2
+	}
 */
 func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
@@ -108,22 +122,45 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 		return
 	}
 
-	err = hdl.svc.CreateSchedule(info.userId,
-		groupId,
-		request.Year,
-		request.WeekNumber,
-		request.Monday,
-		request.Tuesday,
-		request.Wednesday,
-		request.Thursday,
-		request.Friday,
-		request.Saturday,
-		request.Sunday)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Failed to set schedule.",
-		})
-		return
+	if request.Default {
+		err = hdl.svc.CreateDefaultSchedule(
+			info.userId,
+			groupId,
+			request.Monday,
+			request.Tuesday,
+			request.Wednesday,
+			request.Thursday,
+			request.Friday,
+			request.Saturday,
+			request.Sunday)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Failed to set default schedule.",
+			})
+			return
+		}
+
+		log.Info().Msgf("Default schedule created for member '%s' and for group '%s'.", info.userId, groupId)
+	} else {
+		err = hdl.svc.CreateSchedule(
+			info.userId,
+			groupId,
+			request.Year,
+			request.WeekNumber,
+			request.Monday,
+			request.Tuesday,
+			request.Wednesday,
+			request.Thursday,
+			request.Friday,
+			request.Saturday,
+			request.Sunday)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Failed to set schedule.",
+			})
+			return
+		}
+		log.Info().Msgf("Schedule 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", request.Year, request.WeekNumber, info.userId, groupId)
 	}
 
 	c.Status(http.StatusCreated)
@@ -163,6 +200,8 @@ func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
 		CreatedAt: member.CreatedAt.Format(time.RFC3339),
 	}
 
+	log.Info().Msgf("Member '%s' (Admin: %t) enrolled into group '%s'.", member.Name, request.Admin, groupId)
+
 	c.JSON(http.StatusCreated, response)
 
 }
@@ -201,5 +240,8 @@ func (hdl *HTTPHandler) CreateGroup(c *gin.Context) {
 		Name:      group.Name,
 		CreatedAt: group.CreatedAt.Format(time.RFC3339),
 	}
+
+	log.Info().Msgf("Group '%s' created.", group.Name)
+
 	c.JSON(http.StatusCreated, response)
 }

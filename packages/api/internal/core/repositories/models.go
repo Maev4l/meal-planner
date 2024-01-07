@@ -61,7 +61,7 @@ type Schedule struct {
 
 type MemberSchedule struct {
 	Schedule
-	ExpiresAt int `dynamodbav:"ExpiresAt"`
+	ExpiresAt int64 `dynamodbav:"ExpiresAt"`
 }
 
 func createSchedulePK(memberId string) string {

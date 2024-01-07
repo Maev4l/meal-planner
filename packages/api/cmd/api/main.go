@@ -37,7 +37,7 @@ func init() {
 	router.POST("/api/groups/:groupId/members", h.CreateMember)
 
 	// Create / Update a schedule for a given group
-	router.POST("/api/groups/:groupId/schedules")
+	router.POST("/api/groups/:groupId/schedules", h.CreateSchedule)
 
 	ginLambda = ginadapter.New(router)
 }

@@ -23,7 +23,7 @@ type RegisterUserResponse struct {
 
 type CreateMemberRequest struct {
 	Name  string `json:"name"`
-	Admin bool   `json:"role"`
+	Admin bool   `json:"admin"`
 }
 
 type CreateMemberReponse struct {
@@ -33,13 +33,14 @@ type CreateMemberReponse struct {
 }
 
 type CreateScheduleRequest struct {
-	WeekNumber int `json:"weekNumber"`
-	Year       int `json:"year"`
-	Monday     int `json:"monday"`
-	Tuesday    int `json:"tuesday"`
-	Wednesday  int `json:"wednesday"`
-	Thursday   int `json:"thursday"`
-	Friday     int `json:"friday"`
-	Saturday   int `json:"saturday"`
-	Sunday     int `json:"sunday"`
+	Default    bool `json:"default,omitempty"`
+	WeekNumber int  `json:"weekNumber,omitempty"`
+	Year       int  `json:"year,omitempty"`
+	Monday     int  `json:"monday"`
+	Tuesday    int  `json:"tuesday"`
+	Wednesday  int  `json:"wednesday"`
+	Thursday   int  `json:"thursday"`
+	Friday     int  `json:"friday"`
+	Saturday   int  `json:"saturday"`
+	Sunday     int  `json:"sunday"`
 }
