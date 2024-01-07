@@ -133,7 +133,23 @@ func (s *service) CreateMember(requesterMemberId string, groupId string, memberN
 		GroupName: getGroupRes.group.Name,
 	}
 
+	// Save the membership
 	err = s.repo.SaveMember(&member)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save the default schedule for this membership
+	schedule := domain.MemberDefaultSchedule{
+		MemberId:       member.Id,
+		MemberName:     member.Name,
+		GroupId:        getGroupRes.group.Id,
+		GroupName:      getGroupRes.group.Name,
+		WeeklySchedule: domain.SystemDefaultWeeklySchedule,
+		CreatedAt:      &current,
+	}
+
+	err = s.repo.SaveMemberDefaultSchedule(getGroupRes.group, &member, &schedule)
 	if err != nil {
 		return nil, err
 	}

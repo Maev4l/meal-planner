@@ -36,6 +36,9 @@ func init() {
 	// Enroll a user within a group
 	router.POST("/api/groups/:groupId/members", h.CreateMember)
 
+	// Create / Update a schedule for a group
+	router.POST("/api/groups/:groupId/schedules")
+
 	router.GET("/api/members/:id", func(c *gin.Context) {
 
 		c.JSON(200, gin.H{

@@ -9,4 +9,5 @@ type PlannerRepository interface {
 	GetGroup(groupId string) (*domain.Group, error)
 	SaveMember(m *domain.Member) error
 	GetMember(groupId string, memberId string) (*domain.Member, error)
+	SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s *domain.MemberDefaultSchedule) error
 }

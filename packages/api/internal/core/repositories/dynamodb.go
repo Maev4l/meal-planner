@@ -26,6 +26,46 @@ func NewDynamoDB() *dynamo {
 	}
 }
 
+func (d *dynamo) SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s *domain.MemberDefaultSchedule) error {
+
+	record := Schedule{
+		PK:         createSchedulePK(m.Id),
+		SK:         createScheduleSK(s.GetId()),
+		GSI1PK:     createScheduleSecondary1PK(g.Id),
+		GSI1SK:     createScheduleSecondary1SK(s.GetId()),
+		MemberId:   m.Id,
+		MemberName: m.Name,
+		GroupId:    g.Id,
+		GroupName:  g.Name,
+		Monday:     s.Monday,
+		Tuesday:    s.Tuesday,
+		Wednesday:  s.Wednesday,
+		Thursday:   s.Thursday,
+		Friday:     s.Friday,
+		Saturday:   s.Saturday,
+		Sunday:     s.Sunday,
+		CreatedAt:  s.CreatedAt,
+	}
+
+	item, err := attributevalue.MarshalMap(record)
+	if err != nil {
+		log.Error().Msgf("Failed to marshal member '%s''s default schedule: %s", m.Name, err.Error())
+		return err
+	}
+
+	_, err = d.client.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String(tableName),
+		Item:      item,
+	})
+
+	if err != nil {
+		log.Error().Msgf("Failed to put member '%s''s default schedule: %s", m.Name, err.Error())
+		return err
+	}
+
+	return nil
+}
+
 func (d *dynamo) GetMember(groupId string, memberId string) (*domain.Member, error) {
 
 	memberPK, _ := attributevalue.Marshal(createMemberPK(groupId))

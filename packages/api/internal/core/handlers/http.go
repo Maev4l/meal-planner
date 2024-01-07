@@ -86,6 +86,47 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 }
 
 /*
+Endpoint: /api/groups/:groupId/schedules
+Payload:
+{"name":"name of the new member", "admin":false}
+*/
+func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	groupId := c.Param("groupId")
+
+	var request CreateScheduleRequest
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Error().Msgf("Invalid request: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid request.",
+		})
+		return
+	}
+
+	err = hdl.svc.CreateSchedule(info.userId,
+		groupId,
+		request.Year,
+		request.WeekNumber,
+		request.Monday,
+		request.Tuesday,
+		request.Wednesday,
+		request.Thursday,
+		request.Friday,
+		request.Saturday,
+		request.Sunday)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to set schedule.",
+		})
+		return
+	}
+
+	c.Status(http.StatusCreated)
+}
+
+/*
 Endpoint: /api/groups/:groupId/members
 Payload:
 {"name":"name of the new member", "admin":false}
