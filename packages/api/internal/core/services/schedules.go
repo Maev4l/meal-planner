@@ -2,10 +2,14 @@ package services
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/snabb/isoweek"
 	"isnan.eu/meal-planner/api/internal/core/domain"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 func (s *service) validateScheduleOperation(groupId string, memberId string) (*domain.Group, *domain.Member, error) {
@@ -80,9 +84,97 @@ func (s *service) validateScheduleOperation(groupId string, memberId string) (*d
 	return getGroupRes.group, getMemberRes.member, nil
 }
 
+func computeMemberSchedule(year int, week int, defaultSchedule *domain.MemberDefaultSchedule, memberSchedule *domain.MemberSchedule) *domain.MemberSchedule {
+	if memberSchedule != nil {
+		return &domain.MemberSchedule{
+			Overriden:  true,
+			Year:       year,
+			WeekNumber: week,
+			Schedule:   memberSchedule.Schedule,
+		}
+	}
+
+	return &domain.MemberSchedule{
+		Overriden:  false,
+		Year:       year,
+		WeekNumber: week,
+		Schedule:   *defaultSchedule,
+	}
+}
+
+func (s *service) GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, error) {
+	p := strings.Split(period, "-")
+	if len(p) != 2 {
+		log.Error().Msgf("Incorrect period format: %s.", period)
+		return nil, nil, fmt.Errorf("incorrect period format")
+	}
+
+	y := p[0]
+	w := p[1]
+
+	year, err := strconv.Atoi(y)
+	if err != nil {
+		log.Error().Msgf("Incorrect year value: %s.", y)
+		return nil, nil, fmt.Errorf("incorrect year value: %s", y)
+	}
+
+	week, err := strconv.Atoi(w)
+	if err != nil {
+		log.Error().Msgf("Incorrect week value: %s.", w)
+		return nil, nil, fmt.Errorf("incorrect week value: %s", w)
+	}
+
+	valid := isoweek.Validate(year, week)
+	if !valid {
+		log.Error().Msgf("Invalid calendar week '%d-%d'.", year, week)
+		return nil, nil, fmt.Errorf("invalid calendar week '%d-%d'", year, week)
+	}
+
+	// TODO: Check if the period is too far in the past
+
+	// TODO: Check if the period is too far in the future
+
+	// Retrieve schedules (requester's schedules across groups + members of the groups requester is admin) for the period
+	defaultSchedules, memberSchedules, _ := s.repo.GetMemberSchedules(memberId, helper.NewScheduleId(year, week))
+
+	// Group by member id
+	defaultSchedulesByMember := map[string]*domain.MemberDefaultSchedule{}
+	memberSchedulesByMember := map[string]*domain.MemberSchedule{}
+
+	for _, s := range defaultSchedules {
+		defaultSchedulesByMember[s.MemberId] = s
+	}
+
+	for _, s := range memberSchedules {
+		memberSchedulesByMember[s.Schedule.MemberId] = s
+	}
+
+	computedMemberSchedules := []*domain.MemberSchedule{}
+
+	// For each member, compute the schedule for the period
+	for userId, defaultSchedule := range defaultSchedulesByMember {
+
+		var computerMemberSchedule *domain.MemberSchedule
+		memberSchedule := memberSchedulesByMember[userId]
+
+		computerMemberSchedule = computeMemberSchedule(year, week, defaultSchedule, memberSchedule)
+
+		computedMemberSchedules = append(computedMemberSchedules, computerMemberSchedule)
+	}
+
+	return defaultSchedules, computedMemberSchedules, nil
+}
+
 func (s *service) CreateSchedule(memberId string, groupId string,
 	year int, week int,
 	mon int, tues int, wed int, thu int, fri int, sat int, sun int) error {
+
+	// Check if the calendar week is valid
+	valid := isoweek.Validate(year, week)
+	if !valid {
+		log.Error().Msgf("Invalid calendar week '%d-%d'.", year, week)
+		return fmt.Errorf("invalid calendar week '%d-%d'", year, week)
+	}
 
 	group, member, err := s.validateScheduleOperation(groupId, memberId)
 	if err != nil {
@@ -98,7 +190,7 @@ func (s *service) CreateSchedule(memberId string, groupId string,
 	schedule := domain.MemberSchedule{
 		Year:       year,
 		WeekNumber: week,
-		MemberDefaultSchedule: domain.MemberDefaultSchedule{
+		Schedule: domain.MemberDefaultSchedule{
 			MemberId:   member.Id,
 			MemberName: member.Name,
 			GroupId:    group.Id,

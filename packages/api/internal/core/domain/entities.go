@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"fmt"
 	"time"
 
 	"isnan.eu/meal-planner/api/internal/core/domain/roles"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type Group struct {
@@ -30,16 +30,19 @@ type User struct {
 }
 
 type MemberDefaultSchedule struct {
-	MemberId   string
-	MemberName string
-	GroupName  string
-	GroupId    string
-	CreatedAt  *time.Time
-	WeeklySchedule
+	MemberId       string
+	MemberName     string
+	GroupName      string
+	GroupId        string
+	Role           roles.GROUP_ROLE
+	CreatedAt      *time.Time
+	WeeklySchedule WeeklySchedule
 }
 
+const MEMBER_DEFAULT_SCHEDULE_ID = "default"
+
 func (m *MemberDefaultSchedule) GetId() string {
-	return "default"
+	return MEMBER_DEFAULT_SCHEDULE_ID
 }
 
 func (m *MemberDefaultSchedule) IsDefault() bool {
@@ -73,7 +76,8 @@ var SystemDefaultWeeklySchedule = WeeklySchedule{
 type MemberSchedule struct {
 	WeekNumber int
 	Year       int
-	MemberDefaultSchedule
+	Overriden  bool
+	Schedule   MemberDefaultSchedule
 }
 
 func (m *MemberSchedule) IsDefault() bool {
@@ -81,5 +85,5 @@ func (m *MemberSchedule) IsDefault() bool {
 }
 
 func (s *MemberSchedule) GetId() string {
-	return fmt.Sprintf("%d-CW%02d", s.Year, s.WeekNumber)
+	return helper.NewScheduleId(s.Year, s.WeekNumber)
 }

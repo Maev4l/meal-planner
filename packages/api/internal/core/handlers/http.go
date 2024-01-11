@@ -245,3 +245,81 @@ func (hdl *HTTPHandler) CreateGroup(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, response)
 }
+
+/*
+Endpoint: GET /api/groups/schedules/:schedules (2024-2 or 2024-43)
+*/
+func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	period := c.Param("period")
+	defaultSchedules, memberSchedules, err := hdl.svc.GetSchedules(info.userId, period)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to retrieve schedules.",
+		})
+		return
+	}
+
+	response := GetSchedulesResponse{
+		Schedules: map[string]*GroupScheduleResponse{},
+	}
+
+	for _, d := range defaultSchedules {
+		groupId := d.GroupId
+		groupName := d.GroupName
+
+		groupSchedule := response.Schedules[groupId]
+		if groupSchedule == nil {
+			groupSchedule = &GroupScheduleResponse{
+				GroupId:   groupId,
+				GroupName: groupName,
+				Members:   map[string]*MemberScheduleResponse{},
+			}
+			response.Schedules[groupId] = groupSchedule
+		}
+
+		memberId := d.MemberId
+		memberName := d.MemberName
+
+		groupSchedule.Members[memberId] = &MemberScheduleResponse{
+			MemberId:   memberId,
+			MemberName: memberName,
+			Admin:      d.Role == roles.GroupAdmin,
+			DefaultSchedule: DefaultScheduleResponse{
+				Monday:    d.WeeklySchedule.Monday,
+				Tuesday:   d.WeeklySchedule.Tuesday,
+				Wednesday: d.WeeklySchedule.Wednesday,
+				Thursday:  d.WeeklySchedule.Thursday,
+				Friday:    d.WeeklySchedule.Friday,
+				Saturday:  d.WeeklySchedule.Saturday,
+				Sunday:    d.WeeklySchedule.Sunday,
+			},
+		}
+
+	}
+
+	for _, s := range memberSchedules {
+		groupId := s.Schedule.GroupId
+		memberId := s.Schedule.MemberId
+		groupSchedule := response.Schedules[groupId]
+		memberSchedule := groupSchedule.Members[memberId]
+
+		memberSchedule.Schedule = ScheduleResponse{
+			Overriden:  s.Overriden,
+			Year:       s.Year,
+			WeekNumber: s.WeekNumber,
+			DefaultScheduleResponse: DefaultScheduleResponse{
+				Monday:    s.Schedule.WeeklySchedule.Monday,
+				Tuesday:   s.Schedule.WeeklySchedule.Tuesday,
+				Wednesday: s.Schedule.WeeklySchedule.Wednesday,
+				Thursday:  s.Schedule.WeeklySchedule.Thursday,
+				Friday:    s.Schedule.WeeklySchedule.Friday,
+				Saturday:  s.Schedule.WeeklySchedule.Saturday,
+				Sunday:    s.Schedule.WeeklySchedule.Sunday,
+			},
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
+}

@@ -14,6 +14,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/lestrrat-go/jwx v1.2.27
 	github.com/rs/zerolog v1.31.0
+	github.com/snabb/isoweek v1.0.3
 )
 
 require (

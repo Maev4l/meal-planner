@@ -44,3 +44,38 @@ type CreateScheduleRequest struct {
 	Saturday   int  `json:"saturday"`
 	Sunday     int  `json:"sunday"`
 }
+
+type DefaultScheduleResponse struct {
+	Monday    int `json:"monday"`
+	Tuesday   int `json:"tuesday"`
+	Wednesday int `json:"wednesday"`
+	Thursday  int `json:"thursday"`
+	Friday    int `json:"friday"`
+	Saturday  int `json:"saturday"`
+	Sunday    int `json:"sunday"`
+}
+
+type ScheduleResponse struct {
+	Overriden  bool `json:"overriden"`
+	Year       int  `json:"year"`
+	WeekNumber int  `json:"weekNumber,omitempty"`
+	DefaultScheduleResponse
+}
+
+type MemberScheduleResponse struct {
+	MemberId        string                  `json:"memberId"`
+	MemberName      string                  `json:"memberName"`
+	Admin           bool                    `json:"admin"`
+	DefaultSchedule DefaultScheduleResponse `json:"default"`
+	Schedule        ScheduleResponse        `json:"schedule"`
+}
+
+type GroupScheduleResponse struct {
+	GroupId   string                             `json:"groupId"`
+	GroupName string                             `json:"groupName"`
+	Members   map[string]*MemberScheduleResponse `json:"members"`
+}
+
+type GetSchedulesResponse struct {
+	Schedules map[string]*GroupScheduleResponse `json:"schedules"`
+}

@@ -2,16 +2,20 @@ package repositories
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/snabb/isoweek"
 
 	"github.com/rs/zerolog/log"
 	"isnan.eu/meal-planner/api/internal/core/domain"
 	"isnan.eu/meal-planner/api/internal/core/domain/roles"
+	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type dynamo struct {
@@ -28,28 +32,33 @@ func NewDynamoDB() *dynamo {
 
 func (d *dynamo) SaveMemberSchedule(g *domain.Group, m *domain.Member, s *domain.MemberSchedule) error {
 	// compute TTL
-	expiresAt := s.CreatedAt.AddDate(0, 0, 30).Unix()
+	year, month, day := isoweek.StartDate(s.Year, s.WeekNumber)
+	start, _ := time.Parse(time.DateOnly, fmt.Sprintf("%d-%02d-%02d", year, month, day))
+	expiresAt := start.AddDate(0, 0, 14)
 
 	record := MemberSchedule{
 		Schedule: Schedule{
 			PK:         createSchedulePK(m.Id),
-			SK:         createScheduleSK(s.GetId()),
+			SK:         createScheduleSK(s.GetId(), g.Id),
 			GSI1PK:     createScheduleSecondary1PK(g.Id),
 			GSI1SK:     createScheduleSecondary1SK(s.GetId()),
+			Year:       s.Year,
+			WeekNumber: s.WeekNumber,
 			MemberId:   m.Id,
 			MemberName: m.Name,
+			MemberRole: string(m.Role),
 			GroupId:    g.Id,
 			GroupName:  g.Name,
-			Monday:     s.Monday,
-			Tuesday:    s.Tuesday,
-			Wednesday:  s.Wednesday,
-			Thursday:   s.Thursday,
-			Friday:     s.Friday,
-			Saturday:   s.Saturday,
-			Sunday:     s.Sunday,
-			CreatedAt:  s.CreatedAt,
+			Monday:     s.Schedule.WeeklySchedule.Monday,
+			Tuesday:    s.Schedule.WeeklySchedule.Tuesday,
+			Wednesday:  s.Schedule.WeeklySchedule.Wednesday,
+			Thursday:   s.Schedule.WeeklySchedule.Thursday,
+			Friday:     s.Schedule.WeeklySchedule.Friday,
+			Saturday:   s.Schedule.WeeklySchedule.Saturday,
+			Sunday:     s.Schedule.WeeklySchedule.Sunday,
+			CreatedAt:  s.Schedule.CreatedAt,
 		},
-		ExpiresAt: expiresAt,
+		ExpiresAt: &expiresAt,
 	}
 
 	item, err := attributevalue.MarshalMap(record)
@@ -75,20 +84,21 @@ func (d *dynamo) SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s 
 
 	record := Schedule{
 		PK:         createSchedulePK(m.Id),
-		SK:         createScheduleSK(s.GetId()),
+		SK:         createScheduleSK(s.GetId(), g.Id),
 		GSI1PK:     createScheduleSecondary1PK(g.Id),
 		GSI1SK:     createScheduleSecondary1SK(s.GetId()),
 		MemberId:   m.Id,
 		MemberName: m.Name,
 		GroupId:    g.Id,
 		GroupName:  g.Name,
-		Monday:     s.Monday,
-		Tuesday:    s.Tuesday,
-		Wednesday:  s.Wednesday,
-		Thursday:   s.Thursday,
-		Friday:     s.Friday,
-		Saturday:   s.Saturday,
-		Sunday:     s.Sunday,
+		MemberRole: string(m.Role),
+		Monday:     s.WeeklySchedule.Monday,
+		Tuesday:    s.WeeklySchedule.Tuesday,
+		Wednesday:  s.WeeklySchedule.Wednesday,
+		Thursday:   s.WeeklySchedule.Thursday,
+		Friday:     s.WeeklySchedule.Friday,
+		Saturday:   s.WeeklySchedule.Saturday,
+		Sunday:     s.WeeklySchedule.Sunday,
 		CreatedAt:  s.CreatedAt,
 	}
 
@@ -111,10 +121,173 @@ func (d *dynamo) SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s 
 	return nil
 }
 
+func (d *dynamo) fetchSchedulesByGroup(groupId string) ([]*Schedule, error) {
+	query := dynamodb.QueryInput{
+		TableName:              aws.String(tableName),
+		IndexName:              aws.String("GSI1"),
+		KeyConditionExpression: aws.String("#pk = :groupId and begins_with(#sk,:schedule_prefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":groupId": &types.AttributeValueMemberS{
+				Value: createScheduleSecondary1PK(groupId),
+			},
+			":schedule_prefix": &types.AttributeValueMemberS{
+				Value: "schedule#",
+			},
+		},
+		ExpressionAttributeNames: map[string]string{
+			"#pk": "GSI1PK",
+			"#sk": "GSI1SK",
+		},
+	}
+
+	records := []*Schedule{}
+
+	queryPaginator := dynamodb.NewQueryPaginator(d.client, &query)
+
+	ctx := context.TODO()
+	for i := 0; queryPaginator.HasMorePages(); i++ {
+		result, err := queryPaginator.NextPage(ctx)
+		if err != nil {
+			log.Error().Msgf("Failed to query group '%s' schedules: %s.", groupId, err.Error())
+			return nil, err
+		}
+
+		if result.Count > 0 {
+			for _, item := range result.Items {
+
+				record := Schedule{}
+				if err := attributevalue.UnmarshalMap(item, &record); err != nil {
+					log.Warn().Msgf("Failed to unmarshal group '%s' schedule: %s", groupId, err.Error())
+				}
+				records = append(records, &record)
+			}
+		}
+	}
+
+	return records, nil
+}
+
+func (d *dynamo) fetchGroupsByMember(memberId string) ([]*Group, error) {
+	query := dynamodb.QueryInput{
+		TableName:              aws.String(tableName),
+		KeyConditionExpression: aws.String("#pk = :memberId and begins_with(#sk,:group_prefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":memberId": &types.AttributeValueMemberS{
+				Value: createSchedulePK(memberId),
+			},
+			":group_prefix": &types.AttributeValueMemberS{
+				Value: "group#",
+			},
+		},
+		ExpressionAttributeNames: map[string]string{
+			"#pk": "PK",
+			"#sk": "SK",
+		},
+	}
+
+	records := []*Group{}
+
+	queryPaginator := dynamodb.NewQueryPaginator(d.client, &query)
+
+	ctx := context.TODO()
+	for i := 0; queryPaginator.HasMorePages(); i++ {
+		result, err := queryPaginator.NextPage(ctx)
+		if err != nil {
+			log.Error().Msgf("Failed to query member '%s' groups: %s.",
+				memberId,
+				err.Error())
+			return nil, err
+		}
+
+		if result.Count > 0 {
+			for _, item := range result.Items {
+
+				record := Group{}
+				if err := attributevalue.UnmarshalMap(item, &record); err != nil {
+					log.Warn().Msgf("Failed to unmarshal group for member '%s': %s", memberId, err.Error())
+				}
+				records = append(records, &record)
+			}
+		}
+	}
+
+	return records, nil
+}
+
+func (d *dynamo) GetMemberSchedules(memberId string, scheduleId string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, error) {
+
+	// Fetch all membership across groups for the given member
+	groups, _ := d.fetchGroupsByMember(memberId)
+
+	// Fetch all schedules for theses groups
+	schedules := []*Schedule{}
+	for _, g := range groups {
+		res, _ := d.fetchSchedulesByGroup(g.Id)
+		schedules = append(schedules, res...)
+	}
+
+	// Filter out schedules which are not in the period except default schedules
+	schedules = helper.Filter(schedules, func(s *Schedule) bool {
+		id := s.getId()
+		return id == domain.MEMBER_DEFAULT_SCHEDULE_ID || id == scheduleId
+	})
+
+	memberSchedules := []*domain.MemberSchedule{}
+	defaultSchedules := []*domain.MemberDefaultSchedule{}
+	for _, s := range schedules {
+		if s.isDefault() {
+			defaultSchedule := domain.MemberDefaultSchedule{
+				MemberId:   s.MemberId,
+				MemberName: s.MemberName,
+				GroupId:    s.GroupId,
+				GroupName:  s.GroupName,
+				Role:       roles.GROUP_ROLE(s.MemberRole),
+				WeeklySchedule: domain.WeeklySchedule{
+					Monday:    s.Monday,
+					Tuesday:   s.Tuesday,
+					Wednesday: s.Wednesday,
+					Thursday:  s.Thursday,
+					Friday:    s.Friday,
+					Saturday:  s.Saturday,
+					Sunday:    s.Sunday,
+				},
+			}
+
+			defaultSchedules = append(defaultSchedules, &defaultSchedule)
+
+		} else {
+			memberSchedule := domain.MemberSchedule{
+				Year:       s.Year,
+				WeekNumber: s.WeekNumber,
+				Schedule: domain.MemberDefaultSchedule{
+					MemberId:   s.MemberId,
+					MemberName: s.MemberName,
+					GroupId:    s.GroupId,
+					GroupName:  s.GroupName,
+					WeeklySchedule: domain.WeeklySchedule{
+						Monday:    s.Monday,
+						Tuesday:   s.Tuesday,
+						Wednesday: s.Wednesday,
+						Thursday:  s.Thursday,
+						Friday:    s.Friday,
+						Saturday:  s.Saturday,
+						Sunday:    s.Sunday,
+					},
+				},
+			}
+
+			memberSchedules = append(memberSchedules, &memberSchedule)
+		}
+	}
+
+	return defaultSchedules, memberSchedules, nil
+
+}
+
 func (d *dynamo) GetMember(groupId string, memberId string) (*domain.Member, error) {
 
-	memberPK, _ := attributevalue.Marshal(createMemberPK(groupId))
-	memberSK, _ := attributevalue.Marshal(createMemberSK(memberId))
+	memberPK, _ := attributevalue.Marshal(createMemberPK(memberId))
+	memberSK, _ := attributevalue.Marshal(createMemberSK(groupId))
 
 	result, err := d.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
@@ -155,8 +328,10 @@ func (d *dynamo) GetMember(groupId string, memberId string) (*domain.Member, err
 
 func (d *dynamo) SaveMember(m *domain.Member) error {
 	record := Member{
-		PK:        createMemberPK(m.GroupId),
-		SK:        createMemberSK(m.Id),
+		PK:        createMemberPK(m.Id),
+		SK:        createMemberSK(m.GroupId),
+		GSI1PK:    createMemberSecondary1PK(m.GroupId),
+		GSI1SK:    createMemberSecondary1SK(m.Id),
 		Id:        m.Id,
 		Name:      m.Name,
 		GroupName: m.GroupName,

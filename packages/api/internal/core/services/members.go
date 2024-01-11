@@ -128,12 +128,18 @@ func (s *service) CreateMember(requesterMemberId string, groupId string, memberN
 		return nil, fmt.Errorf("user '%s' already belongs to group '%s'", m.Name, groupId)
 	}
 
+	var role roles.GROUP_ROLE
+	if admin {
+		role = roles.GroupAdmin
+	} else {
+		role = roles.Member
+	}
 	current := time.Now().UTC()
 	member := domain.Member{
 		Id:        getUserRes.user.Id,
 		Name:      memberName,
 		CreatedAt: &current,
-		Role:      roles.Member,
+		Role:      role,
 		GroupId:   getGroupRes.group.Id,
 		GroupName: getGroupRes.group.Name,
 	}
