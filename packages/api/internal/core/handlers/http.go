@@ -261,22 +261,20 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 		return
 	}
 
-	response := GetSchedulesResponse{
-		Schedules: map[string]*GroupScheduleResponse{},
-	}
+	schedulesByGroup := map[string]*GroupScheduleResponse{}
 
 	for _, d := range defaultSchedules {
 		groupId := d.GroupId
 		groupName := d.GroupName
 
-		groupSchedule := response.Schedules[groupId]
+		groupSchedule := schedulesByGroup[groupId]
 		if groupSchedule == nil {
 			groupSchedule = &GroupScheduleResponse{
 				GroupId:   groupId,
 				GroupName: groupName,
 				Members:   map[string]*MemberScheduleResponse{},
 			}
-			response.Schedules[groupId] = groupSchedule
+			schedulesByGroup[groupId] = groupSchedule
 		}
 
 		memberId := d.MemberId
@@ -302,7 +300,7 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 	for _, s := range memberSchedules {
 		groupId := s.Schedule.GroupId
 		memberId := s.Schedule.MemberId
-		groupSchedule := response.Schedules[groupId]
+		groupSchedule := schedulesByGroup[groupId]
 		memberSchedule := groupSchedule.Members[memberId]
 
 		memberSchedule.Schedule = ScheduleResponse{
@@ -319,6 +317,14 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 				Sunday:    s.Schedule.WeeklySchedule.Sunday,
 			},
 		}
+	}
+
+	response := GetSchedulesResponse{
+		Schedules: []*GroupScheduleResponse{},
+	}
+
+	for _, s := range schedulesByGroup {
+		response.Schedules = append(response.Schedules, s)
 	}
 
 	c.JSON(http.StatusOK, response)

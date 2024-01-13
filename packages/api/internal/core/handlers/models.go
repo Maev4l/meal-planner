@@ -77,5 +77,5 @@ type GroupScheduleResponse struct {
 }
 
 type GetSchedulesResponse struct {
-	Schedules map[string]*GroupScheduleResponse `json:"schedules"`
+	Schedules []*GroupScheduleResponse `json:"schedules"`
 }
