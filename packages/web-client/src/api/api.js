@@ -1,17 +1,20 @@
 import { fetchToken } from '../security';
 
-// const basePath = 'https://meal-planner.isnan.eu';
+const basePath = 'https://api-meal-planner.isnan.eu';
 
-const get = async (url) => {
+const get = async (path) => {
   const token = await fetchToken();
-  const response = await fetch(url, { method: 'GET', headers: { Authorization: token } });
+  const response = await fetch(`${basePath}${path}`, {
+    method: 'GET',
+    headers: { Authorization: token },
+  });
   const json = await response.json();
   return json;
 };
 
-const post = async (url, data) => {
+const post = async (path, data) => {
   const token = await fetchToken();
-  await fetch(url, {
+  await fetch(`${basePath}${path}`, {
     method: 'POST',
     body: JSON.stringify(data),
     headers: { Authorization: token },

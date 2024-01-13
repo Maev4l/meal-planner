@@ -2,6 +2,7 @@ service: meal-planner-api
 
 plugins:
   - serverless-go-plugin
+  - serverless-domain-manager
 
 package:
   individually: true
@@ -34,6 +35,14 @@ provider:
 
 custom:
   dynamoDbTableName: meal-planner-data
+  customDomain:
+    domainName: api-meal-planner.isnan.eu
+    certificateArn: arn:aws:acm:eu-central-1:671123374425:certificate/8d1a300b-075e-4771-a7bd-c6dd00cb594f
+    hostedZoneId: ZWC66FN0XU6P9
+    stage: ${self:provider.stage}
+    autoDomain: true
+    createRoute53Record: true
+    endpointType: ${self:provider.endpointType}
   go:
     supportedRuntimes: provided.al2
     buildProvidedRuntimeAsBootstrap: true
@@ -81,6 +90,7 @@ functions:
           #type: token
           method: any
           path: /{proxy+}
+          cors: true
 
 resources:
   Resources:

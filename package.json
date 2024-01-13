@@ -7,8 +7,7 @@
     "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client/output.json",
     "build-web-client": "yarn output-api-stack && webpack --config ./packages/web-client/webpack.config.prod.babel.js --progress",
     "upload-web-client": "yarn build-web-client && aws s3 sync ./packages/web-client/.dist s3://meal-planner-web-client",
-    "serve-web-client-dev": "webpack serve --config ./packages/web-client/webpack.config.dev.babel.js",
-    "deploy-shared-infra": "sls shared-infra:deploy"
+    "serve-web-client-dev": "webpack serve --config ./packages/web-client/webpack.config.dev.babel.js"
   },
   "private": true,
   "workspaces": [

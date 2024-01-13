@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"isnan.eu/meal-planner/api/internal/core/handlers"
 	"isnan.eu/meal-planner/api/internal/core/repositories"
@@ -18,6 +19,10 @@ func init() {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowCredentials = true
+	config.AllowAllOrigins = true
+	router.Use(cors.New(config))
 
 	r := repositories.NewDynamoDB()
 	c := repositories.NewCognito()

@@ -11,11 +11,5 @@ export default merge(baseConfig, {
     client: {
       overlay: false,
     },
-    proxy: {
-      '/api': {
-        changeOrigin: true,
-        target: 'https://meal-planner.isnan.eu/',
-      },
-    },
   },
 });
