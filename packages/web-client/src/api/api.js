@@ -17,7 +17,7 @@ const post = async (path, data) => {
   await fetch(`${basePath}${path}`, {
     method: 'POST',
     body: JSON.stringify(data),
-    headers: { Authorization: token },
+    headers: { Authorization: token, 'Content-Type': 'application/json' },
   });
 };
 

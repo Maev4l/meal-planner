@@ -10,10 +10,12 @@ const ProtectedRoute = () => {
   if (!token) {
     return <Navigate to="/sign-in" replace />;
   }
+
+  const userId = token.payload.sub.replaceAll('-', '').toUpperCase();
   return (
     <Box>
       <Header />
-      <Outlet />
+      <Outlet context={[userId]} />
     </Box>
   );
 };

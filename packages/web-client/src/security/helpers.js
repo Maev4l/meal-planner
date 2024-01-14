@@ -70,13 +70,6 @@ export const AuthProvider = ({ children }) => {
     }),
     [token],
   );
-  /*
-  const value = {
-    token,
-    signIn,
-    signOut,
-  };
-  */
 
   return (
     <div>
