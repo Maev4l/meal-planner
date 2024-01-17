@@ -21,5 +21,7 @@ module.exports = {
     'react/function-component-definition': [2, { namedComponents: 'arrow-function' }],
     'react/react-in-jsx-scope': 'off',
     'react/jsx-uses-react': 'off',
+    'jsx-a11y/anchor-is-valid': 'off',
+    'react/jsx-fragments': 'off',
   },
 };

@@ -1,19 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import moment from 'moment';
 import { Stack } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 
 import { api } from '../api';
 import { Progress } from '../components';
-import Group from './Group';
-import CalendarWeekPicker from './CalendarWeekPicker';
+import PersonalSchedule from './PersonalSchedule';
+import GroupPicker from './GroupPicker';
+
+const VIEW_MODE = {
+  PERSONAL_SCHEDULE: 1,
+  DEFAULT_SCHEDULE: 2,
+  MEMBERS_SCHEDULES: 3,
+};
 
 const Planning = () => {
   const [schedules, setSchedules] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState(VIEW_MODE.PERSONAL_SCHEDULE);
   const [weekCursor, setWeekCursor] = useState(moment().startOf('isoweek')); // the 1st weekday (monday) of the selected calendar week
   const [groupCursor /* , setGroupCursor */] = useState(0);
-  const [userId] = useOutletContext();
+  const { userId } = useOutletContext();
 
   const fetchSchedules = async (t) => {
     setLoading(true);
@@ -108,20 +115,20 @@ const Planning = () => {
   return (
     <div>
       <Progress open={loading} />
-      <Stack spacing={4}>
-        <CalendarWeekPicker
-          weekStartDay={weekCursor}
-          onPrevious={onPreviousCalendarWeek}
-          onNext={onNextCalendarWeek}
-        />
-        {groupsCount > 0 ? (
-          <Group
-            group={schedules[groupCursor]}
-            weekStartDay={weekCursor}
-            onSaveWeeklySchedule={onSaveWeeklySchedule}
-            onSetMeal={onSetMeal}
-            onUnsetMeal={onUnsetMeal}
-          />
+      <Stack spacing={4} sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+        {groupsCount > 0 && viewMode === VIEW_MODE.PERSONAL_SCHEDULE ? (
+          <Fragment>
+            <GroupPicker group={schedules[groupCursor]} />
+            <PersonalSchedule
+              group={schedules[groupCursor]}
+              weekStartDay={weekCursor}
+              onSaveWeeklySchedule={onSaveWeeklySchedule}
+              onSetMeal={onSetMeal}
+              onUnsetMeal={onUnsetMeal}
+              onNextCalendarWeek={onNextCalendarWeek}
+              onPreviousCalendarWeek={onPreviousCalendarWeek}
+            />
+          </Fragment>
         ) : null}
       </Stack>
     </div>

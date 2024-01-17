@@ -59,7 +59,7 @@ const DailyMealSelector = ({ dayOfWeek, value, onSet, onUnset }) => {
 };
 
 const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
-  const [userId] = useOutletContext();
+  const { userId } = useOutletContext();
   const { members } = group;
   const { schedule } = members[userId];
   const monday = moment(weekStartDay);
@@ -71,76 +71,69 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
   const sunday = moment(monday).add(6, 'days');
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <Stack spacing={2}>
-        <Typography>
-          {schedule.overriden
-            ? 'Your have overriden your default weekly schedule.'
-            : 'Your schedule is based on your default weekly schedule.'}
-        </Typography>
-        <Stack spacing={1}>
-          <Stack direction="row" spacing={1}>
-            <Box sx={{ minWidth: '10rem' }}>&nbsp;</Box>
-            <Box sx={{ minWidth: '10rem' }}>
-              <Typography>Lunch</Typography>
-            </Box>
-            <Box sx={{ minWidth: '10rem' }}>
-              <Typography>Dinner</Typography>
-            </Box>
-          </Stack>
-          <DailyMealSelector
-            dayOfWeek={monday}
-            value={schedule.monday}
-            onSet={(meal) => onSet(group.groupId, 'monday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'monday', meal)}
-          />
-          <DailyMealSelector
-            dayOfWeek={tuesday}
-            value={schedule.tuesday}
-            onSet={(meal) => onSet(group.groupId, 'tuesday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'tuesday', meal)}
-          />
-          <DailyMealSelector
-            dayOfWeek={wednesday}
-            value={schedule.wednesday}
-            onSet={(meal) => onSet(group.groupId, 'wednesday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'wednesday', meal)}
-          />
-          <DailyMealSelector
-            dayOfWeek={thursday}
-            value={schedule.thursday}
-            onSet={(meal) => onSet(group.groupId, 'thursday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'thursday', meal)}
-          />
-          <DailyMealSelector
-            dayName="friday"
-            dayOfWeek={friday}
-            value={schedule.friday}
-            onSet={(meal) => onSet(group.groupId, 'friday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'friday', meal)}
-          />
-          <DailyMealSelector
-            dayName="saturday"
-            dayOfWeek={saturday}
-            value={schedule.saturday}
-            onSet={(meal) => onSet(group.groupId, 'saturday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'saturday', meal)}
-          />
-          <DailyMealSelector
-            dayName="sunday"
-            dayOfWeek={sunday}
-            value={schedule.sunday}
-            onSet={(meal) => onSet(group.groupId, 'sunday', meal)}
-            onUnset={(meal) => onUnset(group.groupId, 'sunday', meal)}
-          />
+    <Stack spacing={2}>
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={1}>
+          <Box sx={{ minWidth: '10rem' }}>&nbsp;</Box>
+          <Box sx={{ minWidth: '10rem' }}>
+            <Typography>Lunch</Typography>
+          </Box>
+          <Box sx={{ minWidth: '10rem' }}>
+            <Typography>Dinner</Typography>
+          </Box>
         </Stack>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button variant="contained" onClick={() => onSave(schedule)}>
-            Submit your changes
-          </Button>
-        </Box>
+        <DailyMealSelector
+          dayOfWeek={monday}
+          value={schedule.monday}
+          onSet={(meal) => onSet(group.groupId, 'monday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'monday', meal)}
+        />
+        <DailyMealSelector
+          dayOfWeek={tuesday}
+          value={schedule.tuesday}
+          onSet={(meal) => onSet(group.groupId, 'tuesday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'tuesday', meal)}
+        />
+        <DailyMealSelector
+          dayOfWeek={wednesday}
+          value={schedule.wednesday}
+          onSet={(meal) => onSet(group.groupId, 'wednesday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'wednesday', meal)}
+        />
+        <DailyMealSelector
+          dayOfWeek={thursday}
+          value={schedule.thursday}
+          onSet={(meal) => onSet(group.groupId, 'thursday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'thursday', meal)}
+        />
+        <DailyMealSelector
+          dayName="friday"
+          dayOfWeek={friday}
+          value={schedule.friday}
+          onSet={(meal) => onSet(group.groupId, 'friday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'friday', meal)}
+        />
+        <DailyMealSelector
+          dayName="saturday"
+          dayOfWeek={saturday}
+          value={schedule.saturday}
+          onSet={(meal) => onSet(group.groupId, 'saturday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'saturday', meal)}
+        />
+        <DailyMealSelector
+          dayName="sunday"
+          dayOfWeek={sunday}
+          value={schedule.sunday}
+          onSet={(meal) => onSet(group.groupId, 'sunday', meal)}
+          onUnset={(meal) => onUnset(group.groupId, 'sunday', meal)}
+        />
       </Stack>
-    </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Button variant="contained" onClick={() => onSave(schedule)}>
+          Submit your changes
+        </Button>
+      </Box>
+    </Stack>
   );
 };
 

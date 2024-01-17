@@ -15,7 +15,7 @@ const ProtectedRoute = () => {
   return (
     <Box>
       <Header />
-      <Outlet context={[userId]} />
+      <Outlet context={{ userId }} />
     </Box>
   );
 };

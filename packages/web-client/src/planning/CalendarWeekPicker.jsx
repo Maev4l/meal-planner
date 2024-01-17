@@ -11,7 +11,7 @@ const CalendarWeekPicker = ({ weekStartDay, onPrevious, onNext }) => {
 
   moment();
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <IconButton
         size="large"
         onClick={onPrevious}
@@ -19,10 +19,9 @@ const CalendarWeekPicker = ({ weekStartDay, onPrevious, onNext }) => {
       >
         <ChevronLeft fontSize="inherit" />
       </IconButton>
-      <Typography variant="h3">{`Calendar Week: ${year} - ${String(weekNumber).padStart(
-        2,
-        '0',
-      )}`}</Typography>
+      <Typography variant="h5">
+        {`Calendar Week: ${year} - ${String(weekNumber).padStart(2, '0')}`}
+      </Typography>
       <IconButton size="large" onClick={onNext}>
         <ChevronRight fontSize="inherit" />
       </IconButton>

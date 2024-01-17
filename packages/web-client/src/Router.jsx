@@ -4,7 +4,7 @@ import { Landing } from './landing';
 import { SignIn, ProtectedRoute } from './security';
 import { Planning } from './planning';
 
-const AppRoutes = () => (
+const Router = () => (
   <BrowserRouter>
     <Routes>
       <Route index element={<Landing />} />
@@ -17,4 +17,4 @@ const AppRoutes = () => (
   </BrowserRouter>
 );
 
-export default AppRoutes;
+export default Router;
