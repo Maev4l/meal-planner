@@ -1,20 +1,20 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Route, createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
 
 import { Landing } from './landing';
 import { SignIn, ProtectedRoute } from './security';
 import { Planning } from './planning';
 
-const Router = () => (
-  <BrowserRouter>
-    <Routes>
-      <Route index element={<Landing />} />
-      <Route path="/sign-in" element={<SignIn />} />
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Landing />}>
       <Route element={<ProtectedRoute />}>
-        <Route path="/planning" element={<Planning />} />
+        <Route path="planning" element={<Planning />} />
       </Route>
+      <Route path="sign-in" element={<SignIn />} />
       <Route path="*" element={<p>Ooops !!</p>} />
-    </Routes>
-  </BrowserRouter>
+    </Route>,
+  ),
 );
 
-export default Router;
+// export default Router;
+export default router;

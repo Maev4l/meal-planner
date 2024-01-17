@@ -7,12 +7,8 @@ import { api } from '../api';
 import { Progress } from '../components';
 import PersonalSchedule from './PersonalSchedule';
 import GroupPicker from './GroupPicker';
-
-const VIEW_MODE = {
-  PERSONAL_SCHEDULE: 1,
-  DEFAULT_SCHEDULE: 2,
-  MEMBERS_SCHEDULES: 3,
-};
+import DefaultSchedule from './DefaultSchedule';
+import { VIEW_MODE } from './viewmode';
 
 const Planning = () => {
   const [schedules, setSchedules] = useState(null);
@@ -40,31 +36,31 @@ const Planning = () => {
     fetchSchedules(start);
   }, []);
 
-  const onSaveWeeklySchedule = async (groupId, schedule) => {
-    const {
-      year: y,
-      weekNumber: w,
-      monday,
-      tuesday,
-      wednesday,
-      thursday,
-      friday,
-      saturday,
-      sunday,
-    } = schedule;
+  const onSaveWeeklySchedule = async () => {
+    const group = schedules[groupCursor];
+    const { members, groupId } = group;
+    const { schedule } = members[userId];
+
     setLoading(true);
     try {
-      await api.post(`/api/groups/${groupId}/schedules`, {
-        year: y,
-        weekNumber: w,
-        monday,
-        tuesday,
-        wednesday,
-        thursday,
-        friday,
-        saturday,
-        sunday,
-      });
+      await api.post(`/api/groups/${groupId}/schedules`, schedule);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSaveDefaultSchedule = async () => {
+    const group = schedules[groupCursor];
+    const { members, groupId } = group;
+    const { default: def } = members[userId];
+
+    setLoading(true);
+    try {
+      await api.post(`/api/groups/${groupId}/schedules`, { ...def, default: true });
+
+      // After a default schedule is save, reload the data from the
+      // server in order to get new computed weekly schedules
+      await fetchSchedules(weekCursor);
     } finally {
       setLoading(false);
     }
@@ -110,6 +106,36 @@ const Planning = () => {
     setSchedules(newSchedules);
   };
 
+  const onSetDefaultMeal = (groupId, day, meal) => {
+    const newSchedules = [...schedules];
+    const group = newSchedules[groupCursor];
+    const { default: def } = group.members[userId];
+
+    let d = def[day];
+    d += meal;
+    const newSchedule = { ...def };
+    newSchedule[day] = d;
+    group.members[userId].default = newSchedule;
+
+    setSchedules(newSchedules);
+  };
+
+  const onUnsetDefaultMeal = (groupId, day, meal) => {
+    const newSchedules = [...schedules];
+    const group = newSchedules[groupCursor];
+    const { default: def } = group.members[userId];
+
+    let d = def[day];
+    d -= meal;
+    const newSchedule = { ...def };
+    newSchedule[day] = d;
+    group.members[userId].default = newSchedule;
+
+    setSchedules(newSchedules);
+  };
+
+  const onChangeViewMode = (m) => setViewMode(m);
+
   const groupsCount = schedules ? schedules.length : 0;
 
   return (
@@ -127,8 +153,18 @@ const Planning = () => {
               onUnsetMeal={onUnsetMeal}
               onNextCalendarWeek={onNextCalendarWeek}
               onPreviousCalendarWeek={onPreviousCalendarWeek}
+              onChangeViewMode={onChangeViewMode}
             />
           </Fragment>
+        ) : null}
+        {viewMode === VIEW_MODE.DEFAULT_SCHEDULE ? (
+          <DefaultSchedule
+            group={schedules[groupCursor]}
+            onChangeViewMode={onChangeViewMode}
+            onSetMeal={onSetDefaultMeal}
+            onUnsetMeal={onUnsetDefaultMeal}
+            onSaveDefaultSchedule={onSaveDefaultSchedule}
+          />
         ) : null}
       </Stack>
     </div>
