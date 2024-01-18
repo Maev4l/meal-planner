@@ -25,7 +25,7 @@ const SignIn = () => {
   const handleSignIn = async () => {
     try {
       await signIn(credentials);
-      navigate('/planning');
+      navigate('/');
     } catch (e) {
       setAuthError(e.message);
     }
