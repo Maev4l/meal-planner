@@ -8,6 +8,7 @@ import { Progress } from '../components';
 import PersonalSchedule from './PersonalSchedule';
 import GroupPicker from './GroupPicker';
 import DefaultSchedule from './DefaultSchedule';
+import MembersSchedules from './MembersSchedules';
 import { VIEW_MODE } from './viewmode';
 
 const Planning = () => {
@@ -155,6 +156,12 @@ const Planning = () => {
               onPreviousCalendarWeek={onPreviousCalendarWeek}
               onChangeViewMode={onChangeViewMode}
             />
+          </Fragment>
+        ) : null}
+        {groupsCount > 0 && viewMode === VIEW_MODE.MEMBERS_SCHEDULES ? (
+          <Fragment>
+            <GroupPicker group={schedules[groupCursor]} />
+            <MembersSchedules group={schedules[groupCursor]} onChangeViewMode={onChangeViewMode} />
           </Fragment>
         ) : null}
         {viewMode === VIEW_MODE.DEFAULT_SCHEDULE ? (

@@ -33,6 +33,19 @@ const PersonalSchedule = ({
       onPrevious={onPreviousCalendarWeek}
       onNext={onNextCalendarWeek}
     />
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Typography>
+        You can view the members schedules{' '}
+        <Link
+          style={{ cursor: 'pointer' }}
+          onClick={() => {
+            onChangeViewMode(VIEW_MODE.MEMBERS_SCHEDULES);
+          }}
+        >
+          here.
+        </Link>
+      </Typography>
+    </Box>
     <MealsSelector
       weekStartDay={weekStartDay}
       group={group}

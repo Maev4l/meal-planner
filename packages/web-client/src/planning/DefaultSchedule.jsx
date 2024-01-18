@@ -4,12 +4,6 @@ import { useOutletContext } from 'react-router-dom';
 import DailyMealSelector from './DailyMealSelector';
 import { VIEW_MODE } from './viewmode';
 
-const GroupName = ({ group }) => (
-  <Box>
-    <Typography variant="h5">{`Group: ${group.groupName}`}</Typography>
-  </Box>
-);
-
 const DefaultSchedule = ({
   group,
   onChangeViewMode,
@@ -24,7 +18,12 @@ const DefaultSchedule = ({
 
   return (
     <Stack spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
-      <GroupName group={group} />
+      <Box>
+        <Typography variant="h5">{`Group: ${group.groupName}`}</Typography>
+      </Box>
+      <Box>
+        <Typography variant="h6">Your default schedule for this group.</Typography>
+      </Box>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Typography>
           Back to{' '}
