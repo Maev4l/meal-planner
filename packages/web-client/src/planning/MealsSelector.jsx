@@ -32,49 +32,49 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
         <DailyMealSelector
           dayOfWeek={monday}
           label="Monday"
-          value={schedule.monday}
+          meals={schedule.monday.meals}
           onSet={(meal) => onSet(group.groupId, 'monday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'monday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={tuesday}
           label="Tueday"
-          value={schedule.tuesday}
+          meals={schedule.tuesday.meals}
           onSet={(meal) => onSet(group.groupId, 'tuesday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'tuesday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={wednesday}
           label="Wednesday"
-          value={schedule.wednesday}
+          meals={schedule.wednesday.meals}
           onSet={(meal) => onSet(group.groupId, 'wednesday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'wednesday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={thursday}
-          label="Thursday"
-          value={schedule.thursday}
+          meals="Thursday"
+          value={schedule.thursday.meals}
           onSet={(meal) => onSet(group.groupId, 'thursday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'thursday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={friday}
           label="Friday"
-          value={schedule.friday}
+          meals={schedule.friday.meals}
           onSet={(meal) => onSet(group.groupId, 'friday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'friday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={saturday}
           label="Saturday"
-          value={schedule.saturday}
+          meals={schedule.saturday.meals}
           onSet={(meal) => onSet(group.groupId, 'saturday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'saturday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={sunday}
           label="Sunday"
-          value={schedule.sunday}
+          meals={schedule.sunday.meals}
           onSet={(meal) => onSet(group.groupId, 'sunday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'sunday', meal)}
         />
