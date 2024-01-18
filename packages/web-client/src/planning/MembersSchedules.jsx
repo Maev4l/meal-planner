@@ -6,14 +6,10 @@ import { MEAL } from '../domain';
 
 const renderColumn = (day, members) => {
   const totals = {
-    monday: { lunch: 0, dinner: 0 },
-    tuesday: { lunch: 0, dinner: 0 },
-    wednesday: { lunch: 0, dinner: 0 },
-    thursday: { lunch: 0, dinner: 0 },
-    friday: { lunch: 0, dinner: 0 },
-    saturday: { lunch: 0, dinner: 0 },
-    sunday: { lunch: 0, dinner: 0 },
+    lunch: 0,
+    dinner: 0,
   };
+
   return (
     <Stack key={day}>
       <Box sx={{ textTransform: 'capitalize', p: 0.5 }}>{day.slice(0, 3)}</Box>
@@ -26,9 +22,10 @@ const renderColumn = (day, members) => {
       {members.map((m) => {
         const val = m.schedule[day];
         if (val & MEAL.LUNCH) {
-          totals[day].lunch += 1;
-        } else if (val & MEAL.DINNER) {
-          totals[day].dinner += 1;
+          totals.lunch += 1;
+        }
+        if (val & MEAL.DINNER) {
+          totals.dinner += 1;
         }
 
         return (
@@ -50,7 +47,7 @@ const renderColumn = (day, members) => {
                   p: '1px',
                 }}
               >
-                <Typography sx={{ bgcolor: val & MEAL.LUNCH ? 'success.main' : 'error.main' }}>
+                <Typography sx={{ bgcolor: val & MEAL.DINNER ? 'success.main' : 'error.main' }}>
                   &nbsp;
                 </Typography>
               </Box>
@@ -60,8 +57,8 @@ const renderColumn = (day, members) => {
       })}
       <Box sx={{ p: 0.5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals[day].lunch}</Box>
-          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals[day].dinner}</Box>
+          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals.lunch}</Box>
+          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals.dinner}</Box>
         </Box>
       </Box>
     </Stack>
