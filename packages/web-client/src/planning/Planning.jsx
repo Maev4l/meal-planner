@@ -44,7 +44,10 @@ const Planning = () => {
 
     setLoading(true);
     try {
-      await api.post(`/api/groups/${groupId}/schedules`, schedule);
+      await api.post(`/api/groups/${groupId}/schedules`, {
+        default: false,
+        schedule: { ...schedule },
+      });
     } finally {
       setLoading(false);
     }
@@ -57,7 +60,10 @@ const Planning = () => {
 
     setLoading(true);
     try {
-      await api.post(`/api/groups/${groupId}/schedules`, { ...def, default: true });
+      await api.post(`/api/groups/${groupId}/schedules`, {
+        default: true,
+        schedules: { ...def },
+      });
 
       // After a default schedule is save, reload the data from the
       // server in order to get new computed weekly schedules
@@ -82,10 +88,10 @@ const Planning = () => {
     const group = newSchedules[groupCursor];
     const { schedule } = group.members[userId];
 
-    let d = schedule[day];
+    let d = schedule[day].meals;
     d += meal;
     const newSchedule = { ...schedule };
-    newSchedule[day] = d;
+    newSchedule[day].meals = d;
     newSchedule.overriden = true;
     group.members[userId].schedule = newSchedule;
 
@@ -97,10 +103,10 @@ const Planning = () => {
     const group = newSchedules[groupCursor];
     const { schedule } = group.members[userId];
 
-    let d = schedule[day];
+    let d = schedule[day].meals;
     d -= meal;
     const newSchedule = { ...schedule };
-    newSchedule[day] = d;
+    newSchedule[day].meals = d;
     newSchedule.overriden = true;
     group.members[userId].schedule = newSchedule;
 

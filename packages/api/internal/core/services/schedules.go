@@ -87,18 +87,36 @@ func (s *service) validateScheduleOperation(groupId string, memberId string) (*d
 func computeMemberSchedule(year int, week int, defaultSchedule *domain.MemberDefaultSchedule, memberSchedule *domain.MemberSchedule) *domain.MemberSchedule {
 	if memberSchedule != nil {
 		return &domain.MemberSchedule{
-			Overriden:  true,
-			Year:       year,
-			WeekNumber: week,
-			Schedule:   memberSchedule.Schedule,
+			ScheduleBase: memberSchedule.ScheduleBase,
+			Overriden:    true,
+			Year:         year,
+			WeekNumber:   week,
+			WeeklySchedule: domain.WeeklySchedule{
+				Monday:    memberSchedule.Monday,
+				Tuesday:   memberSchedule.Tuesday,
+				Wednesday: memberSchedule.Wednesday,
+				Thursday:  memberSchedule.Thursday,
+				Friday:    memberSchedule.Friday,
+				Saturday:  memberSchedule.Saturday,
+				Sunday:    memberSchedule.Sunday,
+			},
 		}
 	}
 
 	return &domain.MemberSchedule{
-		Overriden:  false,
-		Year:       year,
-		WeekNumber: week,
-		Schedule:   *defaultSchedule,
+		ScheduleBase: defaultSchedule.ScheduleBase,
+		Overriden:    false,
+		Year:         year,
+		WeekNumber:   week,
+		WeeklySchedule: domain.WeeklySchedule{
+			Monday:    defaultSchedule.Monday,
+			Tuesday:   defaultSchedule.Tuesday,
+			Wednesday: defaultSchedule.Wednesday,
+			Thursday:  defaultSchedule.Thursday,
+			Friday:    defaultSchedule.Friday,
+			Saturday:  defaultSchedule.Saturday,
+			Sunday:    defaultSchedule.Sunday,
+		},
 	}
 }
 
@@ -146,7 +164,7 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 	}
 
 	for _, s := range memberSchedules {
-		memberSchedulesByMember[s.Schedule.MemberId] = s
+		memberSchedulesByMember[s.MemberId] = s
 	}
 
 	computedMemberSchedules := []*domain.MemberSchedule{}
@@ -167,7 +185,7 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 
 func (s *service) CreateSchedule(memberId string, groupId string,
 	year int, week int,
-	mon int, tues int, wed int, thu int, fri int, sat int, sun int) error {
+	weeklySchedule *domain.WeeklySchedule) error {
 
 	// Check if the calendar week is valid
 	valid := isoweek.Validate(year, week)
@@ -190,22 +208,14 @@ func (s *service) CreateSchedule(memberId string, groupId string,
 	schedule := domain.MemberSchedule{
 		Year:       year,
 		WeekNumber: week,
-		Schedule: domain.MemberDefaultSchedule{
+		ScheduleBase: domain.ScheduleBase{
 			MemberId:   member.Id,
 			MemberName: member.Name,
 			GroupId:    group.Id,
 			GroupName:  group.Name,
-			WeeklySchedule: domain.WeeklySchedule{
-				Monday:    mon,
-				Tuesday:   tues,
-				Wednesday: wed,
-				Thursday:  thu,
-				Friday:    fri,
-				Saturday:  sat,
-				Sunday:    sun,
-			},
-			CreatedAt: &current,
+			CreatedAt:  &current,
 		},
+		WeeklySchedule: *weeklySchedule,
 	}
 
 	err = s.repo.SaveMemberSchedule(group, member, &schedule)
@@ -216,8 +226,7 @@ func (s *service) CreateSchedule(memberId string, groupId string,
 	return nil
 }
 
-func (s *service) CreateDefaultSchedule(memberId string, groupId string,
-	mon int, tues int, wed int, thu int, fri int, sat int, sun int) error {
+func (s *service) CreateDefaultSchedule(memberId string, groupId string, weeklySchedule *domain.WeeklySchedule) error {
 
 	group, member, err := s.validateScheduleOperation(groupId, memberId)
 	if err != nil {
@@ -230,20 +239,14 @@ func (s *service) CreateDefaultSchedule(memberId string, groupId string,
 
 	current := time.Now().UTC()
 	schedule := domain.MemberDefaultSchedule{
-		MemberId:   member.Id,
-		MemberName: member.Name,
-		GroupId:    group.Id,
-		GroupName:  group.Name,
-		WeeklySchedule: domain.WeeklySchedule{
-			Monday:    mon,
-			Tuesday:   tues,
-			Wednesday: wed,
-			Thursday:  thu,
-			Friday:    fri,
-			Saturday:  sat,
-			Sunday:    sun,
+		ScheduleBase: domain.ScheduleBase{
+			MemberId:   member.Id,
+			MemberName: member.Name,
+			GroupId:    group.Id,
+			GroupName:  group.Name,
+			CreatedAt:  &current,
 		},
-		CreatedAt: &current,
+		WeeklySchedule: *weeklySchedule,
 	}
 
 	err = s.repo.SaveMemberDefaultSchedule(group, member, &schedule)

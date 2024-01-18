@@ -32,7 +32,7 @@ const AbsentButton = ({ disabled, onClick }) => (
     </Button>
   </Box>
 );
-const DailyMealSelector = ({ dayOfWeek, label, value, onSet, onUnset }) => {
+const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset }) => {
   const now = moment();
   let endOfDay = null;
   if (dayOfWeek !== null) {
@@ -52,7 +52,7 @@ const DailyMealSelector = ({ dayOfWeek, label, value, onSet, onUnset }) => {
         )}
       </Grid>
       <Grid item xs={4} align="center">
-        {value & MEAL.LUNCH ? (
+        {meals & MEAL.LUNCH ? (
           <PresentButton
             disabled={endOfDay !== null && now.isAfter(endOfDay)}
             onClick={() => onUnset(MEAL.LUNCH)}
@@ -65,7 +65,7 @@ const DailyMealSelector = ({ dayOfWeek, label, value, onSet, onUnset }) => {
         )}
       </Grid>
       <Grid item xs={4} align="center">
-        {value & MEAL.DINNER ? (
+        {meals & MEAL.DINNER ? (
           <PresentButton
             disabled={endOfDay !== null && now.isAfter(endOfDay)}
             onClick={() => onUnset(MEAL.DINNER)}

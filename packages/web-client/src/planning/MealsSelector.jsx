@@ -38,7 +38,7 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
         />
         <DailyMealSelector
           dayOfWeek={tuesday}
-          label="Tueday"
+          label="Tuesday"
           meals={schedule.tuesday.meals}
           onSet={(meal) => onSet(group.groupId, 'tuesday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'tuesday', meal)}
@@ -52,8 +52,8 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
         />
         <DailyMealSelector
           dayOfWeek={thursday}
-          meals="Thursday"
-          value={schedule.thursday.meals}
+          label="Thursday"
+          meals={schedule.thursday.meals}
           onSet={(meal) => onSet(group.groupId, 'thursday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'thursday', meal)}
         />

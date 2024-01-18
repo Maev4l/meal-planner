@@ -54,25 +54,39 @@ func createMemberSecondary1SK(memberId string) string {
 }
 
 type Schedule struct {
-	PK         string     `dynamodbav:"PK"`     // user#1234
-	SK         string     `dynamodbav:"SK"`     // schedule#<schedule-id>#group#group-1234
-	GSI1PK     string     `dynamodbav:"GSI1PK"` // group#1234
-	GSI1SK     string     `dynamodbav:"GSI1SK"` // schedule#<schedule-id>, default or YYYY-CWXX
-	MemberId   string     `dynamodbav:"MemberId"`
-	MemberName string     `dynamodbav:"MemberName"`
-	GroupId    string     `dynamodbav:"GroupId"`
-	GroupName  string     `dynamodbav:"GroupName"`
-	MemberRole string     `dynamodbav:"Role"`
-	Year       int        `dynamodbav:"Year"`
-	WeekNumber int        `dynamodbav:"WeekNumber"`
-	Monday     int        `dynamodbav:"Monday"`
-	Tuesday    int        `dynamodbav:"Tuesday"`
-	Wednesday  int        `dynamodbav:"Wednesday"`
-	Thursday   int        `dynamodbav:"Thursday"`
-	Friday     int        `dynamodbav:"Friday"`
-	Saturday   int        `dynamodbav:"Saturday"`
-	Sunday     int        `dynamodbav:"Sunday"`
-	CreatedAt  *time.Time `dynamodbav:"CreatedAt"`
+	PK                     string     `dynamodbav:"PK"`     // user#1234
+	SK                     string     `dynamodbav:"SK"`     // schedule#<schedule-id>#group#group-1234
+	GSI1PK                 string     `dynamodbav:"GSI1PK"` // group#1234
+	GSI1SK                 string     `dynamodbav:"GSI1SK"` // schedule#<schedule-id>, default or YYYY-CWXX
+	MemberId               string     `dynamodbav:"MemberId"`
+	MemberName             string     `dynamodbav:"MemberName"`
+	GroupId                string     `dynamodbav:"GroupId"`
+	GroupName              string     `dynamodbav:"GroupName"`
+	MemberRole             string     `dynamodbav:"Role"`
+	Year                   int        `dynamodbav:"Year"`
+	WeekNumber             int        `dynamodbav:"WeekNumber"`
+	Monday                 int        `dynamodbav:"Monday"`
+	Tuesday                int        `dynamodbav:"Tuesday"`
+	Wednesday              int        `dynamodbav:"Wednesday"`
+	Thursday               int        `dynamodbav:"Thursday"`
+	Friday                 int        `dynamodbav:"Friday"`
+	Saturday               int        `dynamodbav:"Saturday"`
+	Sunday                 int        `dynamodbav:"Sunday"`
+	MondayLunchComment     string     `dynamodbav:"MondayLunchComment"`
+	TuesdayLunchComment    string     `dynamodbav:"TuesdayLunchComment"`
+	WednesdayLunchComment  string     `dynamodbav:"WednesdayLunchComment"`
+	ThursdayLunchComment   string     `dynamodbav:"ThursdayLunchComment"`
+	FridayLunchComment     string     `dynamodbav:"FridayLunchComment"`
+	SaturdayLunchComment   string     `dynamodbav:"SaturdayLunchComment"`
+	SundayLunchComment     string     `dynamodbav:"SundayLunchComment"`
+	MondayDinnerComment    string     `dynamodbav:"MondayDinnerComment"`
+	TuesdayDinnerComment   string     `dynamodbav:"TuesdayDinnerComment"`
+	WednesdayDinnerComment string     `dynamodbav:"WednesdayDinnerComment"`
+	ThursdayDinnerComment  string     `dynamodbav:"ThursdayDinnerComment"`
+	FridayDinnerComment    string     `dynamodbav:"FridayDinnerComment"`
+	SaturdayDinnerComment  string     `dynamodbav:"SaturdayDinnerComment"`
+	SundayDinnerComment    string     `dynamodbav:"SundayDinnerComment"`
+	CreatedAt              *time.Time `dynamodbav:"CreatedAt"`
 }
 
 func (s *Schedule) getId() string {

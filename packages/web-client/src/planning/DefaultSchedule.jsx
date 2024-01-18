@@ -50,43 +50,43 @@ const DefaultSchedule = ({
         </Grid>
         <DailyMealSelector
           label="Monday"
-          value={def.monday}
+          meals={def.monday}
           onSet={(meal) => onSetMeal(group.groupId, 'monday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'monday', meal)}
         />
         <DailyMealSelector
           label="Tueday"
-          value={def.tuesday}
+          meals={def.tuesday}
           onSet={(meal) => onSetMeal(group.groupId, 'tuesday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'tuesday', meal)}
         />
         <DailyMealSelector
           label="Wednesday"
-          value={def.wednesday}
+          meals={def.wednesday}
           onSet={(meal) => onSetMeal(group.groupId, 'wednesday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'wednesday', meal)}
         />
         <DailyMealSelector
           label="Thursday"
-          value={def.thursday}
+          meals={def.thursday}
           onSet={(meal) => onSetMeal(group.groupId, 'thursday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'thursday', meal)}
         />
         <DailyMealSelector
           label="Friday"
-          value={def.friday}
+          meals={def.friday}
           onSet={(meal) => onSetMeal(group.groupId, 'friday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'friday', meal)}
         />
         <DailyMealSelector
           label="Saturday"
-          value={def.saturday}
+          meals={def.saturday}
           onSet={(meal) => onSetMeal(group.groupId, 'saturday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'saturday', meal)}
         />
         <DailyMealSelector
           label="Sunday"
-          value={def.sunday}
+          meals={def.sunday}
           onSet={(meal) => onSetMeal(group.groupId, 'sunday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'sunday', meal)}
         />

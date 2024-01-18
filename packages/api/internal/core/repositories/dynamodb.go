@@ -38,25 +38,39 @@ func (d *dynamo) SaveMemberSchedule(g *domain.Group, m *domain.Member, s *domain
 
 	record := MemberSchedule{
 		Schedule: Schedule{
-			PK:         createSchedulePK(m.Id),
-			SK:         createScheduleSK(s.GetId(), g.Id),
-			GSI1PK:     createScheduleSecondary1PK(g.Id),
-			GSI1SK:     createScheduleSecondary1SK(s.GetId()),
-			Year:       s.Year,
-			WeekNumber: s.WeekNumber,
-			MemberId:   m.Id,
-			MemberName: m.Name,
-			MemberRole: string(m.Role),
-			GroupId:    g.Id,
-			GroupName:  g.Name,
-			Monday:     s.Schedule.WeeklySchedule.Monday,
-			Tuesday:    s.Schedule.WeeklySchedule.Tuesday,
-			Wednesday:  s.Schedule.WeeklySchedule.Wednesday,
-			Thursday:   s.Schedule.WeeklySchedule.Thursday,
-			Friday:     s.Schedule.WeeklySchedule.Friday,
-			Saturday:   s.Schedule.WeeklySchedule.Saturday,
-			Sunday:     s.Schedule.WeeklySchedule.Sunday,
-			CreatedAt:  s.Schedule.CreatedAt,
+			PK:                     createSchedulePK(m.Id),
+			SK:                     createScheduleSK(s.GetId(), g.Id),
+			GSI1PK:                 createScheduleSecondary1PK(g.Id),
+			GSI1SK:                 createScheduleSecondary1SK(s.GetId()),
+			Year:                   s.Year,
+			WeekNumber:             s.WeekNumber,
+			MemberId:               m.Id,
+			MemberName:             m.Name,
+			MemberRole:             string(m.Role),
+			GroupId:                g.Id,
+			GroupName:              g.Name,
+			Monday:                 s.Monday.Meals,
+			Tuesday:                s.Tuesday.Meals,
+			Wednesday:              s.Wednesday.Meals,
+			Thursday:               s.Thursday.Meals,
+			Friday:                 s.Friday.Meals,
+			Saturday:               s.Saturday.Meals,
+			Sunday:                 s.Sunday.Meals,
+			CreatedAt:              s.CreatedAt,
+			MondayLunchComment:     s.Monday.Comments.Lunch,
+			MondayDinnerComment:    s.Monday.Comments.Dinner,
+			TuesdayLunchComment:    s.Tuesday.Comments.Lunch,
+			TuesdayDinnerComment:   s.Tuesday.Comments.Dinner,
+			WednesdayLunchComment:  s.Wednesday.Comments.Lunch,
+			WednesdayDinnerComment: s.Wednesday.Comments.Dinner,
+			ThursdayLunchComment:   s.Thursday.Comments.Lunch,
+			ThursdayDinnerComment:  s.Thursday.Comments.Dinner,
+			FridayLunchComment:     s.Friday.Comments.Lunch,
+			FridayDinnerComment:    s.Friday.Comments.Dinner,
+			SaturdayLunchComment:   s.Saturday.Comments.Lunch,
+			SaturdayDinnerComment:  s.Saturday.Comments.Dinner,
+			SundayLunchComment:     s.Sunday.Comments.Lunch,
+			SundayDinnerComment:    s.Sunday.Comments.Dinner,
 		},
 		ExpiresAt: &expiresAt,
 	}
@@ -92,13 +106,13 @@ func (d *dynamo) SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s 
 		GroupId:    g.Id,
 		GroupName:  g.Name,
 		MemberRole: string(m.Role),
-		Monday:     s.WeeklySchedule.Monday,
-		Tuesday:    s.WeeklySchedule.Tuesday,
-		Wednesday:  s.WeeklySchedule.Wednesday,
-		Thursday:   s.WeeklySchedule.Thursday,
-		Friday:     s.WeeklySchedule.Friday,
-		Saturday:   s.WeeklySchedule.Saturday,
-		Sunday:     s.WeeklySchedule.Sunday,
+		Monday:     s.WeeklySchedule.Monday.Meals,
+		Tuesday:    s.WeeklySchedule.Tuesday.Meals,
+		Wednesday:  s.WeeklySchedule.Wednesday.Meals,
+		Thursday:   s.WeeklySchedule.Thursday.Meals,
+		Friday:     s.WeeklySchedule.Friday.Meals,
+		Saturday:   s.WeeklySchedule.Saturday.Meals,
+		Sunday:     s.WeeklySchedule.Sunday.Meals,
 		CreatedAt:  s.CreatedAt,
 	}
 
@@ -237,19 +251,22 @@ func (d *dynamo) GetMemberSchedules(memberId string, scheduleId string) ([]*doma
 	for _, s := range schedules {
 		if s.isDefault() {
 			defaultSchedule := domain.MemberDefaultSchedule{
-				MemberId:   s.MemberId,
-				MemberName: s.MemberName,
-				GroupId:    s.GroupId,
-				GroupName:  s.GroupName,
-				Role:       roles.GROUP_ROLE(s.MemberRole),
+				ScheduleBase: domain.ScheduleBase{
+					MemberId:   s.MemberId,
+					MemberName: s.MemberName,
+					GroupId:    s.GroupId,
+					GroupName:  s.GroupName,
+					Role:       roles.GROUP_ROLE(s.MemberRole),
+					CreatedAt:  s.CreatedAt,
+				},
 				WeeklySchedule: domain.WeeklySchedule{
-					Monday:    s.Monday,
-					Tuesday:   s.Tuesday,
-					Wednesday: s.Wednesday,
-					Thursday:  s.Thursday,
-					Friday:    s.Friday,
-					Saturday:  s.Saturday,
-					Sunday:    s.Sunday,
+					Monday:    domain.DailySchedule{Meals: s.Monday},
+					Tuesday:   domain.DailySchedule{Meals: s.Tuesday},
+					Wednesday: domain.DailySchedule{Meals: s.Wednesday},
+					Thursday:  domain.DailySchedule{Meals: s.Thursday},
+					Friday:    domain.DailySchedule{Meals: s.Friday},
+					Saturday:  domain.DailySchedule{Meals: s.Saturday},
+					Sunday:    domain.DailySchedule{Meals: s.Sunday},
 				},
 			}
 
@@ -259,19 +276,62 @@ func (d *dynamo) GetMemberSchedules(memberId string, scheduleId string) ([]*doma
 			memberSchedule := domain.MemberSchedule{
 				Year:       s.Year,
 				WeekNumber: s.WeekNumber,
-				Schedule: domain.MemberDefaultSchedule{
+				ScheduleBase: domain.ScheduleBase{
 					MemberId:   s.MemberId,
 					MemberName: s.MemberName,
 					GroupId:    s.GroupId,
 					GroupName:  s.GroupName,
-					WeeklySchedule: domain.WeeklySchedule{
-						Monday:    s.Monday,
-						Tuesday:   s.Tuesday,
-						Wednesday: s.Wednesday,
-						Thursday:  s.Thursday,
-						Friday:    s.Friday,
-						Saturday:  s.Saturday,
-						Sunday:    s.Sunday,
+					CreatedAt:  s.CreatedAt,
+				},
+				WeeklySchedule: domain.WeeklySchedule{
+					Monday: domain.DailySchedule{
+						Meals: s.Monday,
+						Comments: domain.Comments{
+							Lunch:  s.MondayLunchComment,
+							Dinner: s.MondayDinnerComment,
+						},
+					},
+					Tuesday: domain.DailySchedule{
+						Meals: s.Tuesday,
+						Comments: domain.Comments{
+							Lunch:  s.TuesdayLunchComment,
+							Dinner: s.TuesdayDinnerComment,
+						},
+					},
+					Wednesday: domain.DailySchedule{
+						Meals: s.Wednesday,
+						Comments: domain.Comments{
+							Lunch:  s.WednesdayLunchComment,
+							Dinner: s.WednesdayDinnerComment,
+						},
+					},
+					Thursday: domain.DailySchedule{
+						Meals: s.Thursday,
+						Comments: domain.Comments{
+							Lunch:  s.ThursdayLunchComment,
+							Dinner: s.ThursdayDinnerComment,
+						},
+					},
+					Friday: domain.DailySchedule{
+						Meals: s.Friday,
+						Comments: domain.Comments{
+							Lunch:  s.FridayLunchComment,
+							Dinner: s.FridayDinnerComment,
+						},
+					},
+					Saturday: domain.DailySchedule{
+						Meals: s.Saturday,
+						Comments: domain.Comments{
+							Lunch:  s.SaturdayLunchComment,
+							Dinner: s.SaturdayDinnerComment,
+						},
+					},
+					Sunday: domain.DailySchedule{
+						Meals: s.Sunday,
+						Comments: domain.Comments{
+							Lunch:  s.SundayLunchComment,
+							Dinner: s.SundayDinnerComment,
+						},
 					},
 				},
 			}

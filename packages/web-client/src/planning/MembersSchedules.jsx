@@ -20,7 +20,7 @@ const renderColumn = (day, members) => {
         </Box>
       </Box>
       {members.map((m) => {
-        const val = m.schedule[day];
+        const val = m.schedule[day].meals;
         if (val & MEAL.LUNCH) {
           totals.lunch += 1;
         }

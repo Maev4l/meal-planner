@@ -29,14 +29,18 @@ type User struct {
 	Role      roles.APPLICATION_ROLE
 }
 
+type ScheduleBase struct {
+	MemberId   string
+	MemberName string
+	GroupName  string
+	GroupId    string
+	Role       roles.GROUP_ROLE
+	CreatedAt  *time.Time
+}
+
 type MemberDefaultSchedule struct {
-	MemberId       string
-	MemberName     string
-	GroupName      string
-	GroupId        string
-	Role           roles.GROUP_ROLE
-	CreatedAt      *time.Time
-	WeeklySchedule WeeklySchedule
+	ScheduleBase
+	WeeklySchedule
 }
 
 const MEMBER_DEFAULT_SCHEDULE_ID = "default"
@@ -49,35 +53,47 @@ func (m *MemberDefaultSchedule) IsDefault() bool {
 	return true
 }
 
+type Comments struct {
+	Lunch  string
+	Dinner string
+}
+
+// Value for Meals
 // 0: no lunch, no dinner
 // 1: lunch, no dinner
 // 2: no luch, dinner
 // 3: lunch, dinner
+type DailySchedule struct {
+	Meals    int
+	Comments Comments
+}
+
 type WeeklySchedule struct {
-	Monday    int
-	Tuesday   int
-	Wednesday int
-	Thursday  int
-	Friday    int
-	Saturday  int
-	Sunday    int
+	Monday    DailySchedule
+	Tuesday   DailySchedule
+	Wednesday DailySchedule
+	Thursday  DailySchedule
+	Friday    DailySchedule
+	Saturday  DailySchedule
+	Sunday    DailySchedule
 }
 
 var SystemDefaultWeeklySchedule = WeeklySchedule{
-	Monday:    3,
-	Tuesday:   3,
-	Wednesday: 3,
-	Thursday:  3,
-	Friday:    3,
-	Saturday:  3,
-	Sunday:    3,
+	Monday:    DailySchedule{Meals: 3},
+	Tuesday:   DailySchedule{Meals: 3},
+	Wednesday: DailySchedule{Meals: 3},
+	Thursday:  DailySchedule{Meals: 3},
+	Friday:    DailySchedule{Meals: 3},
+	Saturday:  DailySchedule{Meals: 3},
+	Sunday:    DailySchedule{Meals: 3},
 }
 
 type MemberSchedule struct {
 	WeekNumber int
 	Year       int
 	Overriden  bool
-	Schedule   MemberDefaultSchedule
+	ScheduleBase
+	WeeklySchedule
 }
 
 func (m *MemberSchedule) IsDefault() bool {

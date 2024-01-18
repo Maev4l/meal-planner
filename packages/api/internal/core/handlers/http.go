@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -95,16 +96,41 @@ Endpoint: POST /api/groups/:groupId/schedules
 Payload:
 
 	{
+		"default":true,
+		"schedule": {
+			"monday": 3,
+			"tuesday": 3,
+			"wednesday": 3,
+			"thursday": 3,
+			"friday": 3,
+			"saturday": 0,
+			"sunday": 0
+		}
+	}
+
+or
+
+	{
 		"default":false,
-		"year": 2024,
-		"weekNumber":2,
-		"monday":1,
-		"tuesday": 0,
-		"wednesday": 2,
-		"thursday": 3,
-		"friday": 3,
-		"saturday": 2,
-		"sunday":2
+		"schedule": {
+			"year": 2024,
+			"weekNumber": 4,
+			"monday": {
+				"meals": 3,
+				"comments": {
+					"lunch": "",
+					"dinner": ""
+				}
+			},
+			"tuesday": {
+				"meals": 3,
+				"comments": {
+					"lunch": "",
+					"dinner": ""
+				}
+			},
+			....
+		}
 	}
 */
 func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
@@ -115,7 +141,7 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 	var request CreateScheduleRequest
 	err := c.BindJSON(&request)
 	if err != nil {
-		log.Error().Msgf("Invalid request: %s", err.Error())
+		log.Error().Msgf("Invalid request (step #1): %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Invalid request.",
 		})
@@ -123,16 +149,20 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 	}
 
 	if request.Default {
+		var defaultScheduleRequest CreateDefaultScheduleRequest
+		err = json.Unmarshal(request.Schedule, &defaultScheduleRequest)
+		if err != nil {
+			log.Error().Msgf("Invalid request (step #2): %s", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Invalid request.",
+			})
+			return
+		}
+
 		err = hdl.svc.CreateDefaultSchedule(
 			info.userId,
 			groupId,
-			request.Monday,
-			request.Tuesday,
-			request.Wednesday,
-			request.Thursday,
-			request.Friday,
-			request.Saturday,
-			request.Sunday)
+			defaultScheduleRequest.toDomain())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "Failed to set default schedule.",
@@ -142,25 +172,28 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 
 		log.Info().Msgf("Default schedule created for member '%s' and for group '%s'.", info.userId, groupId)
 	} else {
+		var memberScheduleRequest CreateMemberScheduleRequest
+		err = json.Unmarshal(request.Schedule, &memberScheduleRequest)
+		if err != nil {
+			log.Error().Msgf("Invalid request (step #2): %s", err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Invalid request.",
+			})
+			return
+		}
 		err = hdl.svc.CreateSchedule(
 			info.userId,
 			groupId,
-			request.Year,
-			request.WeekNumber,
-			request.Monday,
-			request.Tuesday,
-			request.Wednesday,
-			request.Thursday,
-			request.Friday,
-			request.Saturday,
-			request.Sunday)
+			memberScheduleRequest.Year,
+			memberScheduleRequest.WeekNumber,
+			memberScheduleRequest.toDomain())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "Failed to set schedule.",
 			})
 			return
 		}
-		log.Info().Msgf("Schedule 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", request.Year, request.WeekNumber, info.userId, groupId)
+		log.Info().Msgf("Schedule 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", memberScheduleRequest.Year, memberScheduleRequest.WeekNumber, info.userId, groupId)
 	}
 
 	c.Status(http.StatusCreated)
@@ -285,21 +318,21 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 			MemberName: memberName,
 			Admin:      d.Role == roles.GroupAdmin,
 			DefaultSchedule: DefaultScheduleResponse{
-				Monday:    d.WeeklySchedule.Monday,
-				Tuesday:   d.WeeklySchedule.Tuesday,
-				Wednesday: d.WeeklySchedule.Wednesday,
-				Thursday:  d.WeeklySchedule.Thursday,
-				Friday:    d.WeeklySchedule.Friday,
-				Saturday:  d.WeeklySchedule.Saturday,
-				Sunday:    d.WeeklySchedule.Sunday,
+				Monday:    d.WeeklySchedule.Monday.Meals,
+				Tuesday:   d.WeeklySchedule.Tuesday.Meals,
+				Wednesday: d.WeeklySchedule.Wednesday.Meals,
+				Thursday:  d.WeeklySchedule.Thursday.Meals,
+				Friday:    d.WeeklySchedule.Friday.Meals,
+				Saturday:  d.WeeklySchedule.Saturday.Meals,
+				Sunday:    d.WeeklySchedule.Sunday.Meals,
 			},
 		}
 
 	}
 
 	for _, s := range memberSchedules {
-		groupId := s.Schedule.GroupId
-		memberId := s.Schedule.MemberId
+		groupId := s.GroupId
+		memberId := s.MemberId
 		groupSchedule := schedulesByGroup[groupId]
 		memberSchedule := groupSchedule.Members[memberId]
 
@@ -307,14 +340,54 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 			Overriden:  s.Overriden,
 			Year:       s.Year,
 			WeekNumber: s.WeekNumber,
-			DefaultScheduleResponse: DefaultScheduleResponse{
-				Monday:    s.Schedule.WeeklySchedule.Monday,
-				Tuesday:   s.Schedule.WeeklySchedule.Tuesday,
-				Wednesday: s.Schedule.WeeklySchedule.Wednesday,
-				Thursday:  s.Schedule.WeeklySchedule.Thursday,
-				Friday:    s.Schedule.WeeklySchedule.Friday,
-				Saturday:  s.Schedule.WeeklySchedule.Saturday,
-				Sunday:    s.Schedule.WeeklySchedule.Sunday,
+			Monday: DailyScheduleResponse{
+				Meals: s.Monday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Monday.Comments.Lunch,
+					Dinner: s.Monday.Comments.Dinner,
+				},
+			},
+			Tuesday: DailyScheduleResponse{
+				Meals: s.Tuesday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Tuesday.Comments.Lunch,
+					Dinner: s.Tuesday.Comments.Dinner,
+				},
+			},
+			Wednesday: DailyScheduleResponse{
+				Meals: s.Wednesday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Wednesday.Comments.Lunch,
+					Dinner: s.Wednesday.Comments.Dinner,
+				},
+			},
+			Thursday: DailyScheduleResponse{
+				Meals: s.Thursday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Thursday.Comments.Lunch,
+					Dinner: s.Thursday.Comments.Dinner,
+				},
+			},
+			Friday: DailyScheduleResponse{
+				Meals: s.Friday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Friday.Comments.Lunch,
+					Dinner: s.Friday.Comments.Dinner,
+				},
+			},
+			Saturday: DailyScheduleResponse{
+				Meals: s.Saturday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Saturday.Comments.Lunch,
+					Dinner: s.Saturday.Comments.Dinner,
+				},
+			},
+			Sunday: DailyScheduleResponse{
+				Meals: s.Sunday.Meals,
+				Comments: CommentsResponse{
+					Lunch:  s.Sunday.Comments.Lunch,
+					Dinner: s.Sunday.Comments.Dinner,
+				},
 			},
 		}
 	}
