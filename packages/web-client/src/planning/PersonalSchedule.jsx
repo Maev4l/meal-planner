@@ -16,7 +16,7 @@ const PersonalSchedule = ({
 }) => (
   <Stack spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      <Typography>
+      <Typography sx={{ p: 1 }}>
         You can update your default schedule for this group{' '}
         <Link
           style={{ cursor: 'pointer' }}

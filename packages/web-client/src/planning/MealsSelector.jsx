@@ -1,4 +1,4 @@
-import { Stack, Box, Typography, Button } from '@mui/material';
+import { Stack, Box, Typography, Button, Grid } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 import moment from 'moment';
 
@@ -17,17 +17,18 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
   const sunday = moment(monday).add(6, 'days');
 
   return (
-    <Stack spacing={2}>
-      <Stack spacing={1}>
-        <Stack direction="row" spacing={1}>
-          <Box sx={{ minWidth: '10rem' }}>&nbsp;</Box>
-          <Box sx={{ minWidth: '10rem' }}>
-            <Typography>Lunch</Typography>
-          </Box>
-          <Box sx={{ minWidth: '10rem' }}>
-            <Typography>Dinner</Typography>
-          </Box>
-        </Stack>
+    <Stack spacing={1}>
+      <Grid container justifyContent="center" alignItems="center">
+        {/* Header row */}
+        <Grid item xs={4}>
+          &nbsp;
+        </Grid>
+        <Grid item xs={4} sx={{ textAlign: 'center' }}>
+          <Typography>Lunch</Typography>
+        </Grid>
+        <Grid item xs={4} sx={{ textAlign: 'center' }}>
+          <Typography>Dinner</Typography>
+        </Grid>
         <DailyMealSelector
           dayOfWeek={monday}
           label="Monday"
@@ -77,7 +78,7 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
           onSet={(meal) => onSet(group.groupId, 'sunday', meal)}
           onUnset={(meal) => onUnset(group.groupId, 'sunday', meal)}
         />
-      </Stack>
+      </Grid>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
         <Button variant="contained" onClick={onSave}>
           Submit your changes

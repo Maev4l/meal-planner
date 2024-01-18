@@ -1,4 +1,4 @@
-import { Stack, Box, Typography, Link, Button } from '@mui/material';
+import { Stack, Box, Typography, Link, Button, Grid } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 
 import DailyMealSelector from './DailyMealSelector';
@@ -37,18 +37,17 @@ const DefaultSchedule = ({
           </Link>
         </Typography>
       </Box>
-      <Stack spacing={2}>
-        <Stack spacing={1}>
-          <Stack direction="row" spacing={1}>
-            <Box sx={{ minWidth: '10rem' }}>&nbsp;</Box>
-            <Box sx={{ minWidth: '10rem' }}>
-              <Typography>Lunch</Typography>
-            </Box>
-            <Box sx={{ minWidth: '10rem' }}>
-              <Typography>Dinner</Typography>
-            </Box>
-          </Stack>
-        </Stack>
+      <Grid container spacing={1} justifyContent="center" alignItems="center">
+        {/* Header row */}
+        <Grid item xs={4}>
+          &nbsp;
+        </Grid>
+        <Grid item xs={4} sx={{ textAlign: 'center' }}>
+          <Typography>Lunch</Typography>
+        </Grid>
+        <Grid item xs={4} sx={{ textAlign: 'center' }}>
+          <Typography>Dinner</Typography>
+        </Grid>
         <DailyMealSelector
           label="Monday"
           value={def.monday}
@@ -91,7 +90,7 @@ const DefaultSchedule = ({
           onSet={(meal) => onSetMeal(group.groupId, 'sunday', meal)}
           onUnset={(meal) => onUnsetMeal(group.groupId, 'sunday', meal)}
         />
-      </Stack>
+      </Grid>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
         <Button variant="contained" onClick={onSaveDefaultSchedule}>
           Submit your changes
