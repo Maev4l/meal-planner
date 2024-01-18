@@ -19,7 +19,7 @@ const CalendarWeekPicker = ({ weekStartDay, onPrevious, onNext }) => {
       >
         <ChevronLeft fontSize="inherit" />
       </IconButton>
-      <Typography variant="h5">
+      <Typography variant="h6">
         {`Calendar Week: ${year} - ${String(weekNumber).padStart(2, '0')}`}
       </Typography>
       <IconButton size="large" onClick={onNext}>
