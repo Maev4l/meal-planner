@@ -36,23 +36,23 @@ const renderColumn = (day, members) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Box
                 sx={{
-                  bgcolor: val & MEAL.LUNCH ? 'success.main' : 'error.main',
                   width: '100%',
-                  border: '1px solid',
-                  borderColors: 'grey.400',
+                  p: '1px',
                 }}
               >
-                &nbsp;
+                <Typography sx={{ bgcolor: val & MEAL.LUNCH ? 'success.main' : 'error.main' }}>
+                  &nbsp;
+                </Typography>
               </Box>
               <Box
                 sx={{
-                  bgcolor: val & MEAL.DINNER ? 'success.main' : 'error.main',
                   width: '100%',
-                  border: '0.5px solid',
-                  borderColors: 'grey.400',
+                  p: '1px',
                 }}
               >
-                &nbsp;
+                <Typography sx={{ bgcolor: val & MEAL.LUNCH ? 'success.main' : 'error.main' }}>
+                  &nbsp;
+                </Typography>
               </Box>
             </Box>
           </Box>
@@ -60,8 +60,8 @@ const renderColumn = (day, members) => {
       })}
       <Box sx={{ p: 0.5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ width: '100%', textAlign: 'center' }}>{totals[day].lunch}</Box>
-          <Box sx={{ width: '100%', textAlign: 'center' }}>{totals[day].dinner}</Box>
+          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals[day].lunch}</Box>
+          <Box sx={{ width: '100%', textAlign: 'center', p: '1px' }}>{totals[day].dinner}</Box>
         </Box>
       </Box>
     </Stack>
@@ -99,14 +99,14 @@ const MembersSchedules = ({ group, onChangeViewMode }) => {
           <Box sx={{ p: 0.5 }}>&nbsp;</Box>
           <Box sx={{ p: 0.5 }}>&nbsp;</Box>
           {sortedMembers.map((m) => (
-            <Box sx={{ pr: 1 }} key={m.memberId}>
-              <Typography sx={{ float: 'right' }} display="inline">
+            <Box sx={{ pr: 0.5 }} key={m.memberId}>
+              <Typography sx={{ p: '1px', float: 'right' }} display="inline">
                 {m.memberName}
               </Typography>
             </Box>
           ))}
           <Box sx={{ p: 0.5 }}>
-            <Typography sx={{ float: 'right' }} display="inline">
+            <Typography sx={{ p: '1px', float: 'right' }} display="inline">
               Total
             </Typography>
           </Box>
