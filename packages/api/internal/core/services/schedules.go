@@ -134,7 +134,7 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 
 	// TODO: Check if the period is too far in the future
 
-	// Retrieve schedules (requester's schedules across groups + members of the groups requester is admin) for the period
+	// Retrieve schedules (requester's schedules across groups + members of the groups requester belongs to) for the period
 	defaultSchedules, memberSchedules, _ := s.repo.GetMemberSchedules(memberId, helper.NewScheduleId(year, week))
 
 	// Group by member id
