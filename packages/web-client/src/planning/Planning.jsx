@@ -181,7 +181,11 @@ const Planning = () => {
         {groupsCount > 0 && viewMode === VIEW_MODE.MEMBERS_SCHEDULES ? (
           <Fragment>
             <GroupPicker group={schedules[groupCursor]} />
-            <MembersSchedules group={schedules[groupCursor]} onChangeViewMode={onChangeViewMode} />
+            <MembersSchedules
+              group={schedules[groupCursor]}
+              weekStartDay={weekCursor}
+              onChangeViewMode={onChangeViewMode}
+            />
           </Fragment>
         ) : null}
         {viewMode === VIEW_MODE.DEFAULT_SCHEDULE ? (

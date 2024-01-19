@@ -6,7 +6,7 @@ import moment from 'moment';
 
 import { MEAL } from '../domain';
 
-const AttendanceButton = ({ attendance, disabled, onClickAttendance, onClickNote }) => (
+const AttendanceActionButton = ({ attendance, disabled, onClickAttendance, onClickNote }) => (
   <Box sx={{ pl: 1, pr: 1, display: 'flex' }}>
     <Button
       variant="contained"
@@ -45,7 +45,7 @@ const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset, onClickCom
         )}
       </Grid>
       <Grid item xs={4} align="center">
-        <AttendanceButton
+        <AttendanceActionButton
           attendance={meals & MEAL.LUNCH}
           disabled={endOfDay !== null && now.isAfter(endOfDay)}
           onClickAttendance={
@@ -55,7 +55,7 @@ const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset, onClickCom
         />
       </Grid>
       <Grid item xs={4} align="center">
-        <AttendanceButton
+        <AttendanceActionButton
           attendance={meals & MEAL.DINNER}
           disabled={endOfDay !== null && now.isAfter(endOfDay)}
           onClickAttendance={
