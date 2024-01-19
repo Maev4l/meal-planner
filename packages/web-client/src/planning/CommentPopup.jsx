@@ -44,7 +44,6 @@ const CommentPopup = ({ comment, onCancel, onSubmit }) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
         {onSubmit && (
           <Button onClick={() => onSubmit({ ...comment, content: text })}>Submit</Button>
         )}

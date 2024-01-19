@@ -63,6 +63,7 @@ const SignIn = () => {
             fullWidth
             label="Username"
             autoFocus
+            autoCapitalize="none"
             onChange={(e) => onChange('username', e)}
           />
           <TextField
@@ -70,6 +71,7 @@ const SignIn = () => {
             required
             fullWidth
             label="Password"
+            autoCapitalize="none"
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             onChange={(e) => onChange('password', e)}
