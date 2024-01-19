@@ -155,6 +155,11 @@ const Planning = () => {
     setSchedules(newSchedules);
   };
 
+  const onResetWeek = () => {
+    const start = moment().startOf('isoweek');
+    fetchSchedules(start);
+  };
+
   const groupsCount = schedules ? schedules.length : 0;
 
   return (
@@ -175,6 +180,7 @@ const Planning = () => {
               onPreviousCalendarWeek={onPreviousCalendarWeek}
               onChangeViewMode={onChangeViewMode}
               onSetComment={onSubmitComment}
+              onResetWeek={onResetWeek}
             />
           </Fragment>
         ) : null}

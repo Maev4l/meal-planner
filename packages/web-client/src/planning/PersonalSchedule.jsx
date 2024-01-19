@@ -18,6 +18,7 @@ const PersonalSchedule = ({
   onNextCalendarWeek,
   onChangeViewMode,
   onSetComment,
+  onResetWeek,
 }) => {
   const [mealComment, setMealComment] = useState(null);
   const { userId } = useOutletContext();
@@ -67,6 +68,7 @@ const PersonalSchedule = ({
           weekStartDay={weekStartDay}
           onPrevious={onPreviousCalendarWeek}
           onNext={onNextCalendarWeek}
+          onResetWeek={onResetWeek}
         />
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography>
