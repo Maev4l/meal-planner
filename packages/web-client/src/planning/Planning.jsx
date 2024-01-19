@@ -143,11 +143,24 @@ const Planning = () => {
 
   const onChangeViewMode = (m) => setViewMode(m);
 
+  const onSubmitComment = (comment) => {
+    const newSchedules = [...schedules];
+    const group = newSchedules[groupCursor];
+    const { members } = group;
+    const member = members[comment.userId];
+    const { schedule } = member;
+    const dailySchedule = schedule[comment.day];
+    dailySchedule.comments[comment.mealKey] = comment.content;
+    /* { author: memberName, userId, day, mealKey, content: comment, dayOfWeek } */
+    setSchedules(newSchedules);
+  };
+
   const groupsCount = schedules ? schedules.length : 0;
 
   return (
     <div>
       <Progress open={loading} />
+
       <Stack spacing={4} sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
         {groupsCount > 0 && viewMode === VIEW_MODE.PERSONAL_SCHEDULE ? (
           <Fragment>
@@ -161,6 +174,7 @@ const Planning = () => {
               onNextCalendarWeek={onNextCalendarWeek}
               onPreviousCalendarWeek={onPreviousCalendarWeek}
               onChangeViewMode={onChangeViewMode}
+              onSetComment={onSubmitComment}
             />
           </Fragment>
         ) : null}

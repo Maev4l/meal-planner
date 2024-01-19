@@ -1,13 +1,10 @@
 import { Stack, Box, Typography, Button, Grid } from '@mui/material';
-import { useOutletContext } from 'react-router-dom';
+
 import moment from 'moment';
 
 import DailyMealSelector from './DailyMealSelector';
 
-const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
-  const { userId } = useOutletContext();
-  const { members } = group;
-  const { schedule } = members[userId];
+const MealsSelector = ({ schedule, weekStartDay, onSave, onSet, onUnset, onClickComment }) => {
   const monday = moment(weekStartDay);
   const tuesday = moment(monday).add(1, 'days');
   const wednesday = moment(monday).add(2, 'days');
@@ -33,50 +30,57 @@ const MealsSelector = ({ group, weekStartDay, onSave, onSet, onUnset }) => {
           dayOfWeek={monday}
           label="Monday"
           meals={schedule.monday.meals}
-          onSet={(meal) => onSet(group.groupId, 'monday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'monday', meal)}
+          onSet={(meal) => onSet('monday', meal)}
+          onUnset={(meal) => onUnset('monday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'monday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={tuesday}
           label="Tuesday"
           meals={schedule.tuesday.meals}
-          onSet={(meal) => onSet(group.groupId, 'tuesday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'tuesday', meal)}
+          onSet={(meal) => onSet('tuesday', meal)}
+          onUnset={(meal) => onUnset('tuesday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'tuesday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={wednesday}
           label="Wednesday"
           meals={schedule.wednesday.meals}
-          onSet={(meal) => onSet(group.groupId, 'wednesday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'wednesday', meal)}
+          onSet={(meal) => onSet('wednesday', meal)}
+          onUnset={(meal) => onUnset('wednesday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'wednesday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={thursday}
           label="Thursday"
           meals={schedule.thursday.meals}
-          onSet={(meal) => onSet(group.groupId, 'thursday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'thursday', meal)}
+          onSet={(meal) => onSet('thursday', meal)}
+          onUnset={(meal) => onUnset('thursday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'thursday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={friday}
           label="Friday"
           meals={schedule.friday.meals}
-          onSet={(meal) => onSet(group.groupId, 'friday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'friday', meal)}
+          onSet={(meal) => onSet('friday', meal)}
+          onUnset={(meal) => onUnset('friday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'friday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={saturday}
           label="Saturday"
           meals={schedule.saturday.meals}
-          onSet={(meal) => onSet(group.groupId, 'saturday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'saturday', meal)}
+          onSet={(meal) => onSet('saturday', meal)}
+          onUnset={(meal) => onUnset('saturday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'saturday', meal)}
         />
         <DailyMealSelector
           dayOfWeek={sunday}
           label="Sunday"
           meals={schedule.sunday.meals}
-          onSet={(meal) => onSet(group.groupId, 'sunday', meal)}
-          onUnset={(meal) => onUnset(group.groupId, 'sunday', meal)}
+          onSet={(meal) => onSet('sunday', meal)}
+          onUnset={(meal) => onUnset('sunday', meal)}
+          onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'sunday', meal)}
         />
       </Grid>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>

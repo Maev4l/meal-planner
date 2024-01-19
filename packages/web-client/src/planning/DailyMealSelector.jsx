@@ -1,38 +1,31 @@
 /* eslint-disable no-bitwise */
-import { Box, Typography, Button, Grid } from '@mui/material';
+import { Box, Typography, Button, Grid, IconButton } from '@mui/material';
+import { EditNote } from '@mui/icons-material';
 import { Fragment } from 'react';
 import moment from 'moment';
 
 import { MEAL } from '../domain';
 
-const PresentButton = ({ disabled, onClick }) => (
-  <Box sx={{ pl: 1, pr: 1 }}>
+const AttendanceButton = ({ attendance, disabled, onClickAttendance, onClickNote }) => (
+  <Box sx={{ pl: 1, pr: 1, display: 'flex' }}>
     <Button
       variant="contained"
-      color="success"
+      color={attendance ? 'success' : 'error'}
       sx={{ width: '100%' }}
       disabled={disabled}
-      onClick={onClick}
+      onClick={onClickAttendance}
     >
-      Present
+      {attendance ? 'Present' : 'Absent'}
     </Button>
+    {onClickNote && (
+      <IconButton size="small" disabled={disabled} onClick={onClickNote}>
+        <EditNote />
+      </IconButton>
+    )}
   </Box>
 );
 
-const AbsentButton = ({ disabled, onClick }) => (
-  <Box sx={{ pl: 1, pr: 1 }}>
-    <Button
-      variant="contained"
-      color="error"
-      sx={{ width: '100%' }}
-      disabled={disabled}
-      onClick={onClick}
-    >
-      Absent
-    </Button>
-  </Box>
-);
-const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset }) => {
+const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset, onClickComment }) => {
   const now = moment();
   let endOfDay = null;
   if (dayOfWeek !== null) {
@@ -52,30 +45,24 @@ const DailyMealSelector = ({ dayOfWeek, label, meals, onSet, onUnset }) => {
         )}
       </Grid>
       <Grid item xs={4} align="center">
-        {meals & MEAL.LUNCH ? (
-          <PresentButton
-            disabled={endOfDay !== null && now.isAfter(endOfDay)}
-            onClick={() => onUnset(MEAL.LUNCH)}
-          />
-        ) : (
-          <AbsentButton
-            disabled={endOfDay !== null && now.isAfter(endOfDay)}
-            onClick={() => onSet(MEAL.LUNCH)}
-          />
-        )}
+        <AttendanceButton
+          attendance={meals & MEAL.LUNCH}
+          disabled={endOfDay !== null && now.isAfter(endOfDay)}
+          onClickAttendance={
+            meals & MEAL.LUNCH ? () => onUnset(MEAL.LUNCH) : () => onSet(MEAL.LUNCH)
+          }
+          onClickNote={onClickComment ? () => onClickComment(MEAL.LUNCH, dayOfWeek) : null}
+        />
       </Grid>
       <Grid item xs={4} align="center">
-        {meals & MEAL.DINNER ? (
-          <PresentButton
-            disabled={endOfDay !== null && now.isAfter(endOfDay)}
-            onClick={() => onUnset(MEAL.DINNER)}
-          />
-        ) : (
-          <AbsentButton
-            disabled={endOfDay !== null && now.isAfter(endOfDay)}
-            onClick={() => onSet(MEAL.DINNER)}
-          />
-        )}
+        <AttendanceButton
+          attendance={meals & MEAL.DINNER}
+          disabled={endOfDay !== null && now.isAfter(endOfDay)}
+          onClickAttendance={
+            meals & MEAL.DINNER ? () => onUnset(MEAL.DINNER) : () => onSet(MEAL.DINNER)
+          }
+          onClickNote={onClickComment ? () => onClickComment(MEAL.DINNER, dayOfWeek) : null}
+        />
       </Grid>
     </Fragment>
   );
