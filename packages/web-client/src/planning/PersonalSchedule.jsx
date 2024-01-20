@@ -11,7 +11,6 @@ import { MEAL } from '../domain';
 const PersonalSchedule = ({
   group,
   weekStartDay,
-  onSaveWeeklySchedule,
   onSetMeal,
   onUnsetMeal,
   onPreviousCalendarWeek,
@@ -86,7 +85,6 @@ const PersonalSchedule = ({
         <MealsSelector
           weekStartDay={weekStartDay}
           schedule={schedule}
-          onSave={onSaveWeeklySchedule}
           onSet={(day, meal) => onSetMeal(groupId, day, meal)}
           onUnset={(day, meal) => onUnsetMeal(groupId, day, meal)}
           onClickComment={onClickCommentPopup}

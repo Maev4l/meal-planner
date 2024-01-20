@@ -1,10 +1,10 @@
-import { Stack, Box, Typography, Button, Grid } from '@mui/material';
+import { Stack, Typography, Grid } from '@mui/material';
 
 import moment from 'moment';
 
 import DailyMealSelector from './DailyMealSelector';
 
-const MealsSelector = ({ schedule, weekStartDay, onSave, onSet, onUnset, onClickComment }) => {
+const MealsSelector = ({ schedule, weekStartDay, onSet, onUnset, onClickComment }) => {
   const monday = moment(weekStartDay);
   const tuesday = moment(monday).add(1, 'days');
   const wednesday = moment(monday).add(2, 'days');
@@ -83,11 +83,6 @@ const MealsSelector = ({ schedule, weekStartDay, onSave, onSet, onUnset, onClick
           onClickComment={(meal, dayOfWeek) => onClickComment(dayOfWeek, 'sunday', meal)}
         />
       </Grid>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Button variant="contained" onClick={onSave}>
-          Submit your changes
-        </Button>
-      </Box>
     </Stack>
   );
 };

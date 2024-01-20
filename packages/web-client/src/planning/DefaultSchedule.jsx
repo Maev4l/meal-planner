@@ -1,16 +1,10 @@
-import { Stack, Box, Typography, Link, Button, Grid } from '@mui/material';
+import { Stack, Box, Typography, Link, Grid } from '@mui/material';
 import { useOutletContext } from 'react-router-dom';
 
 import DailyMealSelector from './DailyMealSelector';
 import { VIEW_MODE } from './viewmode';
 
-const DefaultSchedule = ({
-  group,
-  onChangeViewMode,
-  onSetMeal,
-  onUnsetMeal,
-  onSaveDefaultSchedule,
-}) => {
+const DefaultSchedule = ({ group, onChangeViewMode, onSetMeal, onUnsetMeal }) => {
   const { userId } = useOutletContext();
   const { members } = group;
 
@@ -91,11 +85,6 @@ const DefaultSchedule = ({
           onUnset={(meal) => onUnsetMeal(group.groupId, 'sunday', meal)}
         />
       </Grid>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Button variant="contained" onClick={onSaveDefaultSchedule}>
-          Submit your changes
-        </Button>
-      </Box>
     </Stack>
   );
 };

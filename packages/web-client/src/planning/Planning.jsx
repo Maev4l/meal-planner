@@ -37,7 +37,7 @@ const Planning = () => {
     fetchSchedules(start);
   }, []);
 
-  const onSaveWeeklySchedule = async () => {
+  const saveWeeklySchedule = async () => {
     const group = schedules[groupCursor];
     const { members, groupId } = group;
     const { schedule } = members[userId];
@@ -53,7 +53,7 @@ const Planning = () => {
     }
   };
 
-  const onSaveDefaultSchedule = async () => {
+  const saveDefaultSchedule = async () => {
     const group = schedules[groupCursor];
     const { members, groupId } = group;
     const { default: def } = members[userId];
@@ -62,7 +62,7 @@ const Planning = () => {
     try {
       await api.post(`/api/groups/${groupId}/schedules`, {
         default: true,
-        schedules: { ...def },
+        schedule: { ...def },
       });
 
       // After a default schedule is save, reload the data from the
@@ -96,6 +96,7 @@ const Planning = () => {
     group.members[userId].schedule = newSchedule;
 
     setSchedules(newSchedules);
+    saveWeeklySchedule();
   };
 
   const onUnsetMeal = (groupId, day, meal) => {
@@ -111,6 +112,7 @@ const Planning = () => {
     group.members[userId].schedule = newSchedule;
 
     setSchedules(newSchedules);
+    saveWeeklySchedule();
   };
 
   const onSetDefaultMeal = (groupId, day, meal) => {
@@ -125,6 +127,7 @@ const Planning = () => {
     group.members[userId].default = newSchedule;
 
     setSchedules(newSchedules);
+    saveDefaultSchedule();
   };
 
   const onUnsetDefaultMeal = (groupId, day, meal) => {
@@ -139,6 +142,7 @@ const Planning = () => {
     group.members[userId].default = newSchedule;
 
     setSchedules(newSchedules);
+    saveDefaultSchedule();
   };
 
   const onChangeViewMode = (m) => setViewMode(m);
@@ -153,6 +157,7 @@ const Planning = () => {
     dailySchedule.comments[comment.mealKey] = comment.content;
     /* { author: memberName, userId, day, mealKey, content: comment, dayOfWeek } */
     setSchedules(newSchedules);
+    saveWeeklySchedule();
   };
 
   const onResetWeek = () => {
@@ -172,7 +177,6 @@ const Planning = () => {
             <PersonalSchedule
               group={schedules[groupCursor]}
               weekStartDay={weekCursor}
-              onSaveWeeklySchedule={onSaveWeeklySchedule}
               onSetMeal={onSetMeal}
               onUnsetMeal={onUnsetMeal}
               onNextCalendarWeek={onNextCalendarWeek}
@@ -199,7 +203,6 @@ const Planning = () => {
             onChangeViewMode={onChangeViewMode}
             onSetMeal={onSetDefaultMeal}
             onUnsetMeal={onUnsetDefaultMeal}
-            onSaveDefaultSchedule={onSaveDefaultSchedule}
           />
         ) : null}
       </Stack>

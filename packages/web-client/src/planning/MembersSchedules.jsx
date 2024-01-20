@@ -98,7 +98,7 @@ const AccordionSchedule = ({ day, group, members, onShowComment }) => {
                         ? () =>
                             onShowComment({
                               author: memberName,
-                              content: comments.lunch,
+                              content: comments.dinner,
                               dayOfWeek: date,
                               mealKey: 'dinner',
                             })
@@ -191,47 +191,6 @@ const MembersSchedules = ({ group, weekStartDay, onChangeViewMode }) => {
       </Stack>
     </Fragment>
   );
-  /*
-  return (
-    <Stack spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <Typography>
-          Back to{' '}
-          <Link
-            style={{ cursor: 'pointer' }}
-            onClick={() => {
-              onChangeViewMode(VIEW_MODE.PERSONAL_SCHEDULE);
-            }}
-          >
-            your schedule.
-          </Link>
-        </Typography>
-      </Box>
-      <Box>
-        <Typography variant="h6">Member schedules</Typography>
-      </Box>
-      <Stack direction="row">
-        <Stack>
-          <Box sx={{ p: 0.5 }}>&nbsp;</Box>
-          <Box sx={{ p: 0.5 }}>&nbsp;</Box>
-          {sortedMembers.map((m) => (
-            <Box sx={{ pr: 0.5 }} key={m.memberId}>
-              <Typography sx={{ p: '1px', float: 'right' }} display="inline">
-                {m.memberName}
-              </Typography>
-            </Box>
-          ))}
-          <Box sx={{ p: 0.5 }}>
-            <Typography sx={{ p: '1px', float: 'right' }} display="inline">
-              Total
-            </Typography>
-          </Box>
-        </Stack>
-        {daysOfWeek.map((day) => renderColumn(day, sortedMembers))}
-      </Stack>
-    </Stack>
-  );
-  */
 };
 
 export default MembersSchedules;
