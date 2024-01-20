@@ -163,9 +163,8 @@ const Planning = () => {
   const groupsCount = schedules ? schedules.length : 0;
 
   return (
-    <div>
-      <Progress open={loading} />
-
+    <Fragment>
+      <Progress show={loading} />
       <Stack spacing={4} sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
         {groupsCount > 0 && viewMode === VIEW_MODE.PERSONAL_SCHEDULE ? (
           <Fragment>
@@ -204,7 +203,7 @@ const Planning = () => {
           />
         ) : null}
       </Stack>
-    </div>
+    </Fragment>
   );
 };
 

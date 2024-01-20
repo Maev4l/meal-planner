@@ -1,6 +1,7 @@
 import {
   signIn as cognitoSignIn,
   signOut as cognitoSignOut,
+  updatePassword,
   fetchAuthSession,
 } from 'aws-amplify/auth';
 import { useState, createContext, useContext, useMemo, useEffect } from 'react';
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
 
   const readToken = async () => {
     try {
+      setFetching(true);
       const idToken = await fetchToken();
 
       setToken(idToken);
@@ -40,12 +42,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async ({ username, password }) => {
     try {
+      setFetching(true);
       await cognitoSignIn({ username, password });
     } catch (e) {
       if (e.name !== 'UserAlreadyAuthenticatedException') {
         log.error(`Sign in error: ${e.name} - ${e.message}`);
         throw e;
       }
+    } finally {
+      setFetching(false);
     }
     const {
       tokens: { idToken },
@@ -62,18 +67,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (oldPassword, newPassword) => {
+    try {
+      await updatePassword({ oldPassword, newPassword });
+    } catch (e) {
+      log.error(`Change password error: ${e.message}`);
+      throw e;
+    } finally {
+      setFetching(false);
+    }
+  };
+
   const value = useMemo(
     () => ({
       token,
       signIn,
       signOut,
+      changePassword,
     }),
     [token],
   );
 
   return (
     <div>
-      <Progress open={fetching} />
+      <Progress show={fetching} />
       {fetching ? null : <AuthContext.Provider value={value}>{children}</AuthContext.Provider>}
     </div>
   );

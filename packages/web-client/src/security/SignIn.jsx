@@ -6,18 +6,18 @@ import {
   Typography,
   InputAdornment,
   IconButton,
-  Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './helpers';
+import { useNotification } from '../components';
 
 // see: https://frontendshape.com/post/react-mui-5-login-page-example
 const SignIn = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState(null);
+  const notification = useNotification();
 
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -27,7 +27,7 @@ const SignIn = () => {
       await signIn(credentials);
       navigate('/');
     } catch (e) {
-      setAuthError(e.message);
+      notification.error(e.message);
     }
   };
 
@@ -93,7 +93,6 @@ const SignIn = () => {
           <Button onClick={handleSignIn} fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
             Sign In
           </Button>
-          {authError && <Alert severity="error">{authError}</Alert>}
           {/* 
           <Grid container>
             <Grid item xs>

@@ -1,8 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { Box } from '@mui/material';
 
 import { useAuth } from './helpers';
-import Header from './Header';
 
 const ProtectedRoute = () => {
   const { token } = useAuth();
@@ -12,12 +10,8 @@ const ProtectedRoute = () => {
   }
 
   const userId = token.payload.sub.replaceAll('-', '').toUpperCase();
-  return (
-    <Box>
-      <Header />
-      <Outlet context={{ userId }} />
-    </Box>
-  );
+
+  return <Outlet context={{ userId }} />;
 };
 
 export default ProtectedRoute;

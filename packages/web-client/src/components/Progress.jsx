@@ -1,9 +1,7 @@
 import { Backdrop, CircularProgress } from '@mui/material';
 
-const Progress = ({ open }) => (
-  <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={open}>
+export const Progress = ({ show }) => (
+  <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={show}>
     <CircularProgress color="inherit" />
   </Backdrop>
 );
-
-export default Progress;
