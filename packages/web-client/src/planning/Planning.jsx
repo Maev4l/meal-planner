@@ -73,6 +73,15 @@ const Planning = () => {
     }
   };
 
+  const onRefreshMembersSchedules = async () => {
+    try {
+      setLoading(true);
+      await fetchSchedules(weekCursor);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onPreviousCalendarWeek = async () => {
     const previous = moment(weekCursor).subtract(1, 'isoweek');
     await fetchSchedules(previous);
@@ -194,6 +203,7 @@ const Planning = () => {
               group={schedules[groupCursor]}
               weekStartDay={weekCursor}
               onChangeViewMode={onChangeViewMode}
+              onRefresh={onRefreshMembersSchedules}
             />
           </Fragment>
         ) : null}

@@ -9,8 +9,9 @@ import {
   AccordionDetails,
   Grid,
   Button,
+  IconButton,
 } from '@mui/material';
-import { ExpandMore, EditNote } from '@mui/icons-material';
+import { ExpandMore, EditNote, Refresh } from '@mui/icons-material';
 import { Fragment, useState } from 'react';
 import moment from 'moment';
 
@@ -124,7 +125,7 @@ const AccordionSchedule = ({ day, group, members, onShowComment }) => {
   );
 };
 
-const MembersSchedules = ({ group, weekStartDay, onChangeViewMode }) => {
+const MembersSchedules = ({ group, weekStartDay, onChangeViewMode, onRefresh }) => {
   const [comment, setComment] = useState(null);
   const { members } = group;
   const sortedMembers = Object.entries(members)
@@ -174,8 +175,11 @@ const MembersSchedules = ({ group, weekStartDay, onChangeViewMode }) => {
             </Link>
           </Typography>
         </Box>
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography variant="h6">Member schedules</Typography>
+          <IconButton onClick={onRefresh}>
+            <Refresh />
+          </IconButton>
         </Box>
         <Box sx={{ width: '100%', p: 2 }}>
           {daysOfWeek.map((day) => (
