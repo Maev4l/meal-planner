@@ -4,8 +4,12 @@ import CopyPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import process from 'child_process';
 
 import config from './output.json';
+import pack from './package.json';
+
+const commitHash = process.execSync('git rev-parse HEAD').toString().trim();
 
 export default {
   target: 'web',
@@ -38,6 +42,8 @@ export default {
         clientId: JSON.stringify(config.mealPlannerClientId),
         userPoolId: JSON.stringify(config.mealPlannerUserPoolId),
         region: JSON.stringify(config.mealPlannerRegion),
+        version: JSON.stringify(pack.version),
+        commitHash: JSON.stringify(commitHash),
       },
     }),
   ],

@@ -6,6 +6,7 @@ import { Fragment } from 'react';
 import { useAuth } from '../security';
 import SignOut from './SignOut';
 import ChangePassword from './ChangePassword';
+import Version from './Version';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -32,8 +33,8 @@ const Settings = () => {
         divider={<Divider variant="middle" flexItem />}
       >
         <SignOut />
-
         <ChangePassword />
+        <Version />
       </Stack>
     </Fragment>
   );
