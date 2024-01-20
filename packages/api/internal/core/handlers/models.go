@@ -26,6 +26,7 @@ type RegisterUserResponse struct {
 type CreateMemberRequest struct {
 	Name  string `json:"name"`
 	Admin bool   `json:"admin"`
+	Guest bool   `json:"guest"`
 }
 
 type CreateMemberReponse struct {

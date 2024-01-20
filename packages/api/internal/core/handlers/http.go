@@ -202,7 +202,7 @@ func (hdl *HTTPHandler) CreateSchedule(c *gin.Context) {
 /*
 Endpoint: POST /api/groups/:groupId/members
 Payload:
-{"name":"name of the new member", "admin":false}
+{"name":"name of the new member", "admin":false, "guest": false}
 */
 func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
@@ -219,7 +219,7 @@ func (hdl *HTTPHandler) CreateMember(c *gin.Context) {
 		return
 	}
 
-	member, err := hdl.svc.CreateMember(info.userId, groupId, request.Name, request.Admin)
+	member, err := hdl.svc.CreateMember(info.userId, groupId, request.Name, request.Admin, request.Guest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to enroll user.",

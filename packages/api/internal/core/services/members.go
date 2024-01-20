@@ -9,7 +9,7 @@ import (
 	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 )
 
-func (s *service) CreateMember(requesterMemberId string, groupId string, memberName string, admin bool) (*domain.Member, error) {
+func (s *service) CreateMember(requesterMemberId string, groupId string, memberName string, admin bool, guest bool) (*domain.Member, error) {
 
 	type getGroupResp struct {
 		group *domain.Group
@@ -159,8 +159,13 @@ func (s *service) CreateMember(requesterMemberId string, groupId string, memberN
 			GroupName:  getGroupRes.group.Name,
 			CreatedAt:  &current,
 		},
+	}
 
-		WeeklySchedule: domain.SystemDefaultWeeklySchedule,
+	// If the wanabee member has a guest status, default his schedule to the guest default schedule
+	if guest {
+		schedule.WeeklySchedule = domain.SystemDefaultGuestWeeklySchedule
+	} else {
+		schedule.WeeklySchedule = domain.SystemDefaultWeeklySchedule
 	}
 
 	err = s.repo.SaveMemberDefaultSchedule(getGroupRes.group, &member, &schedule)

@@ -88,6 +88,16 @@ var SystemDefaultWeeklySchedule = WeeklySchedule{
 	Sunday:    DailySchedule{Meals: 3},
 }
 
+var SystemDefaultGuestWeeklySchedule = WeeklySchedule{
+	Monday:    DailySchedule{Meals: 0},
+	Tuesday:   DailySchedule{Meals: 0},
+	Wednesday: DailySchedule{Meals: 0},
+	Thursday:  DailySchedule{Meals: 0},
+	Friday:    DailySchedule{Meals: 0},
+	Saturday:  DailySchedule{Meals: 0},
+	Sunday:    DailySchedule{Meals: 0},
+}
+
 type MemberSchedule struct {
 	WeekNumber int
 	Year       int
