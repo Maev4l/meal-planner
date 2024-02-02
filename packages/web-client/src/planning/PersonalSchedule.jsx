@@ -1,96 +1,178 @@
-import { Stack, Box, Typography, Link } from '@mui/material';
-import { useOutletContext } from 'react-router-dom';
-import { useState, Fragment } from 'react';
+import { Text, Button, IconButton, useTheme } from "react-native-paper";
+import { View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import moment from "moment";
 
-import MealsSelector from './MealsSelector';
-import CalendarWeekPicker from './CalendarWeekPicker';
-import { VIEW_MODE } from './viewmode';
-import CommentPopup from './CommentPopup';
-import { MEAL } from '../domain';
+import WeekSelector from "./WeekSelector";
+import { useDispatch, useSelector, useAuth, useGroup } from "../store";
+import { Grid } from "../components";
+import { MEAL } from "../domain";
+import { submitPersonalSchedule } from "./operations";
 
-const PersonalSchedule = ({
-  group,
-  weekStartDay,
-  onSetMeal,
-  onUnsetMeal,
-  onPreviousCalendarWeek,
-  onNextCalendarWeek,
-  onChangeViewMode,
-  onSetComment,
-  onResetWeek,
+const RowHeaderCell = ({ day }) => (
+  <View style={{ flexDirection: "row", alignItems: "center" }}>
+    <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <Text style={{ fontWeight: 500 }}>{day.format("ddd")}</Text>
+      </View>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <Text>{day.format("MMM DD")}</Text>
+      </View>
+    </View>
+  </View>
+);
+
+const MealCell = ({
+  day,
+  dayKey,
+  schedule,
+  type,
+  onToggleAttendance,
+  onPressComments,
 }) => {
-  const [mealComment, setMealComment] = useState(null);
-  const { userId } = useOutletContext();
-  const { members, groupId } = group;
-  const { schedule, memberName } = members[userId];
+  const theme = useTheme();
+  const now = moment();
+  const endOfDay = moment(day).endOf("day");
+  const disabled = now.isAfter(endOfDay);
 
-  const onClickCommentPopup = (dayOfWeek, day, meal) => {
-    const dailySchedule = schedule[day];
-    const mealKey = meal === MEAL.LUNCH ? 'lunch' : 'dinner';
+  const attendance = schedule[dayKey];
 
-    const comment = dailySchedule.comments[mealKey];
-    setMealComment({ author: memberName, userId, day, mealKey, content: comment, dayOfWeek });
+  const { meals, comments } = attendance;
+  const mealKey = type === MEAL.LUNCH ? "lunch" : "dinner";
+
+  const handlePressMeal = () => {
+    if (meals & type) {
+      // Change Set to Unset
+      onToggleAttendance(dayKey, type * -1);
+    } else {
+      onToggleAttendance(dayKey, type);
+    }
   };
 
-  const onDismissCommentPopup = () => setMealComment(null);
-
-  const onSubmitComment = (comment) => {
-    setMealComment(null);
-    onSetComment(comment);
+  const handlePressComments = () => {
+    onPressComments(day, dayKey, mealKey);
   };
 
   return (
-    <Fragment>
-      {mealComment && (
-        <CommentPopup
-          comment={mealComment}
-          onCancel={onDismissCommentPopup}
-          onSubmit={onSubmitComment}
-        />
-      )}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <Button
+        disabled={disabled}
+        compact
+        mode="contained"
+        style={{ flexGrow: 1 }}
+        buttonColor={meals & type ? theme.colors.primary : theme.colors.error}
+        onPress={handlePressMeal}
+      >
+        {meals & type ? "PRESENT" : "ABSENT"}
+      </Button>
+      <IconButton
+        icon={comments[mealKey] ? "note-check" : "note-edit-outline"}
+        disabled={disabled}
+        style={{ margin: 1 }}
+        size={20}
+        iconColor={theme.colors.primary}
+        onPress={handlePressComments}
+      />
+    </View>
+  );
+};
 
-      <Stack spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography sx={{ p: 1 }}>
-            You can update your default schedule for this group{' '}
-            <Link
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                onChangeViewMode(VIEW_MODE.DEFAULT_SCHEDULE);
-              }}
-            >
-              here.
-            </Link>
-          </Typography>
-        </Box>
-        <CalendarWeekPicker
-          weekStartDay={weekStartDay}
-          onPrevious={onPreviousCalendarWeek}
-          onNext={onNextCalendarWeek}
-          onResetWeek={onResetWeek}
-        />
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography>
-            You can view the members schedules{' '}
-            <Link
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                onChangeViewMode(VIEW_MODE.MEMBERS_SCHEDULES);
-              }}
-            >
-              here.
-            </Link>
-          </Typography>
-        </Box>
-        <MealsSelector
-          weekStartDay={weekStartDay}
-          schedule={schedule}
-          onSet={(day, meal) => onSetMeal(groupId, day, meal)}
-          onUnset={(day, meal) => onUnsetMeal(groupId, day, meal)}
-          onClickComment={onClickCommentPopup}
-        />
-      </Stack>
-    </Fragment>
+const PersonalSchedule = ({ groupId }) => {
+  const weekCursor = useSelector((state) => state.weekCursor);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const group = useGroup(groupId);
+
+  const { members, groupName } = group;
+  const { userId } = useAuth();
+  const { schedule } = members[userId];
+
+  const monday = moment(weekCursor);
+  const tuesday = moment(monday).add(1, "days");
+  const wednesday = moment(monday).add(2, "days");
+  const thursday = moment(monday).add(3, "days");
+  const friday = moment(monday).add(4, "days");
+  const saturday = moment(monday).add(5, "days");
+  const sunday = moment(monday).add(6, "days");
+
+  const handlePressMeal = (dayKey, val) => {
+    const newSchedule = { ...schedule };
+    newSchedule[dayKey].meals += val;
+
+    dispatch(submitPersonalSchedule(groupId, userId, newSchedule));
+  };
+
+  const handlePressComments = (day, dayKey, mealKey) => {
+    navigation.navigate("Comments", {
+      groupId,
+      groupName,
+      day: day.format("dddd MMM DD"),
+      dayKey,
+      mealKey,
+    });
+  };
+
+  const days = [
+    { key: "monday", day: monday },
+    { key: "tuesday", day: tuesday },
+    { key: "wednesday", day: wednesday },
+    { key: "thursday", day: thursday },
+    { key: "friday", day: friday },
+    { key: "saturday", day: saturday },
+    { key: "sunday", day: sunday },
+  ];
+
+  return (
+    <>
+      <WeekSelector weekStartDay={weekCursor} />
+
+      <Grid columns={10} columnGap={20} rowGap={10}>
+        <Grid.Row>
+          <Grid.Column colsCount={2}>
+            <Text>&nbsp;</Text>
+          </Grid.Column>
+          <Grid.Column colsCount={4} style={{ alignItems: "center" }}>
+            <Text>Lunch</Text>
+          </Grid.Column>
+          <Grid.Column colsCount={4} style={{ alignItems: "center" }}>
+            <Text>Dinner</Text>
+          </Grid.Column>
+        </Grid.Row>
+        {days.map((d) => (
+          <Grid.Row key={d.key} highlight={moment().isSame(d.day, "day")}>
+            <Grid.Column colsCount={2}>
+              <RowHeaderCell day={d.day} />
+            </Grid.Column>
+            <Grid.Column colsCount={4}>
+              <MealCell
+                day={d.day}
+                dayKey={d.key}
+                type={MEAL.LUNCH}
+                schedule={schedule}
+                onToggleAttendance={handlePressMeal}
+                onPressComments={handlePressComments}
+              />
+            </Grid.Column>
+            <Grid.Column colsCount={4}>
+              <MealCell
+                day={d.day}
+                dayKey={d.key}
+                type={MEAL.DINNER}
+                schedule={schedule}
+                onToggleAttendance={handlePressMeal}
+                onPressComments={handlePressComments}
+              />
+            </Grid.Column>
+          </Grid.Row>
+        ))}
+      </Grid>
+    </>
   );
 };
 

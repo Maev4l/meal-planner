@@ -1,40 +1,77 @@
-import path from 'path';
 import webpack from 'webpack';
+import path from 'path';
 import CopyPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import process from 'child_process';
+import MomentLocalesPlugin from 'moment-locales-webpack-plugin';
 
 import config from './output.json';
 import pack from './package.json';
 
 const commitHash = process.execSync('git rev-parse HEAD').toString().trim();
 
+const appDirectory = path.resolve(__dirname, './');
+
 export default {
   target: 'web',
-  entry: {
-    main: path.join(__dirname, 'src', 'index.js'),
-  },
+  entry: [path.join(appDirectory, 'src', 'index.web.js')],
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, '.dist'),
+    path: path.join(appDirectory, '.dist'),
     publicPath: '/',
     clean: true,
+  },
+
+  module: {
+    rules: [
+      {
+        test: /\.(jpg|png|woff|woff2|eot|ttf|svg|gif|ico)$/,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.(js|jsx)$/,
+        // Add every directory that needs to be compiled by Babel during the build.
+        include: [
+          path.resolve(appDirectory, 'src'),
+          path.resolve(appDirectory, '..', '..', 'node_modules/react-native-vector-icons'),
+          path.resolve(appDirectory, '..', '..', 'node_modules/react-native-web-refresh-control'),
+        ],
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            // Re-write paths to import only the modules needed by the app
+            plugins: ['react-native-web'],
+            rootMode: 'upward',
+          },
+        },
+      },
+    ],
+  },
+  resolve: {
+    // This will only alias the exact import "react-native"
+    alias: {
+      'react-native$': 'react-native-web',
+    },
+    // If you're working on a multi-platform React Native app, web-specific
+    // module implementations should be written in files using the extension
+    // `.web.js`.
+    extensions: ['.web.js', '.js', '.jsx'],
   },
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'public', 'index.html'),
+      template: path.join(appDirectory, 'public', 'index.html'),
       filename: 'index.html',
       inject: 'head',
     }),
     new CopyPlugin({
       patterns: [
-        path.resolve(__dirname, 'public', 'favicon.ico'),
-        path.resolve(__dirname, 'public', 'logo192.png'),
-        path.resolve(__dirname, 'public', 'logo512.png'),
-        path.resolve(__dirname, 'public', 'manifest.json'),
+        path.join(appDirectory, 'public', 'favicon.ico'),
+        path.join(appDirectory, 'public', 'logo192.png'),
+        path.join(appDirectory, 'public', 'logo512.png'),
+        path.join(appDirectory, 'public', 'manifest.json'),
       ],
     }),
     new webpack.DefinePlugin({
@@ -46,40 +83,8 @@ export default {
         commitHash: JSON.stringify(commitHash),
       },
     }),
+    new MomentLocalesPlugin({
+      localesToKeep: ['fr'],
+    }),
   ],
-  resolve: {
-    extensions: ['.mjs', '.js', '.jsx', '.json', '.ts', '.tsx'],
-    modules: [path.join(__dirname, 'src'), 'node_modules'],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.(js|jsx)$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-            rootMode: 'upward',
-          },
-        },
-      },
-      /** ==> For all .css files in node_modules */
-      {
-        test: /\.css$/,
-        include: /node_modules/,
-        use: [
-          'style-loader',
-          'css-loader',
-          // { loader: 'css-loader', options: { camelCase: true } },
-        ],
-      },
-      /** <== For all .css files in node_modules */
-      {
-        test: /\.(sa|sc|c)ss$/,
-        exclude: /node_modules/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
-      },
-    ],
-  },
 };

@@ -1,15 +1,18 @@
 module.exports = {
+  extends: ['airbnb', 'prettier'],
   settings: {
-    react: {
-      version: '17.0.2',
+    'import/resolver': {
+      webpack: {
+        config: './packages/web-client/webpack.config.base.babel.js',
+      },
     },
   },
   env: {
     browser: true,
   },
-  extends: ['airbnb', 'prettier'],
   parser: '@babel/eslint-parser',
   rules: {
+    'no-bitwise': 'off',
     'react/forbid-prop-types': 'off',
     'react/require-default-props': 'off',
     'jsx-a11y/label-has-associated-control': 'off',
@@ -23,5 +26,12 @@ module.exports = {
     'react/jsx-uses-react': 'off',
     'jsx-a11y/anchor-is-valid': 'off',
     'react/jsx-fragments': 'off',
+    'react/jsx-props-no-spreading': [
+      2,
+      {
+        custom: 'ignore',
+      },
+    ],
+    'react/no-unstable-nested-components': 'off',
   },
 };

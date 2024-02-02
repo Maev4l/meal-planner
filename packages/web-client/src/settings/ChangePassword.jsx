@@ -1,18 +1,9 @@
-import {
-  Typography,
-  Stack,
-  InputAdornment,
-  TextField,
-  IconButton,
-  Button,
-  Icon,
-  Box,
-} from '@mui/material';
-import { Visibility, VisibilityOff, Check, Close } from '@mui/icons-material';
-import { useState } from 'react';
+import { View } from "react-native";
+import { TextInput, Icon, useTheme, Text, Button } from "react-native-paper";
+import { useState } from "react";
 
-import { useAuth } from '../security';
-import { useNotification } from '../components';
+import { useDispatch } from "../store";
+import { changePassword } from "../security";
 
 const COMPLEXITY_CHECK_STATE = {
   UNDEFINED: 1,
@@ -24,7 +15,8 @@ const checkPasswordComplexity = (password) => {
   const containsUppercase = (ch) => /[A-Z]/.test(ch);
   const containsLowercase = (ch) => /[a-z]/.test(ch);
   // const containsSpecialChar = (ch) => /[`!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?~ ]/.test(ch);
-  const containsSpecialChar = (ch) => /[`!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?~ ]/.test(ch);
+  const containsSpecialChar = (ch) =>
+    /[`!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?~ ]/.test(ch);
   let countOfUpperCase = 0;
   let countOfLowerCase = 0;
   let countOfNumbers = 0;
@@ -45,20 +37,34 @@ const checkPasswordComplexity = (password) => {
 
   return {
     minimumLength:
-      password.length > 8 ? COMPLEXITY_CHECK_STATE.VALID : COMPLEXITY_CHECK_STATE.INVALID,
-    numbers: countOfNumbers > 0 ? COMPLEXITY_CHECK_STATE.VALID : COMPLEXITY_CHECK_STATE.INVALID,
+      password.length > 8
+        ? COMPLEXITY_CHECK_STATE.VALID
+        : COMPLEXITY_CHECK_STATE.INVALID,
+    numbers:
+      countOfNumbers > 0
+        ? COMPLEXITY_CHECK_STATE.VALID
+        : COMPLEXITY_CHECK_STATE.INVALID,
     upperCases:
-      countOfUpperCase > 0 ? COMPLEXITY_CHECK_STATE.VALID : COMPLEXITY_CHECK_STATE.INVALID,
+      countOfUpperCase > 0
+        ? COMPLEXITY_CHECK_STATE.VALID
+        : COMPLEXITY_CHECK_STATE.INVALID,
     lowerCases:
-      countOfLowerCase > 0 ? COMPLEXITY_CHECK_STATE.VALID : COMPLEXITY_CHECK_STATE.INVALID,
-    symbols: countOfSpecialChar > 0 ? COMPLEXITY_CHECK_STATE.VALID : COMPLEXITY_CHECK_STATE.INVALID,
+      countOfLowerCase > 0
+        ? COMPLEXITY_CHECK_STATE.VALID
+        : COMPLEXITY_CHECK_STATE.INVALID,
+    symbols:
+      countOfSpecialChar > 0
+        ? COMPLEXITY_CHECK_STATE.VALID
+        : COMPLEXITY_CHECK_STATE.INVALID,
   };
 };
 
 const ChangePassword = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const theme = useTheme();
+  const dispatch = useDispatch();
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -70,9 +76,6 @@ const ChangePassword = () => {
     symbols: COMPLEXITY_CHECK_STATE.UNDEFINED,
     upperCases: COMPLEXITY_CHECK_STATE.UNDEFINED,
   });
-
-  const { changePassword } = useAuth();
-  const notification = useNotification();
 
   const isSubmitEnabled = (check, p, c) => {
     const { minimumLength, numbers, lowerCases, symbols, upperCases } = check;
@@ -86,14 +89,25 @@ const ChangePassword = () => {
     return res;
   };
 
-  const onChangeOldPassword = (value) => {
-    setOldPassword(value);
+  const renderComplexityIcon = (state) => {
+    if (state === COMPLEXITY_CHECK_STATE.UNDEFINED) {
+      return <Icon source="circle-small" size={20} />; // Empty icon
+    }
+    if (state === COMPLEXITY_CHECK_STATE.VALID) {
+      return <Icon size={20} source="check" color={theme.colors.primary} />;
+    }
+    return <Icon size={20} source="close" color={theme.colors.error} />;
   };
 
-  const onChangeNewPassword = (value) => {
-    setNewPassword(value);
+  const handleChangeOldPassword = (val) => setOldPassword(val);
+
+  const handleToggleOldPasswordVisibility = () =>
+    setShowOldPassword(!showOldPassword);
+
+  const handleChangeNewPassword = (val) => {
+    setNewPassword(val);
     let check;
-    if (!value) {
+    if (!val) {
       check = {
         minimumLength: COMPLEXITY_CHECK_STATE.UNDEFINED,
         numbers: COMPLEXITY_CHECK_STATE.UNDEFINED,
@@ -102,148 +116,115 @@ const ChangePassword = () => {
         upperCases: COMPLEXITY_CHECK_STATE.UNDEFINED,
       };
     } else {
-      check = checkPasswordComplexity(value);
+      check = checkPasswordComplexity(val);
     }
     setComplexityCheck(check);
-    setEnableSubmit(isSubmitEnabled(check, value, confirm));
+    setEnableSubmit(isSubmitEnabled(check, val, confirm));
+    setNewPassword(val);
   };
 
-  const onChangeConfirm = (value) => {
-    setConfirm(value);
-    setEnableSubmit(isSubmitEnabled(complexityCheck, newPassword, value));
-  };
-
-  const onShowNewPassword = () => {
+  const handleToggleNewPasswordVisibility = () =>
     setShowNewPassword(!showNewPassword);
+
+  const handleChangeConfirm = (val) => {
+    setConfirm(val);
+    setEnableSubmit(isSubmitEnabled(complexityCheck, newPassword, val));
   };
 
-  const onShowConfirm = () => {
-    setShowConfirm(!showConfirm);
-  };
+  const handleToggleConfirmVisibility = () => setShowConfirm(!showConfirm);
 
-  const onShowOldPassword = () => {
-    setShowOldPassword(!showOldPassword);
-  };
-
-  const onSubmit = async () => {
-    try {
-      await changePassword(oldPassword, newPassword);
-      notification.success('Password changed.');
-    } catch (e) {
-      notification.error(e.message);
-    }
-  };
-
-  const renderComplexityIcon = (state) => {
-    if (state === COMPLEXITY_CHECK_STATE.UNDEFINED) {
-      return <Icon fontSize="small" />; // Empty icon
-    }
-    if (state === COMPLEXITY_CHECK_STATE.VALID) {
-      return <Check fontSize="small" color="success" />;
-    }
-    return <Close fontSize="small" color="error" />;
-  };
+  const handleSubmit = () => dispatch(changePassword(oldPassword, newPassword));
 
   return (
-    <Stack>
-      <Typography sx={{ fontWeight: 'bold' }}>Change password</Typography>
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        label="Old password"
+    <View
+      w="100%"
+      h="100%"
+      style={{
+        flex: 1,
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <TextInput
+        autoCorrect={false}
         autoCapitalize="none"
-        type={showOldPassword ? 'text' : 'password'}
-        autoComplete="current-password"
-        onChange={(e) => onChangeOldPassword(e.target.value)}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => onShowOldPassword()}
-                onMouseDown={(e) => e.preventDefault()}
-                edge="end"
-              >
-                {showNewPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
+        secureTextEntry={!showOldPassword}
+        value={oldPassword}
+        mode="outlined"
+        label="Current password"
+        placeholder="Enter your current password"
+        onChangeText={handleChangeOldPassword}
+        style={{ marginBottom: 10, width: "80%" }}
+        right={
+          <TextInput.Icon
+            icon={showOldPassword ? "eye-outline" : "eye-off-outline"}
+            onPress={handleToggleOldPasswordVisibility}
+          />
+        }
       />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
+
+      <TextInput
+        autoCorrect={false}
+        autoCapitalize="none"
+        secureTextEntry={!showNewPassword}
+        value={newPassword}
+        mode="outlined"
         label="New password"
-        autoCapitalize="none"
-        type={showNewPassword ? 'text' : 'password'}
-        autoComplete="current-password"
-        onChange={(e) => onChangeNewPassword(e.target.value)}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => onShowNewPassword()}
-                onMouseDown={(e) => e.preventDefault()}
-                edge="end"
-              >
-                {showNewPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
+        placeholder="Enter your new password"
+        onChangeText={handleChangeNewPassword}
+        style={{ marginBottom: 10, width: "80%" }}
+        right={
+          <TextInput.Icon
+            icon={showNewPassword ? "eye-outline" : "eye-off-outline"}
+            onPress={handleToggleNewPasswordVisibility}
+          />
+        }
       />
-      <Stack sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        <Box>
-          <Stack direction="row" sx={{ display: 'flex', alignItems: 'center' }}>
-            {renderComplexityIcon(complexityCheck.minimumLength)}
-            <Typography variant="caption">Minimum 8 characters</Typography>
-          </Stack>
-          <Stack direction="row" sx={{ display: 'flex', alignItems: 'center' }}>
-            {renderComplexityIcon(complexityCheck.upperCases)}
-            <Typography variant="caption">Contains uppercase characters</Typography>
-          </Stack>
-          <Stack direction="row" sx={{ display: 'flex', alignItems: 'center' }}>
-            {renderComplexityIcon(complexityCheck.lowerCases)}
-            <Typography variant="caption">Contains lower characters</Typography>
-          </Stack>
-          <Stack direction="row" sx={{ display: 'flex', alignItems: 'center' }}>
-            {renderComplexityIcon(complexityCheck.symbols)}
-            <Typography variant="caption">Contains specials characters</Typography>
-          </Stack>
-          <Stack direction="row" sx={{ display: 'flex', alignItems: 'center' }}>
-            {renderComplexityIcon(complexityCheck.numbers)}
-            <Typography variant="caption">Contains numbers</Typography>
-          </Stack>
-        </Box>
-      </Stack>
-      <TextField
-        margin="normal"
-        required
-        fullWidth
+      {/* Complexity block */}
+      <View style={{ paddingTop: 8, paddingBottom: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {renderComplexityIcon(complexityCheck.minimumLength)}
+          <Text>Minimum 8 characters</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {renderComplexityIcon(complexityCheck.upperCases)}
+          <Text>Contains uppercase characters</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {renderComplexityIcon(complexityCheck.lowerCases)}
+          <Text>Contains lowercase characters</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {renderComplexityIcon(complexityCheck.symbols)}
+          <Text>Contains specials characters</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {renderComplexityIcon(complexityCheck.numbers)}
+          <Text>Contains numbers</Text>
+        </View>
+      </View>
+      <TextInput
+        autoCorrect={false}
+        autoCapitalize="none"
+        secureTextEntry={!showConfirm}
+        value={confirm}
+        mode="outlined"
         label="Confirm password"
-        autoCapitalize="none"
-        type={showConfirm ? 'text' : 'password'}
-        autoComplete="current-password"
-        onChange={(e) => onChangeConfirm(e.target.value)}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => onShowConfirm()}
-                onMouseDown={(e) => e.preventDefault()}
-                edge="end"
-              >
-                {showConfirm ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
+        placeholder="Confirm your new password"
+        onChangeText={handleChangeConfirm}
+        style={{ marginBottom: 10, width: "80%" }}
+        right={
+          <TextInput.Icon
+            icon={showNewPassword ? "eye-outline" : "eye-off-outline"}
+            onPress={handleToggleConfirmVisibility}
+          />
+        }
       />
-      <Button disabled={!enableSubmit} onClick={onSubmit}>
-        Submit new password
+      <Button disabled={!enableSubmit} mode="contained" onPress={handleSubmit}>
+        SUBMIT
       </Button>
-    </Stack>
+    </View>
   );
 };
 

@@ -1,72 +1,74 @@
-import { Snackbar, Alert } from '@mui/material';
-import { createContext, useContext, useState, useMemo } from 'react';
+import { Snackbar, Icon, Portal, Text, withTheme } from "react-native-paper";
+import { View } from "react-native";
 
-const NotificationContext = createContext(null);
+import { useSelector, useDispatch } from "../store";
+import { dismissNotification } from "./actions";
 
-export const NotificationProvider = ({ children }) => {
-  const [notificationText, setNotificationText] = useState(null);
-  const [notificationSeverity, setNotificationSeverity] = useState(null);
+const computeStyles = (notification, theme) => ({
+  container: {
+    backgroundColor:
+      notification.severity === "error"
+        ? theme.colors.errorContainer
+        : theme.colors.primaryContainer,
+    borderWidth: 1,
+    borderColor:
+      notification.severity === "error"
+        ? theme.colors.error
+        : theme.colors.primary,
+  },
 
-  const success = (text) => {
-    setNotificationText(text);
-    setNotificationSeverity('success');
-  };
-  const error = (text) => {
-    setNotificationText(text);
-    setNotificationSeverity('error');
-  };
+  text: {
+    color:
+      notification.severity === "error"
+        ? theme.colors.error
+        : theme.colors.primary,
+  },
+});
 
-  const info = (text) => {
-    setNotificationText(text);
-    setNotificationSeverity('info');
-  };
+const Notification = ({ theme }) => {
+  const n = useSelector((state) => {
+    const { notification } = state;
+    return notification;
+  });
 
-  const clear = () => {
-    setNotificationText(null);
-    setNotificationSeverity(null);
-  };
-
-  const n = useMemo(
-    () => ({
-      text: notificationText,
-      severity: notificationSeverity,
-      success,
-      error,
-      info,
-      clear,
-    }),
-    [notificationText, notificationSeverity],
-  );
-
-  return <NotificationContext.Provider value={n}>{children}</NotificationContext.Provider>;
-};
-
-export const useNotification = () => useContext(NotificationContext);
-
-export const NotificationBar = () => {
-  const notification = useNotification();
+  const dispatch = useDispatch();
 
   const handleClose = () => {
-    notification.clear();
+    dispatch(dismissNotification());
   };
 
+  const styles = computeStyles(n, theme);
+
   return (
-    notification.text && (
+    <Portal>
       <Snackbar
-        open
-        autoHideDuration={5000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        visible={n.text}
+        duration={5000}
+        onDismiss={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        style={styles.container}
       >
-        <Alert
-          onClose={handleClose}
-          severity={notification.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
         >
-          {notification.text}
-        </Alert>
+          <Icon
+            source={
+              n.severity === "error" ? "alert-circle-outline" : "check-bold"
+            }
+            color={styles.text.color}
+            size={30}
+          />
+          <Text style={[{ paddingLeft: 10 }, styles.text]} adjustsFontSizeToFit>
+            {n.text}
+          </Text>
+        </View>
       </Snackbar>
-    )
+    </Portal>
   );
 };
+
+export const NotificationBar = withTheme(Notification);
