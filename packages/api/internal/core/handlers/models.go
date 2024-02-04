@@ -35,26 +35,33 @@ type CreateMemberReponse struct {
 	CreatedAt string `json:"createdAt"`
 }
 
-type CreateCommentsRequest struct {
+type CreateDailyCommentsRequest struct {
 	Lunch  string `json:"lunch"`
 	Dinner string `json:"dinner"`
 }
 
-type CreateDailyScheduleRequest struct {
-	Meals    int                   `json:"meals"`
-	Comments CreateCommentsRequest `json:"comments"`
+type CreateCommentsRequest struct {
+	WeekNumber int                        `json:"weekNumber,omitempty"`
+	Year       int                        `json:"year,omitempty"`
+	Monday     CreateDailyCommentsRequest `json:"monday"`
+	Tuesday    CreateDailyCommentsRequest `json:"tuesday"`
+	Wednesday  CreateDailyCommentsRequest `json:"wednesday"`
+	Thursday   CreateDailyCommentsRequest `json:"thursday"`
+	Friday     CreateDailyCommentsRequest `json:"friday"`
+	Saturday   CreateDailyCommentsRequest `json:"saturday"`
+	Sunday     CreateDailyCommentsRequest `json:"sunday"`
 }
 
 type CreateMemberScheduleRequest struct {
-	WeekNumber int                        `json:"weekNumber,omitempty"`
-	Year       int                        `json:"year,omitempty"`
-	Monday     CreateDailyScheduleRequest `json:"monday"`
-	Tuesday    CreateDailyScheduleRequest `json:"tuesday"`
-	Wednesday  CreateDailyScheduleRequest `json:"wednesday"`
-	Thursday   CreateDailyScheduleRequest `json:"thursday"`
-	Friday     CreateDailyScheduleRequest `json:"friday"`
-	Saturday   CreateDailyScheduleRequest `json:"saturday"`
-	Sunday     CreateDailyScheduleRequest `json:"sunday"`
+	WeekNumber int `json:"weekNumber,omitempty"`
+	Year       int `json:"year,omitempty"`
+	Monday     int `json:"monday"`
+	Tuesday    int `json:"tuesday"`
+	Wednesday  int `json:"wednesday"`
+	Thursday   int `json:"thursday"`
+	Friday     int `json:"friday"`
+	Saturday   int `json:"saturday"`
+	Sunday     int `json:"sunday"`
 }
 
 type CreateDefaultScheduleRequest struct {
@@ -82,27 +89,33 @@ type DefaultScheduleResponse struct {
 	Sunday    int `json:"sunday"`
 }
 
-type CommentsResponse struct {
+type ScheduleResponse struct {
+	Overriden  bool `json:"overriden"`
+	Year       int  `json:"year"`
+	WeekNumber int  `json:"weekNumber,omitempty"`
+	Monday     int  `json:"monday"`
+	Tuesday    int  `json:"tuesday"`
+	Wednesday  int  `json:"wednesday"`
+	Thursday   int  `json:"thursday"`
+	Friday     int  `json:"friday"`
+	Saturday   int  `json:"saturday"`
+	Sunday     int  `json:"sunday"`
+}
+
+type DailyCommentsResponse struct {
 	Lunch  string `json:"lunch"`
 	Dinner string `json:"dinner"`
 }
-
-type DailyScheduleResponse struct {
-	Meals    int              `json:"meals"`
-	Comments CommentsResponse `json:"comments"`
-}
-
-type ScheduleResponse struct {
-	Overriden  bool                  `json:"overriden"`
+type CommentsResponse struct {
 	Year       int                   `json:"year"`
 	WeekNumber int                   `json:"weekNumber,omitempty"`
-	Monday     DailyScheduleResponse `json:"monday"`
-	Tuesday    DailyScheduleResponse `json:"tuesday"`
-	Wednesday  DailyScheduleResponse `json:"wednesday"`
-	Thursday   DailyScheduleResponse `json:"thursday"`
-	Friday     DailyScheduleResponse `json:"friday"`
-	Saturday   DailyScheduleResponse `json:"saturday"`
-	Sunday     DailyScheduleResponse `json:"sunday"`
+	Monday     DailyCommentsResponse `json:"monday"`
+	Tuesday    DailyCommentsResponse `json:"tuesday"`
+	Wednesday  DailyCommentsResponse `json:"wednesday"`
+	Thursday   DailyCommentsResponse `json:"thursday"`
+	Friday     DailyCommentsResponse `json:"friday"`
+	Saturday   DailyCommentsResponse `json:"saturday"`
+	Sunday     DailyCommentsResponse `json:"sunday"`
 }
 
 type MemberScheduleResponse struct {
@@ -111,6 +124,7 @@ type MemberScheduleResponse struct {
 	Admin           bool                    `json:"admin"`
 	DefaultSchedule DefaultScheduleResponse `json:"default"`
 	Schedule        ScheduleResponse        `json:"schedule"`
+	Comments        CommentsResponse        `json:"comments"`
 }
 
 type GroupScheduleResponse struct {

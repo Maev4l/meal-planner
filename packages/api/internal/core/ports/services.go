@@ -11,5 +11,6 @@ type PlannerService interface {
 	CreateMember(requesterMemberId string, groupId string, memberName string, admin bool, guest bool) (*domain.Member, error)
 	CreateSchedule(memberId string, groupId string, year int, week int, schedule *domain.WeeklySchedule) error
 	CreateDefaultSchedule(memberId string, groupId string, schedule *domain.WeeklySchedule) error
-	GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, error)
+	CreateComments(memberId string, groupId string, year int, week int, comments *domain.WeeklyComments) error
+	GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error)
 }

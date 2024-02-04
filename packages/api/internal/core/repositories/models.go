@@ -53,11 +53,11 @@ func createMemberSecondary1SK(memberId string) string {
 	return fmt.Sprintf("member#%s", memberId)
 }
 
-type Schedule struct {
+type Comments struct {
 	PK                     string     `dynamodbav:"PK"`     // user#1234
-	SK                     string     `dynamodbav:"SK"`     // schedule#<schedule-id>#group#group-1234
+	SK                     string     `dynamodbav:"SK"`     // comments#<comments-id>#group#group-1234
 	GSI1PK                 string     `dynamodbav:"GSI1PK"` // group#1234
-	GSI1SK                 string     `dynamodbav:"GSI1SK"` // schedule#<schedule-id>, default or YYYY-CWXX
+	GSI1SK                 string     `dynamodbav:"GSI1SK"` // comments#<comments-id>, YYYY-XX
 	MemberId               string     `dynamodbav:"MemberId"`
 	MemberName             string     `dynamodbav:"MemberName"`
 	GroupId                string     `dynamodbav:"GroupId"`
@@ -65,13 +65,6 @@ type Schedule struct {
 	MemberRole             string     `dynamodbav:"Role"`
 	Year                   int        `dynamodbav:"Year"`
 	WeekNumber             int        `dynamodbav:"WeekNumber"`
-	Monday                 int        `dynamodbav:"Monday"`
-	Tuesday                int        `dynamodbav:"Tuesday"`
-	Wednesday              int        `dynamodbav:"Wednesday"`
-	Thursday               int        `dynamodbav:"Thursday"`
-	Friday                 int        `dynamodbav:"Friday"`
-	Saturday               int        `dynamodbav:"Saturday"`
-	Sunday                 int        `dynamodbav:"Sunday"`
 	MondayLunchComment     string     `dynamodbav:"MondayLunchComment"`
 	TuesdayLunchComment    string     `dynamodbav:"TuesdayLunchComment"`
 	WednesdayLunchComment  string     `dynamodbav:"WednesdayLunchComment"`
@@ -87,6 +80,49 @@ type Schedule struct {
 	SaturdayDinnerComment  string     `dynamodbav:"SaturdayDinnerComment"`
 	SundayDinnerComment    string     `dynamodbav:"SundayDinnerComment"`
 	CreatedAt              *time.Time `dynamodbav:"CreatedAt"`
+	ExpiresAt              *time.Time `dynamodbav:"ExpiresAt,unixtime"`
+}
+
+func (c *Comments) getId() string {
+	return helper.NewCommentsId(c.Year, c.WeekNumber)
+}
+
+func createCommentsPK(memberId string) string {
+	return fmt.Sprintf("member#%s", memberId)
+}
+
+func createCommentsSK(commentsId string, groupId string) string {
+	return fmt.Sprintf("comments#%s#group#%s", commentsId, groupId)
+}
+
+func createCommentsSecondary1PK(groupId string) string {
+	return fmt.Sprintf("group#%s", groupId)
+}
+
+func createCommentsSecondary1SK(commentsId string) string {
+	return fmt.Sprintf("comments#%s", commentsId)
+}
+
+type Schedule struct {
+	PK         string     `dynamodbav:"PK"`     // user#1234
+	SK         string     `dynamodbav:"SK"`     // schedule#<schedule-id>#group#group-1234
+	GSI1PK     string     `dynamodbav:"GSI1PK"` // group#1234
+	GSI1SK     string     `dynamodbav:"GSI1SK"` // schedule#<schedule-id>, default or YYYY-XX
+	MemberId   string     `dynamodbav:"MemberId"`
+	MemberName string     `dynamodbav:"MemberName"`
+	GroupId    string     `dynamodbav:"GroupId"`
+	GroupName  string     `dynamodbav:"GroupName"`
+	MemberRole string     `dynamodbav:"Role"`
+	Year       int        `dynamodbav:"Year"`
+	WeekNumber int        `dynamodbav:"WeekNumber"`
+	Monday     int        `dynamodbav:"Monday"`
+	Tuesday    int        `dynamodbav:"Tuesday"`
+	Wednesday  int        `dynamodbav:"Wednesday"`
+	Thursday   int        `dynamodbav:"Thursday"`
+	Friday     int        `dynamodbav:"Friday"`
+	Saturday   int        `dynamodbav:"Saturday"`
+	Sunday     int        `dynamodbav:"Sunday"`
+	CreatedAt  *time.Time `dynamodbav:"CreatedAt"`
 }
 
 func (s *Schedule) getId() string {

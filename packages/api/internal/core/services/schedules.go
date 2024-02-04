@@ -9,79 +9,29 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/snabb/isoweek"
 	"isnan.eu/meal-planner/api/internal/core/domain"
-	"isnan.eu/meal-planner/api/internal/helper"
 )
 
-func (s *service) validateScheduleOperation(groupId string, memberId string) (*domain.Group, *domain.Member, error) {
-	type getGroupResp struct {
-		group *domain.Group
-		err   error
+func computeMemberComments(year int, week int,
+	scheduleBase *domain.ScheduleBase,
+	memberComments *domain.MemberComments) *domain.MemberComments {
+	if memberComments != nil {
+		return memberComments
 	}
 
-	getGroupOut := make(chan getGroupResp)
-	go func() {
-
-		group, err := s.repo.GetGroup(groupId)
-		if err != nil {
-			getGroupOut <- getGroupResp{
-				group: nil,
-				err:   err,
-			}
-			return
-		}
-
-		getGroupOut <- getGroupResp{
-			group: group,
-			err:   nil,
-		}
-	}()
-
-	type getMemberResp struct {
-		member *domain.Member
-		err    error
+	return &domain.MemberComments{
+		ScheduleBase: *scheduleBase,
+		Year:         year,
+		WeekNumber:   week,
+		WeeklyComments: domain.WeeklyComments{
+			Monday:    domain.Comments{Lunch: "", Dinner: ""},
+			Tuesday:   domain.Comments{Lunch: "", Dinner: ""},
+			Wednesday: domain.Comments{Lunch: "", Dinner: ""},
+			Thursday:  domain.Comments{Lunch: "", Dinner: ""},
+			Friday:    domain.Comments{Lunch: "", Dinner: ""},
+			Saturday:  domain.Comments{Lunch: "", Dinner: ""},
+			Sunday:    domain.Comments{Lunch: "", Dinner: ""},
+		},
 	}
-
-	getMemberOut := make(chan getMemberResp)
-	go func() {
-
-		requester, err := s.repo.GetMember(groupId, memberId)
-		if err != nil {
-			getMemberOut <- getMemberResp{
-				member: nil,
-				err:    err,
-			}
-			return
-		}
-
-		getMemberOut <- getMemberResp{
-			member: requester,
-			err:    nil,
-		}
-	}()
-
-	// Check if the group exists
-	getGroupRes := <-getGroupOut
-	if getGroupRes.err != nil {
-		return nil, nil, getGroupRes.err
-	}
-
-	if getGroupRes.group == nil {
-		log.Error().Msgf("Group '%s' does not exists.", groupId)
-		return nil, nil, nil
-	}
-
-	// Check if the requester is member of the group
-	getMemberRes := <-getMemberOut
-	if getMemberRes.err != nil {
-		return nil, nil, getMemberRes.err
-	}
-
-	if getMemberRes.member == nil {
-		log.Error().Msgf("Member '%s' does not belong to group '%s'.", memberId, groupId)
-		return nil, nil, nil
-	}
-
-	return getGroupRes.group, getMemberRes.member, nil
 }
 
 func computeMemberSchedule(year int, week int, defaultSchedule *domain.MemberDefaultSchedule, memberSchedule *domain.MemberSchedule) *domain.MemberSchedule {
@@ -120,11 +70,11 @@ func computeMemberSchedule(year int, week int, defaultSchedule *domain.MemberDef
 	}
 }
 
-func (s *service) GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, error) {
+func (s *service) GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error) {
 	p := strings.Split(period, "-")
 	if len(p) != 2 {
 		log.Error().Msgf("Incorrect period format: %s.", period)
-		return nil, nil, fmt.Errorf("incorrect period format")
+		return nil, nil, nil, fmt.Errorf("incorrect period format")
 	}
 
 	y := p[0]
@@ -133,19 +83,19 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 	year, err := strconv.Atoi(y)
 	if err != nil {
 		log.Error().Msgf("Incorrect year value: %s.", y)
-		return nil, nil, fmt.Errorf("incorrect year value: %s", y)
+		return nil, nil, nil, fmt.Errorf("incorrect year value: %s", y)
 	}
 
 	week, err := strconv.Atoi(w)
 	if err != nil {
 		log.Error().Msgf("Incorrect week value: %s.", w)
-		return nil, nil, fmt.Errorf("incorrect week value: %s", w)
+		return nil, nil, nil, fmt.Errorf("incorrect week value: %s", w)
 	}
 
 	valid := isoweek.Validate(year, week)
 	if !valid {
 		log.Error().Msgf("Invalid calendar week '%d-%d'.", year, week)
-		return nil, nil, fmt.Errorf("invalid calendar week '%d-%d'", year, week)
+		return nil, nil, nil, fmt.Errorf("invalid calendar week '%d-%d'", year, week)
 	}
 
 	// TODO: Check if the period is too far in the past
@@ -153,11 +103,12 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 	// TODO: Check if the period is too far in the future
 
 	// Retrieve schedules (requester's schedules across groups + members of the groups requester belongs to) for the period
-	defaultSchedules, memberSchedules, _ := s.repo.GetMemberSchedules(memberId, helper.NewScheduleId(year, week))
+	defaultSchedules, memberSchedules, memberComments, _ := s.repo.GetMemberSchedulesAndComments(memberId, year, week)
 
 	// Group by member id
 	defaultSchedulesByMember := map[string]*domain.MemberDefaultSchedule{}
 	memberSchedulesByMember := map[string]*domain.MemberSchedule{}
+	memberCommentsByMember := map[string]*domain.MemberComments{}
 
 	for _, s := range defaultSchedules {
 		defaultSchedulesByMember[s.MemberId] = s
@@ -167,20 +118,30 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 		memberSchedulesByMember[s.MemberId] = s
 	}
 
-	computedMemberSchedules := []*domain.MemberSchedule{}
-
-	// For each member, compute the schedule for the period
-	for userId, defaultSchedule := range defaultSchedulesByMember {
-
-		var computerMemberSchedule *domain.MemberSchedule
-		memberSchedule := memberSchedulesByMember[userId]
-
-		computerMemberSchedule = computeMemberSchedule(year, week, defaultSchedule, memberSchedule)
-
-		computedMemberSchedules = append(computedMemberSchedules, computerMemberSchedule)
+	for _, c := range memberComments {
+		memberCommentsByMember[c.MemberId] = c
 	}
 
-	return defaultSchedules, computedMemberSchedules, nil
+	computedMemberSchedules := []*domain.MemberSchedule{}
+	computedMemberComments := []*domain.MemberComments{}
+
+	// For each member, compute the schedule and the comments for the period
+	for userId, defaultSchedule := range defaultSchedulesByMember {
+
+		memberSchedule := memberSchedulesByMember[userId]
+
+		// Compute schedule
+		computedMemberSchedule := computeMemberSchedule(year, week, defaultSchedule, memberSchedule)
+		computedMemberSchedules = append(computedMemberSchedules, computedMemberSchedule)
+
+		// Compute comments
+		comments := memberCommentsByMember[userId]
+		computedComments := computeMemberComments(year, week, &defaultSchedule.ScheduleBase, comments)
+		computedMemberComments = append(computedMemberComments, computedComments)
+
+	}
+
+	return defaultSchedules, computedMemberSchedules, computedMemberComments, nil
 }
 
 func (s *service) CreateSchedule(memberId string, groupId string,
@@ -194,7 +155,7 @@ func (s *service) CreateSchedule(memberId string, groupId string,
 		return fmt.Errorf("invalid calendar week '%d-%d'", year, week)
 	}
 
-	group, member, err := s.validateScheduleOperation(groupId, memberId)
+	group, member, err := s.validateGroupOperation(groupId, memberId)
 	if err != nil {
 		return err
 	}
@@ -228,7 +189,7 @@ func (s *service) CreateSchedule(memberId string, groupId string,
 
 func (s *service) CreateDefaultSchedule(memberId string, groupId string, weeklySchedule *domain.WeeklySchedule) error {
 
-	group, member, err := s.validateScheduleOperation(groupId, memberId)
+	group, member, err := s.validateGroupOperation(groupId, memberId)
 	if err != nil {
 		return err
 	}

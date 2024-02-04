@@ -92,6 +92,54 @@ func (hdl *HTTPHandler) RegisterUser(c *gin.Context) {
 }
 
 /*
+Endpoint: POST /api/groups/:groupId/comments
+Payload:
+
+	{
+		"year": 2024,
+		"weekNumber": 4,
+		"monday": {
+			lunch: "blah",
+			dinner: "blah",
+		},
+		"tuesday":  {
+			lunch: "blah",
+			dinner: "blah",
+		},
+		...
+	}
+*/
+func (hdl *HTTPHandler) CreateComments(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	groupId := c.Param("groupId")
+
+	var request CreateCommentsRequest
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Error().Msgf("Invalid request: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid request.",
+		})
+		return
+	}
+
+	err = hdl.svc.CreateComments(
+		info.userId,
+		groupId,
+		request.Year,
+		request.WeekNumber,
+		request.toDomain())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to set comments.",
+		})
+		return
+	}
+	log.Info().Msgf("Comments 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", request.Year, request.WeekNumber, info.userId, groupId)
+}
+
+/*
 Endpoint: POST /api/groups/:groupId/schedules
 Payload:
 
@@ -115,20 +163,13 @@ or
 		"schedule": {
 			"year": 2024,
 			"weekNumber": 4,
-			"monday": {
-				"meals": 3,
-				"comments": {
-					"lunch": "",
-					"dinner": ""
-				}
-			},
-			"tuesday": {
-				"meals": 3,
-				"comments": {
-					"lunch": "",
-					"dinner": ""
-				}
-			},
+			"monday": 3,
+			"tuesday": 3,
+			"wednesday": 3,
+			"thursday": 3,
+			"friday": 3,
+			"saturday": 0,
+			"sunday": 0
 			....
 		}
 	}
@@ -286,7 +327,7 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
 	period := c.Param("period")
-	defaultSchedules, memberSchedules, err := hdl.svc.GetSchedules(info.userId, period)
+	defaultSchedules, memberSchedules, memberComments, err := hdl.svc.GetSchedules(info.userId, period)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to retrieve schedules.",
@@ -318,16 +359,15 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 			MemberName: memberName,
 			Admin:      d.Role == roles.GroupAdmin,
 			DefaultSchedule: DefaultScheduleResponse{
-				Monday:    d.WeeklySchedule.Monday.Meals,
-				Tuesday:   d.WeeklySchedule.Tuesday.Meals,
-				Wednesday: d.WeeklySchedule.Wednesday.Meals,
-				Thursday:  d.WeeklySchedule.Thursday.Meals,
-				Friday:    d.WeeklySchedule.Friday.Meals,
-				Saturday:  d.WeeklySchedule.Saturday.Meals,
-				Sunday:    d.WeeklySchedule.Sunday.Meals,
+				Monday:    d.WeeklySchedule.Monday,
+				Tuesday:   d.WeeklySchedule.Tuesday,
+				Wednesday: d.WeeklySchedule.Wednesday,
+				Thursday:  d.WeeklySchedule.Thursday,
+				Friday:    d.WeeklySchedule.Friday,
+				Saturday:  d.WeeklySchedule.Saturday,
+				Sunday:    d.WeeklySchedule.Sunday,
 			},
 		}
-
 	}
 
 	for _, s := range memberSchedules {
@@ -340,55 +380,31 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 			Overriden:  s.Overriden,
 			Year:       s.Year,
 			WeekNumber: s.WeekNumber,
-			Monday: DailyScheduleResponse{
-				Meals: s.Monday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Monday.Comments.Lunch,
-					Dinner: s.Monday.Comments.Dinner,
-				},
-			},
-			Tuesday: DailyScheduleResponse{
-				Meals: s.Tuesday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Tuesday.Comments.Lunch,
-					Dinner: s.Tuesday.Comments.Dinner,
-				},
-			},
-			Wednesday: DailyScheduleResponse{
-				Meals: s.Wednesday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Wednesday.Comments.Lunch,
-					Dinner: s.Wednesday.Comments.Dinner,
-				},
-			},
-			Thursday: DailyScheduleResponse{
-				Meals: s.Thursday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Thursday.Comments.Lunch,
-					Dinner: s.Thursday.Comments.Dinner,
-				},
-			},
-			Friday: DailyScheduleResponse{
-				Meals: s.Friday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Friday.Comments.Lunch,
-					Dinner: s.Friday.Comments.Dinner,
-				},
-			},
-			Saturday: DailyScheduleResponse{
-				Meals: s.Saturday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Saturday.Comments.Lunch,
-					Dinner: s.Saturday.Comments.Dinner,
-				},
-			},
-			Sunday: DailyScheduleResponse{
-				Meals: s.Sunday.Meals,
-				Comments: CommentsResponse{
-					Lunch:  s.Sunday.Comments.Lunch,
-					Dinner: s.Sunday.Comments.Dinner,
-				},
-			},
+			Monday:     s.Monday,
+			Tuesday:    s.Tuesday,
+			Wednesday:  s.Wednesday,
+			Thursday:   s.Thursday,
+			Friday:     s.Friday,
+			Saturday:   s.Saturday,
+			Sunday:     s.Sunday,
+		}
+	}
+
+	for _, c := range memberComments {
+		groupId := c.GroupId
+		memberId := c.MemberId
+		groupSchedule := schedulesByGroup[groupId]
+		memberSchedule := groupSchedule.Members[memberId]
+		memberSchedule.Comments = CommentsResponse{
+			Year:       c.Year,
+			WeekNumber: c.WeekNumber,
+			Monday:     DailyCommentsResponse{Lunch: c.Monday.Lunch, Dinner: c.Monday.Dinner},
+			Tuesday:    DailyCommentsResponse{Lunch: c.Tuesday.Lunch, Dinner: c.Tuesday.Dinner},
+			Wednesday:  DailyCommentsResponse{Lunch: c.Wednesday.Lunch, Dinner: c.Wednesday.Dinner},
+			Thursday:   DailyCommentsResponse{Lunch: c.Thursday.Lunch, Dinner: c.Thursday.Dinner},
+			Friday:     DailyCommentsResponse{Lunch: c.Friday.Lunch, Dinner: c.Friday.Dinner},
+			Saturday:   DailyCommentsResponse{Lunch: c.Saturday.Lunch, Dinner: c.Saturday.Dinner},
+			Sunday:     DailyCommentsResponse{Lunch: c.Sunday.Lunch, Dinner: c.Sunday.Dinner},
 		}
 	}
 

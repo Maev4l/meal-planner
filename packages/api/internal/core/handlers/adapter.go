@@ -4,59 +4,36 @@ import "isnan.eu/meal-planner/api/internal/core/domain"
 
 func (r *CreateDefaultScheduleRequest) toDomain() *domain.WeeklySchedule {
 	return &domain.WeeklySchedule{
-		Monday:    domain.DailySchedule{Meals: r.Monday},
-		Tuesday:   domain.DailySchedule{Meals: r.Tuesday},
-		Wednesday: domain.DailySchedule{Meals: r.Wednesday},
-		Thursday:  domain.DailySchedule{Meals: r.Thursday},
-		Friday:    domain.DailySchedule{Meals: r.Friday},
-		Saturday:  domain.DailySchedule{Meals: r.Saturday},
-		Sunday:    domain.DailySchedule{Meals: r.Sunday},
+		Monday:    r.Monday,
+		Tuesday:   r.Tuesday,
+		Wednesday: r.Wednesday,
+		Thursday:  r.Thursday,
+		Friday:    r.Friday,
+		Saturday:  r.Saturday,
+		Sunday:    r.Sunday,
 	}
 }
 
 func (r *CreateMemberScheduleRequest) toDomain() *domain.WeeklySchedule {
 	return &domain.WeeklySchedule{
-		Monday: domain.DailySchedule{
-			Meals: r.Monday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Monday.Comments.Lunch,
-				Dinner: r.Monday.Comments.Dinner,
-			}},
-		Tuesday: domain.DailySchedule{
-			Meals: r.Tuesday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Tuesday.Comments.Lunch,
-				Dinner: r.Tuesday.Comments.Dinner,
-			}},
-		Wednesday: domain.DailySchedule{
-			Meals: r.Wednesday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Wednesday.Comments.Lunch,
-				Dinner: r.Wednesday.Comments.Dinner,
-			}},
-		Thursday: domain.DailySchedule{
-			Meals: r.Thursday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Thursday.Comments.Lunch,
-				Dinner: r.Thursday.Comments.Dinner,
-			}},
-		Friday: domain.DailySchedule{
-			Meals: r.Friday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Friday.Comments.Lunch,
-				Dinner: r.Friday.Comments.Dinner,
-			}},
-		Saturday: domain.DailySchedule{
-			Meals: r.Saturday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Saturday.Comments.Lunch,
-				Dinner: r.Saturday.Comments.Dinner,
-			}},
-		Sunday: domain.DailySchedule{
-			Meals: r.Sunday.Meals,
-			Comments: domain.Comments{
-				Lunch:  r.Sunday.Comments.Lunch,
-				Dinner: r.Sunday.Comments.Dinner,
-			}},
+		Monday:    r.Monday,
+		Tuesday:   r.Tuesday,
+		Wednesday: r.Wednesday,
+		Thursday:  r.Thursday,
+		Friday:    r.Friday,
+		Saturday:  r.Saturday,
+		Sunday:    r.Sunday,
+	}
+}
+
+func (r *CreateCommentsRequest) toDomain() *domain.WeeklyComments {
+	return &domain.WeeklyComments{
+		Monday:    domain.Comments{Lunch: r.Monday.Lunch, Dinner: r.Monday.Dinner},
+		Tuesday:   domain.Comments{Lunch: r.Tuesday.Lunch, Dinner: r.Tuesday.Dinner},
+		Wednesday: domain.Comments{Lunch: r.Wednesday.Lunch, Dinner: r.Wednesday.Dinner},
+		Thursday:  domain.Comments{Lunch: r.Thursday.Lunch, Dinner: r.Thursday.Dinner},
+		Friday:    domain.Comments{Lunch: r.Friday.Lunch, Dinner: r.Friday.Dinner},
+		Saturday:  domain.Comments{Lunch: r.Saturday.Lunch, Dinner: r.Saturday.Dinner},
+		Sunday:    domain.Comments{Lunch: r.Sunday.Lunch, Dinner: r.Sunday.Dinner},
 	}
 }

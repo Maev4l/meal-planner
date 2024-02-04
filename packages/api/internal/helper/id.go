@@ -19,3 +19,7 @@ func Normalize(val string) string {
 func NewScheduleId(year int, week int) string {
 	return fmt.Sprintf("%d-%d", year, week)
 }
+
+func NewCommentsId(year int, week int) string {
+	return fmt.Sprintf("%d-%d", year, week)
+}

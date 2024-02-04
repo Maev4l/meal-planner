@@ -1,15 +1,15 @@
-import moment from "moment";
-import ACTION_TYPES from "./types";
+import moment from 'moment';
+import ACTION_TYPES from './types';
 
 export const INITIAL_STATE = {
   loading: false,
   authn: {
-    state: "FETCHING_TOKEN", // LOGGED_IN, LOGGED_OUT
+    state: 'FETCHING_TOKEN', // LOGGED_IN, LOGGED_OUT
     token: null,
   },
   notification: {
     text: null,
-    severity: "", // error, success
+    severity: '', // error, success
   },
   weekCursor: null,
   schedules: [],
@@ -19,13 +19,21 @@ export const reducer = (state, action) => {
   const { type, payload } = action;
 
   switch (type) {
+    case ACTION_TYPES.SAVE_COMMENTS_SUCCESS: {
+      const newState = { ...state };
+      const { groupId, memberId, comments } = payload;
+      const [groupSchedule] = newState.schedules.filter((g) => g.groupId === groupId);
+
+      const member = groupSchedule.members[memberId];
+      member.comments = comments;
+      return { ...newState, loading: false };
+    }
+
     case ACTION_TYPES.SAVE_PERSONAL_SCHEDULE_SUCCESS: {
       const newState = { ...state };
       const { groupId, memberId, schedule } = payload;
 
-      const [groupSchedule] = newState.schedules.filter(
-        (g) => g.groupId === groupId
-      );
+      const [groupSchedule] = newState.schedules.filter((g) => g.groupId === groupId);
 
       const member = groupSchedule.members[memberId];
       member.schedule = schedule;
@@ -36,7 +44,7 @@ export const reducer = (state, action) => {
 
     case ACTION_TYPES.SIGN_IN_SUCCESS: {
       const authn = {
-        state: "LOGGED_IN",
+        state: 'LOGGED_IN',
         token: payload,
       };
       return { ...state, loading: false, authn };
@@ -45,15 +53,15 @@ export const reducer = (state, action) => {
     case ACTION_TYPES.FETCH_TOKEN_SUCCESS: {
       const token = payload;
       const authn = {
-        state: "",
+        state: '',
         token: null,
       };
 
       if (token) {
-        authn.state = "LOGGED_IN";
+        authn.state = 'LOGGED_IN';
         authn.token = token;
       } else {
-        authn.state = "LOGGED_OUT";
+        authn.state = 'LOGGED_OUT';
       }
       return { ...state, loading: false, authn };
     }
@@ -63,10 +71,7 @@ export const reducer = (state, action) => {
     case ACTION_TYPES.FETCH_SCHEDULES_SUCCESS: {
       const { schedules, year, week } = payload;
 
-      const weekCursor = moment()
-        .isoWeekYear(year)
-        .isoWeek(week)
-        .startOf("isoWeek");
+      const weekCursor = moment().isoWeekYear(year).isoWeek(week).startOf('isoWeek');
 
       return { ...state, loading: false, schedules, weekCursor };
     }
@@ -75,7 +80,7 @@ export const reducer = (state, action) => {
       return {
         ...state,
         loading: false,
-        notification: { text: null, severity: "" },
+        notification: { text: null, severity: '' },
       };
     }
 
@@ -84,7 +89,7 @@ export const reducer = (state, action) => {
         ...state,
         loading: false,
         authn: {
-          state: "LOGGED_OUT",
+          state: 'LOGGED_OUT',
           token: null,
         },
         weekCursor: null,
@@ -97,12 +102,13 @@ export const reducer = (state, action) => {
         ...state,
         loading: false,
         notification: {
-          severity: "success",
-          text: "Password has been changed",
+          severity: 'success',
+          text: 'Password has been changed',
         },
       };
     }
 
+    case ACTION_TYPES.SAVING_COMMENTS:
     case ACTION_TYPES.CHANGING_PASSWORD:
     case ACTION_TYPES.SIGNING_OUT:
     case ACTION_TYPES.SAVING_DEFAULT_SCHEDULE:
@@ -113,6 +119,7 @@ export const reducer = (state, action) => {
       return { ...state, loading: true };
     }
 
+    case ACTION_TYPES.SAVE_COMMENTS_ERROR:
     case ACTION_TYPES.CHANGE_PASSWORD_ERROR:
     case ACTION_TYPES.SIGN_OUT_ERROR:
     case ACTION_TYPES.REFRESH_MEMBERS_SCHEDULES_ERROR:
@@ -125,7 +132,7 @@ export const reducer = (state, action) => {
       return {
         ...state,
         loading: false,
-        notification: { text: error.message, severity: "error" },
+        notification: { text: error.message, severity: 'error' },
       };
     }
 

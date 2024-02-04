@@ -58,44 +58,61 @@ type Comments struct {
 	Dinner string
 }
 
+type WeeklyComments struct {
+	Monday    Comments
+	Tuesday   Comments
+	Wednesday Comments
+	Thursday  Comments
+	Friday    Comments
+	Saturday  Comments
+	Sunday    Comments
+}
+
+type MemberComments struct {
+	ScheduleBase
+	WeekNumber int
+	Year       int
+	WeeklyComments
+}
+
+func (c *MemberComments) GetId() string {
+	return helper.NewCommentsId(c.Year, c.WeekNumber)
+}
+
 // Value for Meals
 // 0: no lunch, no dinner
 // 1: lunch, no dinner
 // 2: no luch, dinner
 // 3: lunch, dinner
-type DailySchedule struct {
-	Meals    int
-	Comments Comments
-}
 
 type WeeklySchedule struct {
-	Monday    DailySchedule
-	Tuesday   DailySchedule
-	Wednesday DailySchedule
-	Thursday  DailySchedule
-	Friday    DailySchedule
-	Saturday  DailySchedule
-	Sunday    DailySchedule
+	Monday    int
+	Tuesday   int
+	Wednesday int
+	Thursday  int
+	Friday    int
+	Saturday  int
+	Sunday    int
 }
 
 var SystemDefaultWeeklySchedule = WeeklySchedule{
-	Monday:    DailySchedule{Meals: 3},
-	Tuesday:   DailySchedule{Meals: 3},
-	Wednesday: DailySchedule{Meals: 3},
-	Thursday:  DailySchedule{Meals: 3},
-	Friday:    DailySchedule{Meals: 3},
-	Saturday:  DailySchedule{Meals: 3},
-	Sunday:    DailySchedule{Meals: 3},
+	Monday:    3,
+	Tuesday:   3,
+	Wednesday: 3,
+	Thursday:  3,
+	Friday:    3,
+	Saturday:  3,
+	Sunday:    3,
 }
 
 var SystemDefaultGuestWeeklySchedule = WeeklySchedule{
-	Monday:    DailySchedule{Meals: 0},
-	Tuesday:   DailySchedule{Meals: 0},
-	Wednesday: DailySchedule{Meals: 0},
-	Thursday:  DailySchedule{Meals: 0},
-	Friday:    DailySchedule{Meals: 0},
-	Saturday:  DailySchedule{Meals: 0},
-	Sunday:    DailySchedule{Meals: 0},
+	Monday:    0,
+	Tuesday:   0,
+	Wednesday: 0,
+	Thursday:  0,
+	Friday:    0,
+	Saturday:  0,
+	Sunday:    0,
 }
 
 type MemberSchedule struct {

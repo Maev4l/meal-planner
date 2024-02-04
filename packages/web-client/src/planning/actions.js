@@ -1,4 +1,4 @@
-import { ACTION_TYPES } from "../store";
+import { ACTION_TYPES } from '../store';
 
 const fetchingSchedules = () => ({ type: ACTION_TYPES.FETCHING_SCHEDULES });
 
@@ -19,6 +19,20 @@ const refreshMembersSchedulesSuccess = (year, week, data) => ({
 
 const refreshMembersSchedulesError = (error) => ({
   type: ACTION_TYPES.REFRESH_MEMBERS_SCHEDULES_ERROR,
+  payload: error,
+});
+
+const savingComments = () => ({
+  type: ACTION_TYPES.SAVING_COMMENTS,
+});
+
+const saveCommentsSuccess = (groupId, memberId, comments) => ({
+  type: ACTION_TYPES.SAVE_COMMENTS_SUCCESS,
+  payload: { groupId, memberId, comments },
+});
+
+const saveCommentsError = (error) => ({
+  type: ACTION_TYPES.SAVE_COMMENTS_ERROR,
   payload: error,
 });
 
@@ -60,4 +74,7 @@ export default {
   saveDefaultScheduleError,
   refreshMembersSchedulesSuccess,
   refreshMembersSchedulesError,
+  savingComments,
+  saveCommentsSuccess,
+  saveCommentsError,
 };

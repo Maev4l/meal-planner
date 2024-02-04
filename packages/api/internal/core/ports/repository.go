@@ -11,7 +11,6 @@ type PlannerRepository interface {
 	GetMember(groupId string, memberId string) (*domain.Member, error)
 	SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s *domain.MemberDefaultSchedule) error
 	SaveMemberSchedule(g *domain.Group, m *domain.Member, s *domain.MemberSchedule) error
-	// GetMemberSchedule(g *domain.Group, m *domain.Member, scheduleId string) (*domain.MemberSchedule, error)
-	// GetMemberDefaultSchedule(g *domain.Group, m *domain.Member) (*domain.MemberDefaultSchedule, error)
-	GetMemberSchedules(memberId string, scheduleId string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, error)
+	SaveMemberComments(g *domain.Group, m *domain.Member, s *domain.MemberComments) error
+	GetMemberSchedulesAndComments(memberId string, year int, week int) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error)
 }

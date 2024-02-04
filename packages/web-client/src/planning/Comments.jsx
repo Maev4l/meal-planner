@@ -1,21 +1,21 @@
-import { TextInput, Text, Button } from "react-native-paper";
-import { View } from "react-native";
-import { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { TextInput, Text, Button } from 'react-native-paper';
+import { View } from 'react-native';
+import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
-import { useAuth, useDispatch, useGroup } from "../store";
-import { submitPersonalSchedule } from "./operations";
+import { useAuth, useDispatch, useGroup } from '../store';
+import { submitComments } from './operations';
 
 export const CommentsHeaderBarTitle = ({ route }) => {
   const {
     params: { groupName, day, mealKey },
   } = route;
 
-  const mealDesc = mealKey === "lunch" ? "Lunch" : "Dinner";
+  const mealDesc = mealKey === 'lunch' ? 'Lunch' : 'Dinner';
   return (
-    <View style={{ alignItems: "center" }}>
+    <View style={{ alignItems: 'center' }}>
       <Text variant="titleMedium">{groupName}</Text>
-      <View style={{ flexDirection: "row", gap: 5 }}>
+      <View style={{ flexDirection: 'row', gap: 5 }}>
         <Text>{day}</Text>
         <Text>({mealDesc})</Text>
       </View>
@@ -34,11 +34,10 @@ const Comments = ({ route }) => {
   const navigation = useNavigation();
   const { userId } = useAuth();
   const member = members[userId];
-  const { schedule } = member;
-  const day = schedule[dayKey];
-  const { comments } = day;
+  const { comments } = member;
+  const comment = comments[dayKey][mealKey];
 
-  const [content, setContent] = useState(comments[mealKey]);
+  const [content, setContent] = useState(comment);
 
   const handleCommentsChange = (v) => {
     setContent(v);
@@ -49,11 +48,9 @@ const Comments = ({ route }) => {
   };
 
   const handleSubmit = () => {
-    const newSchedule = { ...schedule };
-    newSchedule[dayKey].comments[mealKey] = content;
-    dispatch(
-      submitPersonalSchedule(groupId, userId, newSchedule, onSubmitSuccess)
-    );
+    const newComments = { ...comments };
+    newComments[dayKey][mealKey] = content;
+    dispatch(submitComments(groupId, userId, newComments, onSubmitSuccess));
   };
 
   return (
@@ -67,7 +64,7 @@ const Comments = ({ route }) => {
         onChangeText={handleCommentsChange}
         style={{ height: 125 }}
       />
-      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
         <Button mode="contained" onPress={handleSubmit}>
           SUBMIT
         </Button>
