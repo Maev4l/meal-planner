@@ -2,6 +2,9 @@ import moment from 'moment';
 import ACTION_TYPES from './types';
 
 export const INITIAL_STATE = {
+  preferences: {
+    darkMode: false,
+  },
   loading: false,
   authn: {
     state: 'FETCHING_TOKEN', // LOGGED_IN, LOGGED_OUT
@@ -108,6 +111,19 @@ export const reducer = (state, action) => {
       };
     }
 
+    case ACTION_TYPES.READ_APP_PREFERENCES_SUCCESS: {
+      if (payload !== null) {
+        return { ...state, preferences: payload, loading: false };
+      }
+      return { ...state, loading: false };
+    }
+
+    case ACTION_TYPES.WRITE_APP_PREFERENCES_SUCCESS: {
+      return { ...state, preferences: payload, loading: false };
+    }
+
+    case ACTION_TYPES.WRITING_APP_PREFERENCES:
+    case ACTION_TYPES.READING_APP_PREFERENCES:
     case ACTION_TYPES.SAVING_COMMENTS:
     case ACTION_TYPES.CHANGING_PASSWORD:
     case ACTION_TYPES.SIGNING_OUT:
@@ -119,6 +135,8 @@ export const reducer = (state, action) => {
       return { ...state, loading: true };
     }
 
+    case ACTION_TYPES.WRITE_APP_PREFERENCES_ERROR:
+    case ACTION_TYPES.READ_APP_PREFERENCES_ERROR:
     case ACTION_TYPES.SAVE_COMMENTS_ERROR:
     case ACTION_TYPES.CHANGE_PASSWORD_ERROR:
     case ACTION_TYPES.SIGN_OUT_ERROR:

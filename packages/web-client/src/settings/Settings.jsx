@@ -1,4 +1,4 @@
-import { List, Divider } from "react-native-paper";
+import { List, Divider } from 'react-native-paper';
 
 const Settings = ({ navigation }) => (
   <>
@@ -7,7 +7,16 @@ const Settings = ({ navigation }) => (
       left={(props) => <List.Icon {...props} icon="account" />}
       right={(props) => <List.Icon {...props} icon="chevron-right" />}
       onPress={() => {
-        navigation.navigate("Account");
+        navigation.navigate('Account');
+      }}
+    />
+    <Divider />
+    <List.Item
+      title="Appearance"
+      left={(props) => <List.Icon {...props} icon="white-balance-sunny" />}
+      right={(props) => <List.Icon {...props} icon="chevron-right" />}
+      onPress={() => {
+        navigation.navigate('Appearance');
       }}
     />
     <Divider />
@@ -16,7 +25,7 @@ const Settings = ({ navigation }) => (
       left={(props) => <List.Icon {...props} icon="information-outline" />}
       right={(props) => <List.Icon {...props} icon="chevron-right" />}
       onPress={() => {
-        navigation.navigate("About");
+        navigation.navigate('About');
       }}
     />
   </>
