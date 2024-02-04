@@ -145,3 +145,7 @@ resources:
       Value: ${self:custom.webClientBucketName}
       Export:
         Name: mealPlannerWebClientBucketName
+    DistributionId:
+      Value: !Ref Distribution
+      Export:
+        Name: mealPlannerWebClientDistributionId
