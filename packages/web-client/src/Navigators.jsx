@@ -1,8 +1,8 @@
-import { createMaterialBottomTabNavigator } from "react-native-paper/react-navigation";
-import { Icon } from "react-native-paper";
+import { createMaterialBottomTabNavigator } from 'react-native-paper/react-navigation';
+import { Icon } from 'react-native-paper';
 
-import { PlanningNavigator } from "./planning";
-import { SettingsNavigator } from "./settings";
+import { PlanningNavigator } from './planning';
+import { SettingsNavigator } from './settings';
 
 const AppBottomTabs = createMaterialBottomTabNavigator();
 
@@ -11,20 +11,16 @@ const AppNavigator = () => (
     <AppBottomTabs.Screen
       name="Home"
       options={{
-        title: "Home",
-        tabBarIcon: ({ color }) => (
-          <Icon source="home" color={color} size={20} />
-        ),
+        title: 'Home',
+        tabBarIcon: ({ color }) => <Icon source="home" color={color} size={30} />,
       }}
       component={PlanningNavigator}
     />
     <AppBottomTabs.Screen
       name="Settings"
       options={{
-        title: "Settings",
-        tabBarIcon: ({ color }) => (
-          <Icon source="cog-outline" color={color} size={20} />
-        ),
+        title: 'Settings',
+        tabBarIcon: ({ color }) => <Icon source="cog-outline" color={color} size={30} />,
       }}
       component={SettingsNavigator}
     />
