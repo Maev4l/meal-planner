@@ -1,7 +1,7 @@
-import { Text, Card } from "react-native-paper";
-import { View } from "react-native";
+import { Text, Card } from 'react-native-paper';
+import { ScrollView } from 'react-native';
 
-import { useSelector } from "../store";
+import { useSelector } from '../store';
 
 const Group = ({ group, navigation }) => {
   const { groupName, groupId, members } = group;
@@ -11,7 +11,7 @@ const Group = ({ group, navigation }) => {
       mode="elevated"
       accessible
       onPress={() => {
-        navigation.navigate("Schedules", { groupName, groupId });
+        navigation.navigate('Schedules', { groupName, groupId });
       }}
     >
       <Card.Title titleVariant="labelLarge" title={groupName} />
@@ -26,13 +26,13 @@ const Groups = ({ navigation }) => {
   const groups = useSelector((state) => state.schedules);
 
   return (
-    <View style={{ padding: 10, flexWrap: "wrap", flexDirection: "row" }}>
+    <ScrollView style={{ padding: 10, flexWrap: 'wrap', flexDirection: 'row' }}>
       {groups &&
         groups.map((group) => {
           const { groupId } = group;
           return <Group key={groupId} group={group} navigation={navigation} />;
         })}
-    </View>
+    </ScrollView>
   );
 };
 

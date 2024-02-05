@@ -1,5 +1,5 @@
 import { Text, Button, IconButton, useTheme } from 'react-native-paper';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 
@@ -131,52 +131,53 @@ const PersonalSchedule = ({ groupId }) => {
   return (
     <>
       <WeekSelector weekStartDay={weekCursor} />
-
-      <Grid columns={10} columnGap={20} rowGap={10}>
-        <Grid.Row>
-          <Grid.Column colsCount={2}>
-            <Text>&nbsp;</Text>
-          </Grid.Column>
-          <Grid.Column colsCount={4} style={{ alignItems: 'center' }}>
-            <Text>Lunch</Text>
-          </Grid.Column>
-          <Grid.Column colsCount={4} style={{ alignItems: 'center' }}>
-            <Text>Dinner</Text>
-          </Grid.Column>
-        </Grid.Row>
-        {days.map((d) => {
-          const highlight = moment().isSame(d.day, 'day');
-          return (
-            <Grid.Row key={d.key} highlight={highlight}>
-              <Grid.Column colsCount={2}>
-                <RowHeaderCell highlight={highlight} day={d.day} />
-              </Grid.Column>
-              <Grid.Column colsCount={4}>
-                <MealCell
-                  day={d.day}
-                  dayKey={d.key}
-                  type={MEAL.LUNCH}
-                  schedule={schedule}
-                  comments={comments}
-                  onToggleAttendance={handlePressMeal}
-                  onPressComments={handlePressComments}
-                />
-              </Grid.Column>
-              <Grid.Column colsCount={4}>
-                <MealCell
-                  day={d.day}
-                  dayKey={d.key}
-                  type={MEAL.DINNER}
-                  schedule={schedule}
-                  comments={comments}
-                  onToggleAttendance={handlePressMeal}
-                  onPressComments={handlePressComments}
-                />
-              </Grid.Column>
-            </Grid.Row>
-          );
-        })}
-      </Grid>
+      <ScrollView>
+        <Grid columns={10} columnGap={20} rowGap={10}>
+          <Grid.Row>
+            <Grid.Column colsCount={2}>
+              <Text>&nbsp;</Text>
+            </Grid.Column>
+            <Grid.Column colsCount={4} style={{ alignItems: 'center' }}>
+              <Text>Lunch</Text>
+            </Grid.Column>
+            <Grid.Column colsCount={4} style={{ alignItems: 'center' }}>
+              <Text>Dinner</Text>
+            </Grid.Column>
+          </Grid.Row>
+          {days.map((d) => {
+            const highlight = moment().isSame(d.day, 'day');
+            return (
+              <Grid.Row key={d.key} highlight={highlight}>
+                <Grid.Column colsCount={2}>
+                  <RowHeaderCell highlight={highlight} day={d.day} />
+                </Grid.Column>
+                <Grid.Column colsCount={4}>
+                  <MealCell
+                    day={d.day}
+                    dayKey={d.key}
+                    type={MEAL.LUNCH}
+                    schedule={schedule}
+                    comments={comments}
+                    onToggleAttendance={handlePressMeal}
+                    onPressComments={handlePressComments}
+                  />
+                </Grid.Column>
+                <Grid.Column colsCount={4}>
+                  <MealCell
+                    day={d.day}
+                    dayKey={d.key}
+                    type={MEAL.DINNER}
+                    schedule={schedule}
+                    comments={comments}
+                    onToggleAttendance={handlePressMeal}
+                    onPressComments={handlePressComments}
+                  />
+                </Grid.Column>
+              </Grid.Row>
+            );
+          })}
+        </Grid>
+      </ScrollView>
     </>
   );
 };

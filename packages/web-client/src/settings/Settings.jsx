@@ -1,7 +1,8 @@
 import { List, Divider } from 'react-native-paper';
+import { ScrollView } from 'react-native';
 
 const Settings = ({ navigation }) => (
-  <>
+  <ScrollView>
     <List.Item
       title="Account"
       left={(props) => <List.Icon {...props} icon="account" />}
@@ -28,7 +29,7 @@ const Settings = ({ navigation }) => (
         navigation.navigate('About');
       }}
     />
-  </>
+  </ScrollView>
 );
 
 export default Settings;

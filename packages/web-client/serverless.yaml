@@ -89,8 +89,8 @@ resources:
           DefaultCacheBehavior:
             TargetOriginId: web-client
             # Enable / Disable during development phase
-            # CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # (CachingOptimized) see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
-            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # (CachingDisabled) see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # (CachingOptimized) see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+            # CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # (CachingDisabled) see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
             OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf # (Managed-CORS-S3Origin) see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html#managed-origin-request-policies-list
             ViewerProtocolPolicy: 'redirect-to-https'
             Compress: true
