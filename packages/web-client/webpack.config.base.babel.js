@@ -69,8 +69,10 @@ export default {
     new CopyPlugin({
       patterns: [
         path.join(appDirectory, 'public', 'favicon.ico'),
-        path.join(appDirectory, 'public', 'logo192.png'),
-        path.join(appDirectory, 'public', 'logo512.png'),
+        path.join(appDirectory, 'public', 'logo144.png'),
+        path.join(appDirectory, 'public', 'logo192.svg'),
+        path.join(appDirectory, 'public', 'logo512.svg'),
+        path.join(appDirectory, 'public', 'logo1024.svg'),
         path.join(appDirectory, 'public', 'manifest.json'),
       ],
     }),
