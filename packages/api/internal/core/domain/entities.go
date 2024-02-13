@@ -38,6 +38,17 @@ type ScheduleBase struct {
 	CreatedAt  *time.Time
 }
 
+type Notice struct {
+	ScheduleBase
+	WeekNumber int
+	Year       int
+	Content    string
+}
+
+func (n *Notice) GetId() string {
+	return helper.NewCommentsId(n.Year, n.WeekNumber)
+}
+
 type MemberDefaultSchedule struct {
 	ScheduleBase
 	WeeklySchedule

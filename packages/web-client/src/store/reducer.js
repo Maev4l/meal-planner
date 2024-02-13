@@ -22,6 +22,24 @@ export const reducer = (state, action) => {
   const { type, payload } = action;
 
   switch (type) {
+    case ACTION_TYPES.DELETE_NOTICE_SUCCESS: {
+      const newState = { ...state };
+      const { groupId, memberId } = payload;
+      const [groupSchedule] = newState.schedules.filter((g) => g.groupId === groupId);
+      const member = groupSchedule.members[memberId];
+      delete member.notice;
+      return { ...newState, loading: false };
+    }
+
+    case ACTION_TYPES.SAVE_NOTICE_SUCCESS: {
+      const newState = { ...state };
+      const { groupId, memberId, notice } = payload;
+      const [groupSchedule] = newState.schedules.filter((g) => g.groupId === groupId);
+      const member = groupSchedule.members[memberId];
+      member.notice = notice;
+      return { ...newState, loading: false };
+    }
+
     case ACTION_TYPES.SAVE_COMMENTS_SUCCESS: {
       const newState = { ...state };
       const { groupId, memberId, comments } = payload;
@@ -122,6 +140,8 @@ export const reducer = (state, action) => {
       return { ...state, preferences: payload, loading: false };
     }
 
+    case ACTION_TYPES.DELETING_NOTICE:
+    case ACTION_TYPES.SAVING_NOTICE:
     case ACTION_TYPES.WRITING_APP_PREFERENCES:
     case ACTION_TYPES.READING_APP_PREFERENCES:
     case ACTION_TYPES.SAVING_COMMENTS:
@@ -135,6 +155,8 @@ export const reducer = (state, action) => {
       return { ...state, loading: true };
     }
 
+    case ACTION_TYPES.DELETE_NOTICE_ERROR:
+    case ACTION_TYPES.SAVE_NOTICE_ERROR:
     case ACTION_TYPES.WRITE_APP_PREFERENCES_ERROR:
     case ACTION_TYPES.READ_APP_PREFERENCES_ERROR:
     case ACTION_TYPES.SAVE_COMMENTS_ERROR:

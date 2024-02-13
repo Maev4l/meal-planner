@@ -2,8 +2,6 @@ package services
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -70,40 +68,15 @@ func computeMemberSchedule(year int, week int, defaultSchedule *domain.MemberDef
 	}
 }
 
-func (s *service) GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error) {
-	p := strings.Split(period, "-")
-	if len(p) != 2 {
-		log.Error().Msgf("Incorrect period format: %s.", period)
-		return nil, nil, nil, fmt.Errorf("incorrect period format")
-	}
+func (s *service) GetData(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, []*domain.Notice, error) {
 
-	y := p[0]
-	w := p[1]
-
-	year, err := strconv.Atoi(y)
+	year, week, err := s.parsePeriod(period)
 	if err != nil {
-		log.Error().Msgf("Incorrect year value: %s.", y)
-		return nil, nil, nil, fmt.Errorf("incorrect year value: %s", y)
+		return nil, nil, nil, nil, err
 	}
-
-	week, err := strconv.Atoi(w)
-	if err != nil {
-		log.Error().Msgf("Incorrect week value: %s.", w)
-		return nil, nil, nil, fmt.Errorf("incorrect week value: %s", w)
-	}
-
-	valid := isoweek.Validate(year, week)
-	if !valid {
-		log.Error().Msgf("Invalid calendar week '%d-%d'.", year, week)
-		return nil, nil, nil, fmt.Errorf("invalid calendar week '%d-%d'", year, week)
-	}
-
-	// TODO: Check if the period is too far in the past
-
-	// TODO: Check if the period is too far in the future
 
 	// Retrieve schedules (requester's schedules across groups + members of the groups requester belongs to) for the period
-	defaultSchedules, memberSchedules, memberComments, _ := s.repo.GetMemberSchedulesAndComments(memberId, year, week)
+	defaultSchedules, memberSchedules, memberComments, memberNotices, _ := s.repo.GetMemberData(memberId, year, week)
 
 	// Group by member id
 	defaultSchedulesByMember := map[string]*domain.MemberDefaultSchedule{}
@@ -138,10 +111,9 @@ func (s *service) GetSchedules(memberId string, period string) ([]*domain.Member
 		comments := memberCommentsByMember[userId]
 		computedComments := computeMemberComments(year, week, &defaultSchedule.ScheduleBase, comments)
 		computedMemberComments = append(computedMemberComments, computedComments)
-
 	}
 
-	return defaultSchedules, computedMemberSchedules, computedMemberComments, nil
+	return defaultSchedules, computedMemberSchedules, computedMemberComments, memberNotices, nil
 }
 
 func (s *service) CreateSchedule(memberId string, groupId string,

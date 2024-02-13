@@ -1,6 +1,8 @@
 package ports
 
 import (
+	"time"
+
 	"isnan.eu/meal-planner/api/internal/core/domain"
 )
 
@@ -12,5 +14,7 @@ type PlannerService interface {
 	CreateSchedule(memberId string, groupId string, year int, week int, schedule *domain.WeeklySchedule) error
 	CreateDefaultSchedule(memberId string, groupId string, schedule *domain.WeeklySchedule) error
 	CreateComments(memberId string, groupId string, year int, week int, comments *domain.WeeklyComments) error
-	GetSchedules(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error)
+	GetData(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, []*domain.Notice, error)
+	CreateNotice(memberId string, groupId string, year int, week int, content string) (*time.Time, error)
+	DeleteNotice(memberId string, groupId string, period string) error
 }

@@ -23,3 +23,7 @@ func NewScheduleId(year int, week int) string {
 func NewCommentsId(year int, week int) string {
 	return fmt.Sprintf("%d-%d", year, week)
 }
+
+func NewNoticeId(year int, week int) string {
+	return fmt.Sprintf("%d-%d", year, week)
+}

@@ -62,6 +62,34 @@ const saveDefaultScheduleError = (error) => ({
   payload: error,
 });
 
+const savingNotice = () => ({
+  type: ACTION_TYPES.SAVING_NOTICE,
+});
+
+const saveNoticeSuccess = (groupId, memberId, notice) => ({
+  type: ACTION_TYPES.SAVE_NOTICE_SUCCESS,
+  payload: { groupId, memberId, notice },
+});
+
+const saveNoticeError = (error) => ({
+  type: ACTION_TYPES.SAVE_NOTICE_ERROR,
+  payload: error,
+});
+
+const deletingNotice = () => ({
+  type: ACTION_TYPES.DELETING_NOTICE,
+});
+
+const deleteNoticeSuccess = (groupId, memberId) => ({
+  type: ACTION_TYPES.DELETE_NOTICE_SUCCESS,
+  payload: { groupId, memberId },
+});
+
+const deleteNoticeError = (error) => ({
+  type: ACTION_TYPES.DELETE_NOTICE_ERROR,
+  payload: error,
+});
+
 export default {
   fetchingSchedules,
   fetchSchedulesSuccess,
@@ -77,4 +105,10 @@ export default {
   savingComments,
   saveCommentsSuccess,
   saveCommentsError,
+  savingNotice,
+  saveNoticeSuccess,
+  saveNoticeError,
+  deletingNotice,
+  deleteNoticeSuccess,
+  deleteNoticeError,
 };

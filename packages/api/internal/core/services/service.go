@@ -1,14 +1,53 @@
 package services
 
 import (
+	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/rs/zerolog/log"
+	"github.com/snabb/isoweek"
 	"isnan.eu/meal-planner/api/internal/core/domain"
 	"isnan.eu/meal-planner/api/internal/core/ports"
 )
 
 var RESERVED_USERNAMES = []string{"admin"}
+
+func (s *service) parsePeriod(period string) (int, int, error) {
+	p := strings.Split(period, "-")
+	if len(p) != 2 {
+		log.Error().Msgf("Incorrect period format: %s.", period)
+		return 0, 0, fmt.Errorf("incorrect period format")
+	}
+
+	y := p[0]
+	w := p[1]
+
+	year, err := strconv.Atoi(y)
+	if err != nil {
+		log.Error().Msgf("Incorrect year value: %s.", y)
+		return 0, 0, fmt.Errorf("incorrect year value: %s", y)
+	}
+
+	week, err := strconv.Atoi(w)
+	if err != nil {
+		log.Error().Msgf("Incorrect week value: %s.", w)
+		return 0, 0, fmt.Errorf("incorrect week value: %s", w)
+	}
+
+	valid := isoweek.Validate(year, week)
+	if !valid {
+		log.Error().Msgf("Invalid calendar week '%d-%d'.", year, week)
+		return 0, 0, fmt.Errorf("invalid calendar week '%d-%d'", year, week)
+	}
+
+	// TODO: Check if the period is too far in the past
+
+	// TODO: Check if the period is too far in the future
+	return year, week, nil
+
+}
 
 func validateUsername(name string) bool {
 	index := slices.IndexFunc(RESERVED_USERNAMES, func(s string) bool { return s == name })

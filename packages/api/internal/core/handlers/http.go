@@ -137,6 +137,72 @@ func (hdl *HTTPHandler) CreateComments(c *gin.Context) {
 		return
 	}
 	log.Info().Msgf("Comments 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", request.Year, request.WeekNumber, info.userId, groupId)
+	c.Status(http.StatusCreated)
+}
+
+/*
+Endpoint: DELETE /api/groups/:groupId/notices/:period (<-- 2024-4 )
+*/
+func (hdl *HTTPHandler) DeleteNotice(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	groupId := c.Param("groupId")
+	period := c.Param("period")
+
+	err := hdl.svc.DeleteNotice(info.userId, groupId, period)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to delete notice.",
+		})
+	}
+
+	c.Status(http.StatusOK)
+}
+
+/*
+Endpoint: POST /api/groups/:groupId/notices
+Payload:
+
+	{
+		"year": 2024,
+		"weekNumber": 4,
+		"content":""
+	}
+*/
+func (hdl *HTTPHandler) CreateNotice(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	groupId := c.Param("groupId")
+
+	var request CreateNoticeRequest
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Error().Msgf("Invalid request: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Invalid request.",
+		})
+		return
+	}
+
+	createdAt, err := hdl.svc.CreateNotice(
+		info.userId,
+		groupId,
+		request.Year,
+		request.WeekNumber,
+		request.Content)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to set notice.",
+		})
+		return
+	}
+
+	response := CreateNoticeResponse{
+		CreatedAt: *createdAt,
+	}
+	c.JSON(http.StatusOK, response)
+	log.Info().Msgf("Notice 'Year %d - Calendar Week %d' created for member '%s' and group '%s'.", request.Year, request.WeekNumber, info.userId, groupId)
+
 }
 
 /*
@@ -321,13 +387,13 @@ func (hdl *HTTPHandler) CreateGroup(c *gin.Context) {
 }
 
 /*
-Endpoint: GET /api/groups/schedules/:schedules (2024-2 or 2024-43)
+Endpoint: GET /api/groups/schedules/:period (2024-2 or 2024-43)
 */
 func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 
 	period := c.Param("period")
-	defaultSchedules, memberSchedules, memberComments, err := hdl.svc.GetSchedules(info.userId, period)
+	defaultSchedules, memberSchedules, memberComments, memberNotices, err := hdl.svc.GetData(info.userId, period)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to retrieve schedules.",
@@ -405,6 +471,19 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 			Friday:     DailyCommentsResponse{Lunch: c.Friday.Lunch, Dinner: c.Friday.Dinner},
 			Saturday:   DailyCommentsResponse{Lunch: c.Saturday.Lunch, Dinner: c.Saturday.Dinner},
 			Sunday:     DailyCommentsResponse{Lunch: c.Sunday.Lunch, Dinner: c.Sunday.Dinner},
+		}
+	}
+
+	for _, n := range memberNotices {
+		groupId := n.GroupId
+		memberId := n.MemberId
+		groupSchedule := schedulesByGroup[groupId]
+		memberSchedule := groupSchedule.Members[memberId]
+		memberSchedule.Notice = &NoticeReponse{
+			Year:       n.Year,
+			WeekNumber: n.WeekNumber,
+			Content:    n.Content,
+			CreatedAt:  *n.CreatedAt,
 		}
 	}
 

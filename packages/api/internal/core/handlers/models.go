@@ -1,6 +1,9 @@
 package handlers
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type CreateGroupRequest struct {
 	Name string `json:"name"`
@@ -35,14 +38,24 @@ type CreateMemberReponse struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type CreateNoticeRequest struct {
+	WeekNumber int    `json:"weekNumber"`
+	Year       int    `json:"year"`
+	Content    string `json:"content"`
+}
+
+type CreateNoticeResponse struct {
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type CreateDailyCommentsRequest struct {
 	Lunch  string `json:"lunch"`
 	Dinner string `json:"dinner"`
 }
 
 type CreateCommentsRequest struct {
-	WeekNumber int                        `json:"weekNumber,omitempty"`
-	Year       int                        `json:"year,omitempty"`
+	WeekNumber int                        `json:"weekNumber"`
+	Year       int                        `json:"year"`
 	Monday     CreateDailyCommentsRequest `json:"monday"`
 	Tuesday    CreateDailyCommentsRequest `json:"tuesday"`
 	Wednesday  CreateDailyCommentsRequest `json:"wednesday"`
@@ -108,7 +121,7 @@ type DailyCommentsResponse struct {
 }
 type CommentsResponse struct {
 	Year       int                   `json:"year"`
-	WeekNumber int                   `json:"weekNumber,omitempty"`
+	WeekNumber int                   `json:"weekNumber"`
 	Monday     DailyCommentsResponse `json:"monday"`
 	Tuesday    DailyCommentsResponse `json:"tuesday"`
 	Wednesday  DailyCommentsResponse `json:"wednesday"`
@@ -118,6 +131,13 @@ type CommentsResponse struct {
 	Sunday     DailyCommentsResponse `json:"sunday"`
 }
 
+type NoticeReponse struct {
+	Year       int       `json:"year"`
+	WeekNumber int       `json:"weekNumber"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
 type MemberScheduleResponse struct {
 	MemberId        string                  `json:"memberId"`
 	MemberName      string                  `json:"memberName"`
@@ -125,6 +145,7 @@ type MemberScheduleResponse struct {
 	DefaultSchedule DefaultScheduleResponse `json:"default"`
 	Schedule        ScheduleResponse        `json:"schedule"`
 	Comments        CommentsResponse        `json:"comments"`
+	Notice          *NoticeReponse          `json:"notice,omitempty"`
 }
 
 type GroupScheduleResponse struct {

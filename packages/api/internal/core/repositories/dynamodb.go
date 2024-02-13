@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,6 +29,69 @@ func NewDynamoDB() *dynamo {
 	return &dynamo{
 		client: client,
 	}
+}
+
+func (d *dynamo) DeleteNotice(g *domain.Group, m *domain.Member, year int, week int) error {
+
+	pk, _ := attributevalue.Marshal(createNoticePK(m.Id))
+	sk, _ := attributevalue.Marshal(createNoticeSK(helper.NewCommentsId(year, week), g.Id))
+
+	_, err := d.client.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
+		TableName: aws.String(tableName),
+		Key: map[string]types.AttributeValue{
+			"PK": pk,
+			"SK": sk,
+		},
+	})
+
+	if err != nil {
+		log.Error().Msgf("Failed to remove member '%s''s notice '%d-%d': %s", m.Name, year, week, err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (d *dynamo) SaveNotice(g *domain.Group, m *domain.Member, n *domain.Notice) error {
+	// compute TTL
+	year, month, day := isoweek.StartDate(n.Year, n.WeekNumber)
+	start, _ := time.Parse(time.DateOnly, fmt.Sprintf("%d-%02d-%02d", year, month, day))
+	expiresAt := start.AddDate(0, 0, 14)
+
+	record := Notice{
+		PK:         createNoticePK(m.Id),
+		SK:         createNoticeSK(n.GetId(), g.Id),
+		GSI1PK:     createNoticeSecondary1PK(g.Id),
+		GSI1SK:     createNoticeSecondary1SK(n.GetId()),
+		Year:       n.Year,
+		WeekNumber: n.WeekNumber,
+		MemberId:   m.Id,
+		MemberName: m.Name,
+		MemberRole: string(m.Role),
+		GroupId:    g.Id,
+		GroupName:  g.Name,
+		Content:    n.Content,
+		CreatedAt:  n.CreatedAt,
+		ExpiresAt:  &expiresAt,
+	}
+
+	item, err := attributevalue.MarshalMap(record)
+	if err != nil {
+		log.Error().Msgf("Failed to marshal member '%s''s notice '%s': %s", m.Name, n.GetId(), err.Error())
+		return err
+	}
+
+	_, err = d.client.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String(tableName),
+		Item:      item,
+	})
+
+	if err != nil {
+		log.Error().Msgf("Failed to put member '%s''s notice '%s': %s", m.Name, n.GetId(), err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func (d *dynamo) SaveMemberComments(g *domain.Group, m *domain.Member, c *domain.MemberComments) error {
@@ -176,6 +240,51 @@ func (d *dynamo) SaveMemberDefaultSchedule(g *domain.Group, m *domain.Member, s 
 	return nil
 }
 
+func (d *dynamo) fetchNoticesByGroup(groupId string) ([]*Notice, error) {
+	query := dynamodb.QueryInput{
+		TableName:              aws.String(tableName),
+		IndexName:              aws.String("GSI1"),
+		KeyConditionExpression: aws.String("#pk = :groupId and begins_with(#sk,:notice_prefix)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":groupId": &types.AttributeValueMemberS{
+				Value: createNoticeSecondary1PK(groupId),
+			},
+			":notice_prefix": &types.AttributeValueMemberS{
+				Value: "notice#",
+			},
+		},
+		ExpressionAttributeNames: map[string]string{
+			"#pk": "GSI1PK",
+			"#sk": "GSI1SK",
+		},
+	}
+
+	records := []*Notice{}
+	queryPaginator := dynamodb.NewQueryPaginator(d.client, &query)
+
+	ctx := context.TODO()
+	for i := 0; queryPaginator.HasMorePages(); i++ {
+		result, err := queryPaginator.NextPage(ctx)
+		if err != nil {
+			log.Error().Msgf("Failed to query group '%s' notices: %s.", groupId, err.Error())
+			return nil, err
+		}
+
+		if result.Count > 0 {
+			for _, item := range result.Items {
+
+				record := Notice{}
+				if err := attributevalue.UnmarshalMap(item, &record); err != nil {
+					log.Warn().Msgf("Failed to unmarshal group '%s' notice: %s", groupId, err.Error())
+				}
+				records = append(records, &record)
+			}
+		}
+	}
+
+	return records, nil
+}
+
 func (d *dynamo) fetchCommentsByGroup(groupId string) ([]*Comments, error) {
 	query := dynamodb.QueryInput{
 		TableName:              aws.String(tableName),
@@ -217,8 +326,6 @@ func (d *dynamo) fetchCommentsByGroup(groupId string) ([]*Comments, error) {
 			}
 		}
 	}
-
-	log.Info().Msgf("===> Comments count: %d", len(records))
 
 	return records, nil
 }
@@ -316,7 +423,7 @@ func (d *dynamo) fetchGroupsByMember(memberId string) ([]*Group, error) {
 	return records, nil
 }
 
-func (d *dynamo) GetMemberSchedulesAndComments(memberId string, year int, week int) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, error) {
+func (d *dynamo) GetMemberData(memberId string, year int, week int) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, []*domain.Notice, error) {
 
 	// Fetch all membership across groups for the given member
 	groups, _ := d.fetchGroupsByMember(memberId)
@@ -446,7 +553,42 @@ func (d *dynamo) GetMemberSchedulesAndComments(memberId string, year int, week i
 		})
 	}
 
-	return defaultSchedules, memberSchedules, memberComments, nil
+	// Fetch all notice for these groups
+	notices := []*Notice{}
+	for _, g := range groups {
+		res, _ := d.fetchNoticesByGroup(g.Id)
+		notices = append(notices, res...)
+	}
+
+	// Filter out comments which are not in the period
+	noticeId := helper.NewNoticeId(year, week)
+	notices = helper.Filter(notices, func(n *Notice) bool {
+		id := n.getId()
+		return id == noticeId
+	})
+
+	// Sort notices
+	sort.SliceStable(notices, func(i, j int) bool {
+		return notices[i].CreatedAt.After(*notices[j].CreatedAt)
+	})
+
+	memberNotices := []*domain.Notice{}
+	for _, n := range notices {
+		memberNotices = append(memberNotices, &domain.Notice{
+			Year:       n.Year,
+			WeekNumber: n.WeekNumber,
+			ScheduleBase: domain.ScheduleBase{
+				MemberId:   n.MemberId,
+				MemberName: n.MemberName,
+				GroupId:    n.GroupId,
+				GroupName:  n.GroupName,
+				CreatedAt:  n.CreatedAt,
+			},
+			Content: n.Content,
+		})
+	}
+
+	return defaultSchedules, memberSchedules, memberComments, memberNotices, nil
 
 }
 

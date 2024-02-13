@@ -47,6 +47,12 @@ func init() {
 	// Create / Update comments for a given group
 	router.POST("/api/groups/:groupId/comments", h.CreateComments)
 
+	// Create / Update notices  for a given group
+	router.POST("/api/groups/:groupId/notices", h.CreateNotice)
+
+	// Delete / Reset notice
+	router.DELETE("/api/groups/:groupId/notices/:period", h.DeleteNotice)
+
 	// Get all schedules associated with a calendar week
 	router.GET("/api/schedules/:period", h.GetSchedules)
 

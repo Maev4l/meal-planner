@@ -21,7 +21,16 @@ const post = async (path, data) => {
   });
 };
 
+const del = async (path) => {
+  const token = await fetchToken();
+  await fetch(`${basePath}${path}`, {
+    method: 'DELETE',
+    headers: { Authorization: token },
+  });
+};
+
 export default {
   get,
   post,
+  del,
 };

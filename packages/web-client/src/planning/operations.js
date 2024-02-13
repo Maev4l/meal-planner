@@ -38,6 +38,29 @@ export const submitComments = (groupId, memberId, comments, callback) => async (
   }
 };
 
+export const submitNotice = (groupId, memberId, notice, callback) => async (dispatch) => {
+  dispatch(actions.savingNotice());
+  try {
+    await api.post(`/api/groups/${groupId}/notices`, notice);
+    dispatch(actions.saveNoticeSuccess(groupId, memberId, notice));
+    if (callback) {
+      callback();
+    }
+  } catch (e) {
+    dispatch(actions.saveNoticeError(e));
+  }
+};
+
+export const deleteNotice = (groupId, memberId, isoweek) => async (dispatch) => {
+  dispatch(actions.deletingNotice);
+  try {
+    await api.del(`/api/groups/${groupId}/notices/${isoweek}`);
+    dispatch(actions.deleteNoticeSuccess(groupId, memberId));
+  } catch (e) {
+    dispatch(actions.deleteNoticeError(e));
+  }
+};
+
 export const submitPersonalSchedule = (groupId, memberId, schedule) => async (dispatch) => {
   dispatch(actions.savingPersonalSchedule());
   try {
