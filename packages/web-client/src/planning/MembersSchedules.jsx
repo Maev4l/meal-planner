@@ -36,13 +36,48 @@ const MembersSchedules = ({ groupId }) => {
   const dispatch = useDispatch();
   const now = moment();
   const [expandState, setExpandState] = useState({
-    monday: moment(weekCursor).add(1, 'days').isAfter(now),
-    tuesday: moment(weekCursor).add(2, 'days').isAfter(now),
-    wednesday: moment(weekCursor).add(3, 'days').isAfter(now),
-    thursday: moment(weekCursor).add(4, 'days').isAfter(now),
-    friday: moment(weekCursor).add(5, 'days').isAfter(now),
-    saturday: moment(weekCursor).add(6, 'days').isAfter(now),
-    sunday: moment(weekCursor).add(7, 'days').isAfter(now),
+    monday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(1, 'days')
+      .isAfter(now),
+    tuesday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(2, 'days')
+      .isAfter(now),
+    wednesday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(3, 'days')
+      .isAfter(now),
+    thursday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(4, 'days')
+      .isAfter(now),
+    friday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(5, 'days')
+      .isAfter(now),
+    saturday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(6, 'days')
+      .isAfter(now),
+    sunday: moment()
+      .year(weekCursor.year)
+      .isoWeek(weekCursor.week)
+      .startOf('isoweek')
+      .add(7, 'days')
+      .isAfter(now),
   });
 
   const [memberComments, setMemberComments] = useState(null);
@@ -50,13 +85,48 @@ const MembersSchedules = ({ groupId }) => {
 
   useEffect(() => {
     setExpandState({
-      monday: moment(weekCursor).add(1, 'days').isAfter(now),
-      tuesday: moment(weekCursor).add(2, 'days').isAfter(now),
-      wednesday: moment(weekCursor).add(3, 'days').isAfter(now),
-      thursday: moment(weekCursor).add(4, 'days').isAfter(now),
-      friday: moment(weekCursor).add(5, 'days').isAfter(now),
-      saturday: moment(weekCursor).add(6, 'days').isAfter(now),
-      sunday: moment(weekCursor).add(7, 'days').isAfter(now),
+      monday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(1, 'days')
+        .isAfter(now),
+      tuesday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(2, 'days')
+        .isAfter(now),
+      wednesday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(3, 'days')
+        .isAfter(now),
+      thursday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(4, 'days')
+        .isAfter(now),
+      friday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(5, 'days')
+        .isAfter(now),
+      saturday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(6, 'days')
+        .isAfter(now),
+      sunday: moment()
+        .year(weekCursor.year)
+        .isoWeek(weekCursor.week)
+        .startOf('isoweek')
+        .add(7, 'days')
+        .isAfter(now),
     });
   }, [weekCursor]);
 
@@ -65,7 +135,7 @@ const MembersSchedules = ({ groupId }) => {
     .map(([, m]) => m)
     .sort((a, b) => a.memberName.toLowerCase().localeCompare(b.memberName.toLowerCase()));
 
-  const monday = moment(weekCursor);
+  const monday = moment().year(weekCursor.year).isoWeek(weekCursor.week).startOf('isoweek');
   const tuesday = moment(monday).add(1, 'days');
   const wednesday = moment(monday).add(2, 'days');
   const thursday = moment(monday).add(3, 'days');
@@ -112,7 +182,7 @@ const MembersSchedules = ({ groupId }) => {
       {memberComments && (
         <MemberComments comments={memberComments} onDismiss={handleDismissComments} />
       )}
-      <WeekSelector weekStartDay={weekCursor} />
+      <WeekSelector weekCursor={weekCursor} />
       <ScrollView
         refreshControl={
           <RefreshControl onRefresh={handleRefreshMembersSchedules} refreshing={refreshing} />

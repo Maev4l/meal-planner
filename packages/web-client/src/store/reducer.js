@@ -1,4 +1,3 @@
-import moment from 'moment';
 import ACTION_TYPES from './types';
 
 export const INITIAL_STATE = {
@@ -14,7 +13,7 @@ export const INITIAL_STATE = {
     text: null,
     severity: '', // error, success
   },
-  weekCursor: null,
+  weekCursor: null, // { year, week }
   schedules: [],
 };
 
@@ -92,7 +91,7 @@ export const reducer = (state, action) => {
     case ACTION_TYPES.FETCH_SCHEDULES_SUCCESS: {
       const { schedules, year, week } = payload;
 
-      const weekCursor = moment().isoWeekYear(year).isoWeek(week).startOf('isoWeek');
+      const weekCursor = { year, week };
 
       return { ...state, loading: false, schedules, weekCursor };
     }

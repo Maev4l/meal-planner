@@ -16,8 +16,9 @@ const PlanningNavigator = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const weekCursor = moment().startOf('isoweek');
-    dispatch(getSchedules(weekCursor.year(), weekCursor.isoWeek()));
+    const m = moment();
+
+    dispatch(getSchedules(m.year(), m.isoWeek()));
   }, []);
 
   return (

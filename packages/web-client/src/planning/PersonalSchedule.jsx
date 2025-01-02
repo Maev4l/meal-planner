@@ -93,7 +93,7 @@ const PersonalSchedule = ({ groupId }) => {
   const { userId } = useAuth();
   const { schedule, comments } = members[userId];
 
-  const monday = moment(weekCursor);
+  const monday = moment().year(weekCursor.year).isoWeek(weekCursor.week).startOf('isoweek');
   const tuesday = moment(monday).add(1, 'days');
   const wednesday = moment(monday).add(2, 'days');
   const thursday = moment(monday).add(3, 'days');
@@ -130,7 +130,7 @@ const PersonalSchedule = ({ groupId }) => {
 
   return (
     <>
-      <WeekSelector weekStartDay={weekCursor} />
+      <WeekSelector weekCursor={weekCursor} />
       <ScrollView>
         <Grid columns={10} columnGap={20} rowGap={10}>
           <Grid.Row>
