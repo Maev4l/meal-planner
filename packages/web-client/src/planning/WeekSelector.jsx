@@ -36,13 +36,18 @@ const WeekSelector = ({ weekCursor }) => {
   };
 
   const handlePreviousWeek = () => {
-    const previous = moment()
-      .year(year)
-      .isoWeek(weekNumber)
-      .startOf('isoWeek')
-      .subtract(1, 'isoweek');
-    const previousYear = previous.year();
-    const previousWeekNumber = previous.isoWeek();
+    let previousYear;
+    let previousWeekNumber;
+    if (weekNumber > 1) {
+      previousYear = year;
+      previousWeekNumber = weekNumber - 1;
+    } else {
+      previousYear = year - 1;
+      const m = moment().year(year - 1);
+      const weeksInPreviousYear = m.isoWeeksInYear();
+      previousWeekNumber = weeksInPreviousYear;
+    }
+
     dispatch(getSchedules(previousYear, previousWeekNumber));
   };
 
