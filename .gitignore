@@ -8,5 +8,7 @@ node_modules/
 .serverless/
 .webpack/
 .bin/
+bin/
+dist/
 
 output.json

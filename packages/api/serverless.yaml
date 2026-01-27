@@ -1,16 +1,15 @@
 service: meal-planner-api
 
 plugins:
-  - serverless-go-plugin
   - serverless-domain-manager
 
 package:
-  individually: true
+  artifact: dist/bootstrap.zip
 
 provider:
   name: aws
   architecture: arm64
-  runtime: provided.al2
+  runtime: provided.al2023
   versionFunctions: false
   memorySize: 128
   stage: dev
@@ -43,10 +42,6 @@ custom:
     autoDomain: true
     createRoute53Record: true
     endpointType: ${self:provider.endpointType}
-  go:
-    supportedRuntimes: provided.al2
-    buildProvidedRuntimeAsBootstrap: true
-    cmd: GOARCH=arm64 GOOS=linux go build -ldflags="-s -w"
 
 functions:
   #authorizer:
@@ -71,7 +66,7 @@ functions:
   #          - .amazonaws.com/
   #          - Ref: UserPool
   api:
-    handler: cmd/api/main.go
+    handler: bootstrap
     name: meal-planner-api
     role: ApiRole
     environment:

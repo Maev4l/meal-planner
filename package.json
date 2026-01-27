@@ -2,8 +2,8 @@
   "name": "meal-planner",
   "version": "1.0.0",
   "scripts": {
-    "deploy-api": "sls api:deploy",
-    "deploy-web-client": "sls web-client:deploy",
+    "deploy-api": "make -C packages/api package && sls deploy --service=api",
+    "deploy-web-client": "sls deploy --service=web-client",
     "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client/output.json",
     "build-web-client": "yarn output-api-stack && webpack --config ./packages/web-client/webpack.config.prod.babel.js --progress",
     "upload-web-client": "yarn build-web-client && aws s3 sync ./packages/web-client/.dist s3://meal-planner-web-client --delete",
@@ -23,7 +23,6 @@
     "@babel/preset-env": "7.23.9",
     "@babel/preset-react": "7.23.3",
     "@babel/register": "7.23.7",
-    "@serverless/compose": "1.3.0",
     "babel-loader": "9.1.3",
     "babel-plugin-module-resolver": "5.0.0",
     "babel-plugin-react-native-web": "0.19.10",

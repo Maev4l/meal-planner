@@ -1,3 +1,7 @@
+state:
+  backend: s3
+  region: eu-central-1
+
 services:
   api:
     path: packages/api
