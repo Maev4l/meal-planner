@@ -1,0 +1,625 @@
+openapi: 3.0.3
+info:
+  title: Meal Planner API
+  description: API for managing meal planning schedules, groups, and members
+  version: 1.0.0
+
+servers:
+  - url: https://api-meal-planner.isnan.eu
+    description: Production server
+
+
+paths:
+  /api/appadmin/users:
+    post:
+      summary: Register a new user
+      description: Enroll a user into the Identity Provider (Cognito)
+      operationId: registerUser
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterUserResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '409':
+          description: User already exists
+
+  /api/appadmin/users/{userId}:
+    delete:
+      summary: Unregister a user
+      description: Offboard a user from the system
+      operationId: unregisterUser
+      tags:
+        - Admin
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the user to unregister
+      responses:
+        '204':
+          description: User unregistered successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+
+  /api/groups:
+    post:
+      summary: Create a group
+      description: Create a new meal planning group
+      operationId: createGroup
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateGroupResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+
+  /api/groups/{groupId}/members:
+    post:
+      summary: Add a member to a group
+      description: Enroll a user within a group
+      operationId: createMember
+      tags:
+        - Members
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMemberRequest'
+      responses:
+        '201':
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateMemberResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Group not found
+
+  /api/groups/{groupId}/schedules:
+    post:
+      summary: Create or update a schedule
+      description: Create or update a schedule for a given group. Can be a default schedule or a week-specific schedule.
+      operationId: createSchedule
+      tags:
+        - Schedules
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '200':
+          description: Schedule created/updated successfully
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Group not found
+
+  /api/groups/{groupId}/comments:
+    post:
+      summary: Create or update comments
+      description: Create or update comments for a given group and week
+      operationId: createComments
+      tags:
+        - Comments
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentsRequest'
+      responses:
+        '200':
+          description: Comments created/updated successfully
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Group not found
+
+  /api/groups/{groupId}/notices:
+    post:
+      summary: Create or update a notice
+      description: Create or update a notice for a given group and week
+      operationId: createNotice
+      tags:
+        - Notices
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoticeRequest'
+      responses:
+        '201':
+          description: Notice created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateNoticeResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Group not found
+
+  /api/groups/{groupId}/notices/{period}:
+    delete:
+      summary: Delete a notice
+      description: Delete or reset a notice for a given period
+      operationId: deleteNotice
+      tags:
+        - Notices
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+        - name: period
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The period identifier (e.g., week number or date range)
+      responses:
+        '204':
+          description: Notice deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Notice not found
+
+  /api/schedules/{period}:
+    get:
+      summary: Get schedules for a period
+      description: Get all schedules associated with a calendar week
+      operationId: getSchedules
+      tags:
+        - Schedules
+      parameters:
+        - name: period
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The period identifier (e.g., "2024-W05" for week 5 of 2024)
+      responses:
+        '200':
+          description: Schedules retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSchedulesResponse'
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    cognitoAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Cognito User Pool JWT token
+
+  schemas:
+    RegisterUserRequest:
+      type: object
+      required:
+        - name
+        - password
+      properties:
+        name:
+          type: string
+          description: Username for the new user
+        password:
+          type: string
+          format: password
+          description: Password for the new user
+
+    RegisterUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the user
+        name:
+          type: string
+          description: Username
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the group
+
+    CreateGroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the group
+        name:
+          type: string
+          description: Name of the group
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the group was created
+
+    CreateMemberRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the member
+        admin:
+          type: boolean
+          default: false
+          description: Whether the member has admin privileges
+        guest:
+          type: boolean
+          default: false
+          description: Whether the member is a guest
+
+    CreateMemberResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the member
+        name:
+          type: string
+          description: Name of the member
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the member was added
+
+    CreateScheduleRequest:
+      type: object
+      required:
+        - default
+        - schedule
+      properties:
+        default:
+          type: boolean
+          description: If true, this is the default schedule; if false, it's a week-specific schedule
+        schedule:
+          oneOf:
+            - $ref: '#/components/schemas/CreateDefaultScheduleRequest'
+            - $ref: '#/components/schemas/CreateMemberScheduleRequest'
+          description: The schedule data (structure depends on 'default' flag)
+
+    CreateDefaultScheduleRequest:
+      type: object
+      properties:
+        monday:
+          type: integer
+          description: Meal count for Monday
+        tuesday:
+          type: integer
+          description: Meal count for Tuesday
+        wednesday:
+          type: integer
+          description: Meal count for Wednesday
+        thursday:
+          type: integer
+          description: Meal count for Thursday
+        friday:
+          type: integer
+          description: Meal count for Friday
+        saturday:
+          type: integer
+          description: Meal count for Saturday
+        sunday:
+          type: integer
+          description: Meal count for Sunday
+
+    CreateMemberScheduleRequest:
+      type: object
+      properties:
+        weekNumber:
+          type: integer
+          description: ISO week number
+        year:
+          type: integer
+          description: Year
+        monday:
+          type: integer
+          description: Meal count for Monday
+        tuesday:
+          type: integer
+          description: Meal count for Tuesday
+        wednesday:
+          type: integer
+          description: Meal count for Wednesday
+        thursday:
+          type: integer
+          description: Meal count for Thursday
+        friday:
+          type: integer
+          description: Meal count for Friday
+        saturday:
+          type: integer
+          description: Meal count for Saturday
+        sunday:
+          type: integer
+          description: Meal count for Sunday
+
+    CreateCommentsRequest:
+      type: object
+      required:
+        - weekNumber
+        - year
+      properties:
+        weekNumber:
+          type: integer
+          description: ISO week number
+        year:
+          type: integer
+          description: Year
+        monday:
+          $ref: '#/components/schemas/DailyComments'
+        tuesday:
+          $ref: '#/components/schemas/DailyComments'
+        wednesday:
+          $ref: '#/components/schemas/DailyComments'
+        thursday:
+          $ref: '#/components/schemas/DailyComments'
+        friday:
+          $ref: '#/components/schemas/DailyComments'
+        saturday:
+          $ref: '#/components/schemas/DailyComments'
+        sunday:
+          $ref: '#/components/schemas/DailyComments'
+
+    DailyComments:
+      type: object
+      properties:
+        lunch:
+          type: string
+          description: Comment for lunch
+        dinner:
+          type: string
+          description: Comment for dinner
+
+    CreateNoticeRequest:
+      type: object
+      required:
+        - weekNumber
+        - year
+        - content
+      properties:
+        weekNumber:
+          type: integer
+          description: ISO week number
+        year:
+          type: integer
+          description: Year
+        content:
+          type: string
+          description: Notice content
+
+    CreateNoticeResponse:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notice was created
+
+    GetSchedulesResponse:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupScheduleResponse'
+
+    GroupScheduleResponse:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: Unique identifier of the group
+        groupName:
+          type: string
+          description: Name of the group
+        members:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/MemberScheduleResponse'
+          description: Map of member IDs to their schedules
+
+    MemberScheduleResponse:
+      type: object
+      properties:
+        memberId:
+          type: string
+          description: Unique identifier of the member
+        memberName:
+          type: string
+          description: Name of the member
+        admin:
+          type: boolean
+          description: Whether the member has admin privileges
+        default:
+          $ref: '#/components/schemas/DefaultScheduleResponse'
+        schedule:
+          $ref: '#/components/schemas/ScheduleResponse'
+        comments:
+          $ref: '#/components/schemas/CommentsResponse'
+        notice:
+          $ref: '#/components/schemas/NoticeResponse'
+
+    DefaultScheduleResponse:
+      type: object
+      properties:
+        monday:
+          type: integer
+        tuesday:
+          type: integer
+        wednesday:
+          type: integer
+        thursday:
+          type: integer
+        friday:
+          type: integer
+        saturday:
+          type: integer
+        sunday:
+          type: integer
+
+    ScheduleResponse:
+      type: object
+      properties:
+        overriden:
+          type: boolean
+          description: Whether this schedule overrides the default
+        year:
+          type: integer
+        weekNumber:
+          type: integer
+        monday:
+          type: integer
+        tuesday:
+          type: integer
+        wednesday:
+          type: integer
+        thursday:
+          type: integer
+        friday:
+          type: integer
+        saturday:
+          type: integer
+        sunday:
+          type: integer
+
+    CommentsResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        weekNumber:
+          type: integer
+        monday:
+          $ref: '#/components/schemas/DailyComments'
+        tuesday:
+          $ref: '#/components/schemas/DailyComments'
+        wednesday:
+          $ref: '#/components/schemas/DailyComments'
+        thursday:
+          $ref: '#/components/schemas/DailyComments'
+        friday:
+          $ref: '#/components/schemas/DailyComments'
+        saturday:
+          $ref: '#/components/schemas/DailyComments'
+        sunday:
+          $ref: '#/components/schemas/DailyComments'
+
+    NoticeResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+        weekNumber:
+          type: integer
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+tags:
+  - name: Admin
+    description: User administration operations
+  - name: Groups
+    description: Group management
+  - name: Members
+    description: Group member management
+  - name: Schedules
+    description: Meal schedule management
+  - name: Comments
+    description: Daily meal comments
+  - name: Notices
+    description: Weekly notices
