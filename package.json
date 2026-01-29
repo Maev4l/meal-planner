@@ -4,16 +4,20 @@
   "scripts": {
     "deploy-api": "make -C packages/api package && sls deploy --service=api",
     "deploy-web-client": "sls deploy --service=web-client",
-    "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client/output.json",
+    "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client-v2/output.json",
     "build-web-client": "yarn output-api-stack && webpack --config ./packages/web-client/webpack.config.prod.babel.js --progress",
     "upload-web-client": "yarn build-web-client && aws s3 sync ./packages/web-client/.dist s3://meal-planner-web-client --delete",
     "serve-web-client-dev": "webpack serve --config ./packages/web-client/webpack.config.dev.babel.js",
-    "invalidate-web-client": "aws cloudfront create-invalidation --path '/*' --distribution-id $(aws cloudformation describe-stacks --stack-name meal-planner-web-client-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' | jq -r '.mealPlannerWebClientDistributionId')"
+    "invalidate-web-client": "aws cloudfront create-invalidation --path '/*' --distribution-id $(aws cloudformation describe-stacks --stack-name meal-planner-web-client-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' | jq -r '.mealPlannerWebClientDistributionId')",
+    "build-web-client-v2": "yarn output-api-stack && yarn workspace @meal-planner/web-client-v2 build",
+    "serve-web-client-v2": "yarn workspace @meal-planner/web-client-v2 dev"
+
   },
   "private": true,
   "workspaces": [
     "packages/api",
-    "packages/web-client"
+    "packages/web-client",
+    "packages/web-client-v2"
   ],
   "devDependencies": {
     "@babel/core": "7.23.9",
