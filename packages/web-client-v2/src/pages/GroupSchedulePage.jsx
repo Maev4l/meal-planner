@@ -47,66 +47,77 @@ const getWeekDates = (year, week) => {
 };
 
 // Personal schedule table with toggles
-const PersonalScheduleTable = ({ schedule, dates, onToggle }) => (
-  <Box>
-    <Box
-      sx={{
-        display: 'flex',
-        bgcolor: 'primary.main',
-        color: 'white',
-        fontWeight: 600,
-      }}
-    >
-      <Box sx={{ width: 100, py: 1, pl: 2 }}>
-        <Typography variant="subtitle2" fontWeight={600}>Day</Typography>
-      </Box>
-      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
-        <Typography variant="subtitle2" fontWeight={600}>Lunch</Typography>
-      </Box>
-      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
-        <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
-      </Box>
-    </Box>
-    {DAYS.map((day, index) => {
-      const attendance = schedule?.[day] ?? 0;
-      const hasLunch = (attendance & MEAL.LUNCH) !== 0;
-      const hasDinner = (attendance & MEAL.DINNER) !== 0;
+const PersonalScheduleTable = ({ schedule, dates, onToggle, year, week }) => {
+  // Calculate today's index in the week (0-6, or -1 if not in this week)
+  const today = dayjs();
+  const todayIndex = today.isoWeekYear() === year && today.isoWeek() === week
+    ? today.isoWeekday() - 1
+    : -1;
 
-      return (
-        <Box
-          key={day}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Box sx={{ width: 100, py: 1, pl: 2 }}>
-            <Typography variant="body2">{DAY_LABELS[index]}</Typography>
-            <Typography variant="caption" color="text.secondary">
-              {dates[index]}
-            </Typography>
-          </Box>
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <Switch
-              checked={hasLunch}
-              onChange={() => onToggle(day, MEAL.LUNCH)}
-              size="small"
-            />
-          </Box>
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <Switch
-              checked={hasDinner}
-              onChange={() => onToggle(day, MEAL.DINNER)}
-              size="small"
-            />
-          </Box>
+  return (
+    <Box>
+      <Box
+        sx={{
+          display: 'flex',
+          bgcolor: 'primary.main',
+          color: 'white',
+          fontWeight: 600,
+        }}
+      >
+        <Box sx={{ width: 100, py: 1, pl: 2 }}>
+          <Typography variant="subtitle2" fontWeight={600}>Day</Typography>
         </Box>
-      );
-    })}
-  </Box>
-);
+        <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+          <Typography variant="subtitle2" fontWeight={600}>Lunch</Typography>
+        </Box>
+        <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+          <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
+        </Box>
+      </Box>
+      {DAYS.map((day, index) => {
+        const attendance = schedule?.[day] ?? 0;
+        const hasLunch = (attendance & MEAL.LUNCH) !== 0;
+        const hasDinner = (attendance & MEAL.DINNER) !== 0;
+        const isToday = index === todayIndex;
+
+        return (
+          <Box
+            key={day}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              borderLeft: isToday ? 4 : 0,
+              borderLeftColor: 'primary.main',
+            }}
+          >
+            <Box sx={{ width: 100, py: 1, pl: 2 }}>
+              <Typography variant="body2">{DAY_LABELS[index]}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {dates[index]}
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <Switch
+                checked={hasLunch}
+                onChange={() => onToggle(day, MEAL.LUNCH)}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              <Switch
+                checked={hasDinner}
+                onChange={() => onToggle(day, MEAL.DINNER)}
+                size="small"
+              />
+            </Box>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
 
 // Members schedule with day cards
 const MembersScheduleCards = ({ members, dates, year, week, todayRef }) => {
@@ -358,7 +369,7 @@ const GroupSchedulePage = () => {
               <Alert severity="error">{error}</Alert>
             ) : view === 'personal' && schedule ? (
               <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-                <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} />
+                <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} year={year} week={week} />
               </Paper>
             ) : view === 'everyone' && members ? (
               <MembersScheduleCards members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
