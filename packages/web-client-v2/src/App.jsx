@@ -7,7 +7,7 @@ import { SchedulesProvider } from './contexts/SchedulesContext';
 import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
-import PersonalSchedulePage from './pages/PersonalSchedulePage';
+import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 
 const ProtectedRoute = ({ children }) => {
@@ -99,7 +99,7 @@ const App = () => {
             path="/groups/:groupId/:groupName"
             element={
               <ProtectedRoute>
-                <PersonalSchedulePage />
+                <GroupSchedulePage />
               </ProtectedRoute>
             }
           />

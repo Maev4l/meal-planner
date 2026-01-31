@@ -11,15 +11,16 @@ import {
   Paper,
   Switch,
   Snackbar,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import 'dayjs/locale/fr';
 
 dayjs.extend(isoWeek);
-dayjs.locale('en');
+
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import WeekNavigator from '../components/WeekNavigator';
@@ -38,14 +39,14 @@ const getCurrentWeek = () => {
 };
 
 const getWeekDates = (year, week) => {
-  // ISO week 1 contains January 4th, find that week's Monday then offset
   const jan4 = dayjs(`${year}-01-04`);
   const firstMonday = jan4.startOf('isoWeek');
   const targetMonday = firstMonday.add(week - 1, 'week');
   return DAYS.map((_, i) => targetMonday.add(i, 'day').format('D MMM'));
 };
 
-const ScheduleTable = ({ schedule, dates, onToggle }) => (
+// Personal schedule table with toggles
+const PersonalScheduleTable = ({ schedule, dates, onToggle }) => (
   <Box>
     <Box
       sx={{
@@ -106,7 +107,67 @@ const ScheduleTable = ({ schedule, dates, onToggle }) => (
   </Box>
 );
 
-const PersonalSchedulePage = () => {
+// Members schedule with day cards
+const MembersScheduleCards = ({ members, dates, year, week }) => {
+  const getMealAttendees = (dayKey, mealType) => {
+    return Object.entries(members)
+      .filter(([, member]) => ((member.schedule?.[dayKey] ?? 0) & mealType) !== 0)
+      .map(([, member]) => member.memberName.toUpperCase())
+      .sort();
+  };
+
+  // Calculate today's index in the week (0-6, or -1 if not in this week)
+  const today = dayjs();
+  const todayIndex = today.isoWeekYear() === year && today.isoWeek() === week
+    ? today.isoWeekday() - 1
+    : -1;
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {DAYS.map((day, index) => {
+        const lunchAttendees = getMealAttendees(day, MEAL.LUNCH);
+        const dinnerAttendees = getMealAttendees(day, MEAL.DINNER);
+        const isToday = index === todayIndex;
+
+        return (
+          <Paper
+            key={day}
+            elevation={2}
+            sx={{
+              p: 2,
+              borderLeft: isToday ? 4 : 0,
+              borderColor: 'primary.main',
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+              {DAY_LABELS[index]}, {dates[index]}
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary" component="span">
+                  Lunch ({lunchAttendees.length}):{' '}
+                </Typography>
+                <Typography variant="body2" component="span">
+                  {lunchAttendees.length > 0 ? lunchAttendees.join(', ') : '—'}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary" component="span">
+                  Dinner ({dinnerAttendees.length}):{' '}
+                </Typography>
+                <Typography variant="body2" component="span">
+                  {dinnerAttendees.length > 0 ? dinnerAttendees.join(', ') : '—'}
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        );
+      })}
+    </Box>
+  );
+};
+
+const GroupSchedulePage = () => {
   const { groupId, groupName } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -114,7 +175,9 @@ const PersonalSchedulePage = () => {
   const current = getCurrentWeek();
   const [year, setYear] = useState(current.year);
   const [week, setWeek] = useState(current.week);
+  const [view, setView] = useState('personal');
   const [schedule, setSchedule] = useState(null);
+  const [members, setMembers] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saveError, setSaveError] = useState(null);
@@ -130,6 +193,7 @@ const PersonalSchedulePage = () => {
         const group = data.schedules?.find((g) => g.groupId === groupId);
 
         if (group) {
+          setMembers(group.members);
           const currentMember = group.members[user.memberId];
           if (currentMember) {
             setSchedule({ ...currentMember.schedule });
@@ -154,6 +218,12 @@ const PersonalSchedulePage = () => {
     setWeek(newWeek);
   };
 
+  const handleViewChange = (_, newView) => {
+    if (newView !== null) {
+      setView(newView);
+    }
+  };
+
   const handleToggle = useCallback(async (day, mealType) => {
     const prevSchedule = schedule;
     const newSchedule = {
@@ -161,6 +231,15 @@ const PersonalSchedulePage = () => {
       [day]: (schedule[day] ?? 0) ^ mealType,
     };
     setSchedule(newSchedule);
+
+    // Also update in members for consistency
+    setMembers((prev) => ({
+      ...prev,
+      [user.memberId]: {
+        ...prev[user.memberId],
+        schedule: newSchedule,
+      },
+    }));
 
     try {
       const period = `${year}-${week}`;
@@ -170,9 +249,18 @@ const PersonalSchedulePage = () => {
       });
     } catch {
       setSchedule(prevSchedule);
+      setMembers((prev) => ({
+        ...prev,
+        [user.memberId]: {
+          ...prev[user.memberId],
+          schedule: prevSchedule,
+        },
+      }));
       setSaveError('Failed to save schedule');
     }
-  }, [schedule, groupId, year, week]);
+  }, [schedule, groupId, year, week, user.memberId]);
+
+  const dates = getWeekDates(year, week);
 
   return (
     <>
@@ -215,16 +303,31 @@ const PersonalSchedulePage = () => {
       </AppBar>
       <Box sx={{ py: 2 }}>
         <WeekNavigator year={year} week={week} onChange={handleWeekChange} />
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <ToggleButtonGroup
+            value={view}
+            exclusive
+            onChange={handleViewChange}
+            size="small"
+          >
+            <ToggleButton value="personal">My Schedule</ToggleButton>
+            <ToggleButton value="everyone">Everyone</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>
         ) : error ? (
           <Alert severity="error">{error}</Alert>
-        ) : schedule ? (
+        ) : view === 'personal' && schedule ? (
           <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-            <ScheduleTable schedule={schedule} dates={getWeekDates(year, week)} onToggle={handleToggle} />
+            <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} />
           </Paper>
+        ) : view === 'everyone' && members ? (
+          <MembersScheduleCards members={members} dates={dates} year={year} week={week} />
         ) : null}
       </Box>
       <Snackbar
@@ -237,4 +340,4 @@ const PersonalSchedulePage = () => {
   );
 };
 
-export default PersonalSchedulePage;
+export default GroupSchedulePage;
