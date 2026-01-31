@@ -1,0 +1,204 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  AppBar,
+  Toolbar,
+  IconButton,
+  CircularProgress,
+  Alert,
+  Paper,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SettingsIcon from '@mui/icons-material/Settings';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import moment from 'moment';
+import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api';
+import WeekNavigator from '../components/WeekNavigator';
+
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const MEAL = {
+  LUNCH: 1,
+  DINNER: 2,
+};
+
+const getCurrentWeek = () => {
+  const now = moment();
+  return { year: now.isoWeekYear(), week: now.isoWeek() };
+};
+
+const getWeekDates = (year, week) => {
+  const monday = moment().isoWeekYear(year).isoWeek(week).startOf('isoWeek');
+  return DAYS.map((_, i) => monday.clone().add(i, 'days').format('D MMM'));
+};
+
+const MealIcon = ({ isPresent }) =>
+  isPresent ? (
+    <CheckCircleIcon color="success" fontSize="small" />
+  ) : (
+    <CancelIcon color="error" fontSize="small" />
+  );
+
+const ScheduleTable = ({ schedule, dates }) => (
+  <Box>
+    <Box
+      sx={{
+        display: 'flex',
+        bgcolor: 'primary.main',
+        color: 'white',
+        fontWeight: 600,
+      }}
+    >
+      <Box sx={{ width: 100, py: 1, pl: 2 }}>
+        <Typography variant="subtitle2" fontWeight={600}>Day</Typography>
+      </Box>
+      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={600}>Lunch</Typography>
+      </Box>
+      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
+      </Box>
+    </Box>
+    {DAYS.map((day, index) => {
+      const attendance = schedule?.[day] ?? 0;
+      const hasLunch = (attendance & MEAL.LUNCH) !== 0;
+      const hasDinner = (attendance & MEAL.DINNER) !== 0;
+
+      return (
+        <Box
+          key={day}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Box sx={{ width: 100, py: 1, pl: 2 }}>
+            <Typography variant="body2">{DAY_LABELS[index]}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {dates[index]}
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1, textAlign: 'center' }}>
+            <MealIcon isPresent={hasLunch} />
+          </Box>
+          <Box sx={{ flex: 1, textAlign: 'center' }}>
+            <MealIcon isPresent={hasDinner} />
+          </Box>
+        </Box>
+      );
+    })}
+  </Box>
+);
+
+const PersonalSchedulePage = () => {
+  const { groupId, groupName } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const current = getCurrentWeek();
+  const [year, setYear] = useState(current.year);
+  const [week, setWeek] = useState(current.week);
+  const [schedule, setSchedule] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const period = `${year}-${week}`;
+        const data = await api.getSchedules(period);
+        const group = data.schedules?.find((g) => g.groupId === groupId);
+
+        if (group) {
+          const currentMember = group.members[user.memberId];
+          if (currentMember) {
+            setSchedule({ ...currentMember.schedule });
+          } else {
+            setError('You are not a member of this group');
+          }
+        } else {
+          setError('Group not found');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [groupId, user.memberId, year, week]);
+
+  const handleWeekChange = (newYear, newWeek) => {
+    setYear(newYear);
+    setWeek(newWeek);
+  };
+
+  return (
+    <>
+      <AppBar
+        position="sticky"
+        sx={{
+          width: '100vw',
+          ml: 'calc(-50vw + 50%)',
+          top: 0,
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={() => navigate('/')}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            component="h1"
+            sx={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            {decodeURIComponent(groupName)}
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)}
+          >
+            <SettingsIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Box sx={{ py: 2 }}>
+        <WeekNavigator year={year} week={week} onChange={handleWeekChange} />
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : schedule ? (
+          <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+            <ScheduleTable schedule={schedule} dates={getWeekDates(year, week)} />
+          </Paper>
+        ) : null}
+      </Box>
+    </>
+  );
+};
+
+export default PersonalSchedulePage;

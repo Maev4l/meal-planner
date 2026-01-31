@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -11,24 +12,15 @@ import {
   Toolbar,
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
-import { api } from '../services/api';
+import { useSchedules } from '../contexts/SchedulesContext';
 
-const getCurrentPeriod = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
-  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-  return `${year}-${weekNumber}`;
-};
-
-const GroupCard = ({ group }) => {
+const GroupCard = ({ group, onSelect }) => {
   const { groupName, members } = group;
   const memberCount = Object.keys(members).length;
 
   return (
     <Card sx={{ mb: 2 }}>
-      <CardActionArea>
+      <CardActionArea onClick={onSelect}>
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <GroupIcon color="primary" />
           <Box>
@@ -46,33 +38,21 @@ const GroupCard = ({ group }) => {
 };
 
 const GroupsPage = () => {
-  const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { schedules: groups, loading, error, fetchSchedules } = useSchedules();
 
   useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const period = getCurrentPeriod();
-        const data = await api.getSchedules(period);
-        setGroups(data.schedules || []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGroups();
-  }, []);
+    fetchSchedules();
+  }, [fetchSchedules]);
 
   return (
     <>
       <AppBar
-        position="static"
+        position="sticky"
         sx={{
           width: '100vw',
           ml: 'calc(-50vw + 50%)',
+          top: 0,
         }}
       >
         <Toolbar>
@@ -94,7 +74,11 @@ const GroupsPage = () => {
           </Typography>
         ) : (
           groups.map((group) => (
-            <GroupCard key={group.groupId} group={group} />
+            <GroupCard
+              key={group.groupId}
+              group={group}
+              onSelect={() => navigate(`/groups/${group.groupId}/${encodeURIComponent(group.groupName)}`)}
+            />
           ))
         )}
       </Box>

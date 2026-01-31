@@ -29,7 +29,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const session = await fetchAuthSession();
       if (session.tokens?.idToken) {
-        setUser({ authenticated: true });
+        const payload = session.tokens.idToken.payload;
+        // Convert UUID from lowercase with dashes to uppercase without dashes
+        const memberId = payload.sub.replace(/-/g, '').toUpperCase();
+        setUser({
+          authenticated: true,
+          memberId,
+          name: payload.name || payload['cognito:username'],
+        });
       } else {
         setUser(null);
       }

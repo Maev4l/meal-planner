@@ -3,9 +3,12 @@ import { Container, Box, CircularProgress, BottomNavigation, BottomNavigationAct
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useAuth } from './contexts/AuthContext';
+import { SchedulesProvider } from './contexts/SchedulesContext';
 import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
+import PersonalSchedulePage from './pages/PersonalSchedulePage';
+import DefaultSchedulePage from './pages/DefaultSchedulePage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -74,6 +77,7 @@ const App = () => {
   return (
     <>
       <Container maxWidth="lg" sx={{ pb: 8 }}>
+        <SchedulesProvider>
         <Routes>
           <Route
             path="/login"
@@ -92,6 +96,22 @@ const App = () => {
             }
           />
           <Route
+            path="/groups/:groupId/:groupName"
+            element={
+              <ProtectedRoute>
+                <PersonalSchedulePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:groupId/:groupName/default"
+            element={
+              <ProtectedRoute>
+                <DefaultSchedulePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <ProtectedRoute>
@@ -100,6 +120,7 @@ const App = () => {
             }
           />
         </Routes>
+        </SchedulesProvider>
       </Container>
       {!isLoading && isAuthenticated && <BottomNav />}
     </>
