@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -108,7 +108,7 @@ const PersonalScheduleTable = ({ schedule, dates, onToggle }) => (
 );
 
 // Members schedule with day cards
-const MembersScheduleCards = ({ members, dates, year, week }) => {
+const MembersScheduleCards = ({ members, dates, year, week, todayRef }) => {
   const getMealAttendees = (dayKey, mealType) => {
     return Object.entries(members)
       .filter(([, member]) => ((member.schedule?.[dayKey] ?? 0) & mealType) !== 0)
@@ -132,6 +132,7 @@ const MembersScheduleCards = ({ members, dates, year, week }) => {
         return (
           <Paper
             key={day}
+            ref={isToday ? todayRef : null}
             elevation={2}
             sx={{
               p: 2,
@@ -181,6 +182,14 @@ const GroupSchedulePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const todayCardRef = useRef(null);
+
+  // Scroll to today's card when view changes to "everyone" and data is loaded
+  useEffect(() => {
+    if (!loading && view === 'everyone' && todayCardRef.current) {
+      todayCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [loading, view]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -327,7 +336,7 @@ const GroupSchedulePage = () => {
             <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} />
           </Paper>
         ) : view === 'everyone' && members ? (
-          <MembersScheduleCards members={members} dates={dates} year={year} week={week} />
+          <MembersScheduleCards members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
         ) : null}
       </Box>
       <Snackbar
