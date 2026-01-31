@@ -29,6 +29,7 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
         const hasLunch = (attendance & MEAL.LUNCH) !== 0;
         const hasDinner = (attendance & MEAL.DINNER) !== 0;
         const isToday = index === todayIndex;
+        const isPast = todayIndex >= 0 && index < todayIndex;
 
         return (
           <Box
@@ -43,8 +44,10 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
             }}
           >
             <Box sx={{ width: 100, py: 1, pl: 2 }}>
-              <Typography variant="body2">{DAY_LABELS[index]}</Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="body2" color={isPast ? 'text.disabled' : 'text.primary'}>
+                {DAY_LABELS[index]}
+              </Typography>
+              <Typography variant="caption" color={isPast ? 'text.disabled' : 'text.secondary'}>
                 {dates[index]}
               </Typography>
             </Box>
@@ -53,6 +56,7 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
                 checked={hasLunch}
                 onChange={() => onToggle(day, MEAL.LUNCH)}
                 size="small"
+                disabled={isPast}
               />
             </Box>
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -60,6 +64,7 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
                 checked={hasDinner}
                 onChange={() => onToggle(day, MEAL.DINNER)}
                 size="small"
+                disabled={isPast}
               />
             </Box>
           </Box>
