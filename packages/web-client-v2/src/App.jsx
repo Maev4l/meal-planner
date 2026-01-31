@@ -1,8 +1,11 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, CircularProgress } from '@mui/material';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Container, Box, CircularProgress, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useAuth } from './contexts/AuthContext';
-import HomePage from './pages/HomePage';
+import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
+import SettingsPage from './pages/SettingsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,28 +43,66 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-const App = () => {
+const BottomNav = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const pathToValue = {
+    '/': 0,
+    '/settings': 1,
+  };
+
+  const valueToPath = ['/', '/settings'];
+
   return (
-    <Container maxWidth="lg">
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Container>
+    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+      <BottomNavigation
+        value={pathToValue[location.pathname] ?? 0}
+        onChange={(_, newValue) => navigate(valueToPath[newValue])}
+        showLabels
+      >
+        <BottomNavigationAction label="Home" icon={<HomeIcon />} />
+        <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
+      </BottomNavigation>
+    </Paper>
+  );
+};
+
+const App = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  return (
+    <>
+      <Container maxWidth="lg" sx={{ pb: 8 }}>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <GroupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Container>
+      {!isLoading && isAuthenticated && <BottomNav />}
+    </>
   );
 };
 

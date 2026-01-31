@@ -13,3 +13,4 @@ dist/
 output.json
 
 .inputs/
+.claude/
