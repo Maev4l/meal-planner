@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PullToRefresh from 'react-simple-pull-to-refresh';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
@@ -191,36 +192,42 @@ const GroupSchedulePage = () => {
     }
   }, [loading, view]);
 
-  useEffect(() => {
-    const loadData = async () => {
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) {
       setLoading(true);
-      setError(null);
+    }
+    setError(null);
 
-      try {
-        const period = `${year}-${week}`;
-        const data = await api.getSchedules(period);
-        const group = data.schedules?.find((g) => g.groupId === groupId);
+    try {
+      const period = `${year}-${week}`;
+      const data = await api.getSchedules(period);
+      const group = data.schedules?.find((g) => g.groupId === groupId);
 
-        if (group) {
-          setMembers(group.members);
-          const currentMember = group.members[user.memberId];
-          if (currentMember) {
-            setSchedule({ ...currentMember.schedule });
-          } else {
-            setError('You are not a member of this group');
-          }
+      if (group) {
+        setMembers(group.members);
+        const currentMember = group.members[user.memberId];
+        if (currentMember) {
+          setSchedule({ ...currentMember.schedule });
         } else {
-          setError('Group not found');
+          setError('You are not a member of this group');
         }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      } else {
+        setError('Group not found');
       }
-    };
-
-    loadData();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [groupId, user.memberId, year, week]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleRefresh = async () => {
+    await loadData(false);
+  };
 
   const handleWeekChange = (newYear, newWeek) => {
     setYear(newYear);
@@ -334,24 +341,30 @@ const GroupSchedulePage = () => {
       <Box
         sx={{
           flex: 1,
-          overflow: 'auto',
-          px: 2,
-          pb: 2,
+          overflow: 'hidden',
         }}
       >
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+        <PullToRefresh
+          onRefresh={handleRefresh}
+          pullingContent=""
+          style={{ height: '100%' }}
+        >
+          <Box sx={{ px: 2, pt: 2, pb: 2, height: '100%', overflow: 'auto' }}>
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : error ? (
+              <Alert severity="error">{error}</Alert>
+            ) : view === 'personal' && schedule ? (
+              <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+                <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} />
+              </Paper>
+            ) : view === 'everyone' && members ? (
+              <MembersScheduleCards members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
+            ) : null}
           </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : view === 'personal' && schedule ? (
-          <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-            <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} />
-          </Paper>
-        ) : view === 'everyone' && members ? (
-          <MembersScheduleCards members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
-        ) : null}
+        </PullToRefresh>
       </Box>
       <Snackbar
         open={!!saveError}
