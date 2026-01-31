@@ -14,7 +14,12 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import 'dayjs/locale/fr';
+
+dayjs.extend(isoWeek);
+dayjs.locale('en');
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import WeekNavigator from '../components/WeekNavigator';
@@ -28,13 +33,16 @@ const MEAL = {
 };
 
 const getCurrentWeek = () => {
-  const now = moment();
+  const now = dayjs();
   return { year: now.isoWeekYear(), week: now.isoWeek() };
 };
 
 const getWeekDates = (year, week) => {
-  const monday = moment().isoWeekYear(year).isoWeek(week).startOf('isoWeek');
-  return DAYS.map((_, i) => monday.clone().add(i, 'days').format('D MMM'));
+  // ISO week 1 contains January 4th, find that week's Monday then offset
+  const jan4 = dayjs(`${year}-01-04`);
+  const firstMonday = jan4.startOf('isoWeek');
+  const targetMonday = firstMonday.add(week - 1, 'week');
+  return DAYS.map((_, i) => targetMonday.add(i, 'day').format('D MMM'));
 };
 
 const ScheduleTable = ({ schedule, dates, onToggle }) => (
