@@ -16,14 +16,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useAuth } from '../contexts/AuthContext';
 import { useSchedules } from '../contexts/SchedulesContext';
 import { api } from '../services/api';
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-const MEAL = {
-  LUNCH: 1,
-  DINNER: 2,
-};
+import { DAYS, DAY_LABELS, MEAL } from '../constants/schedule';
 
 const ScheduleTable = ({ schedule, onToggle }) => (
   <Box>

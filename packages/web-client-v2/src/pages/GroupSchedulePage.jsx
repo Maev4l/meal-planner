@@ -9,7 +9,6 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  Switch,
   Snackbar,
   ToggleButtonGroup,
   ToggleButton,
@@ -17,168 +16,12 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PullToRefresh from 'react-simple-pull-to-refresh';
-import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
-
-dayjs.extend(isoWeek);
-
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import WeekNavigator from '../components/WeekNavigator';
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-const MEAL = {
-  LUNCH: 1,
-  DINNER: 2,
-};
-
-const getCurrentWeek = () => {
-  const now = dayjs();
-  return { year: now.isoWeekYear(), week: now.isoWeek() };
-};
-
-const getWeekDates = (year, week) => {
-  const jan4 = dayjs(`${year}-01-04`);
-  const firstMonday = jan4.startOf('isoWeek');
-  const targetMonday = firstMonday.add(week - 1, 'week');
-  return DAYS.map((_, i) => targetMonday.add(i, 'day').format('D MMM'));
-};
-
-// Personal schedule table with toggles
-const PersonalScheduleTable = ({ schedule, dates, onToggle, year, week }) => {
-  // Calculate today's index in the week (0-6, or -1 if not in this week)
-  const today = dayjs();
-  const todayIndex = today.isoWeekYear() === year && today.isoWeek() === week
-    ? today.isoWeekday() - 1
-    : -1;
-
-  return (
-    <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          bgcolor: 'primary.main',
-          color: 'white',
-          fontWeight: 600,
-        }}
-      >
-        <Box sx={{ width: 100, py: 1, pl: 2 }}>
-          <Typography variant="subtitle2" fontWeight={600}>Day</Typography>
-        </Box>
-        <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
-          <Typography variant="subtitle2" fontWeight={600}>Lunch</Typography>
-        </Box>
-        <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
-          <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
-        </Box>
-      </Box>
-      {DAYS.map((day, index) => {
-        const attendance = schedule?.[day] ?? 0;
-        const hasLunch = (attendance & MEAL.LUNCH) !== 0;
-        const hasDinner = (attendance & MEAL.DINNER) !== 0;
-        const isToday = index === todayIndex;
-
-        return (
-          <Box
-            key={day}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              borderLeft: isToday ? 4 : 0,
-              borderLeftColor: 'primary.main',
-            }}
-          >
-            <Box sx={{ width: 100, py: 1, pl: 2 }}>
-              <Typography variant="body2">{DAY_LABELS[index]}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {dates[index]}
-              </Typography>
-            </Box>
-            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              <Switch
-                checked={hasLunch}
-                onChange={() => onToggle(day, MEAL.LUNCH)}
-                size="small"
-              />
-            </Box>
-            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              <Switch
-                checked={hasDinner}
-                onChange={() => onToggle(day, MEAL.DINNER)}
-                size="small"
-              />
-            </Box>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-};
-
-// Members schedule with day cards
-const MembersScheduleCards = ({ members, dates, year, week, todayRef }) => {
-  const getMealAttendees = (dayKey, mealType) => {
-    return Object.entries(members)
-      .filter(([, member]) => ((member.schedule?.[dayKey] ?? 0) & mealType) !== 0)
-      .map(([, member]) => member.memberName.toUpperCase())
-      .sort();
-  };
-
-  // Calculate today's index in the week (0-6, or -1 if not in this week)
-  const today = dayjs();
-  const todayIndex = today.isoWeekYear() === year && today.isoWeek() === week
-    ? today.isoWeekday() - 1
-    : -1;
-
-  return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {DAYS.map((day, index) => {
-        const lunchAttendees = getMealAttendees(day, MEAL.LUNCH);
-        const dinnerAttendees = getMealAttendees(day, MEAL.DINNER);
-        const isToday = index === todayIndex;
-
-        return (
-          <Paper
-            key={day}
-            ref={isToday ? todayRef : null}
-            elevation={2}
-            sx={{
-              p: 2,
-              borderLeft: isToday ? 4 : 0,
-              borderColor: 'primary.main',
-            }}
-          >
-            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-              {DAY_LABELS[index]}, {dates[index]}
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Box>
-                <Typography variant="body2" color="text.secondary" component="span">
-                  Lunch ({lunchAttendees.length}):{' '}
-                </Typography>
-                <Typography variant="body2" component="span">
-                  {lunchAttendees.length > 0 ? lunchAttendees.join(', ') : '—'}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary" component="span">
-                  Dinner ({dinnerAttendees.length}):{' '}
-                </Typography>
-                <Typography variant="body2" component="span">
-                  {dinnerAttendees.length > 0 ? dinnerAttendees.join(', ') : '—'}
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        );
-      })}
-    </Box>
-  );
-};
+import PersonalScheduleView from '../components/PersonalScheduleView';
+import MembersScheduleView from '../components/MembersScheduleView';
+import { getCurrentWeek, getWeekDates } from '../constants/schedule';
 
 const GroupSchedulePage = () => {
   const { groupId, groupName } = useParams();
@@ -369,10 +212,10 @@ const GroupSchedulePage = () => {
               <Alert severity="error">{error}</Alert>
             ) : view === 'personal' && schedule ? (
               <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-                <PersonalScheduleTable schedule={schedule} dates={dates} onToggle={handleToggle} year={year} week={week} />
+                <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle} year={year} week={week} />
               </Paper>
             ) : view === 'everyone' && members ? (
-              <MembersScheduleCards members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
+              <MembersScheduleView members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
             ) : null}
           </Box>
         </PullToRefresh>
