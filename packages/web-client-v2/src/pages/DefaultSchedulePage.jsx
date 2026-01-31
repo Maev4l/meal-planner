@@ -9,12 +9,10 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  ButtonBase,
+  Switch,
   Snackbar,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import { useAuth } from '../contexts/AuthContext';
 import { useSchedules } from '../contexts/SchedulesContext';
 import { api } from '../services/api';
@@ -27,46 +25,59 @@ const MEAL = {
   DINNER: 2,
 };
 
-const MealColumn = ({ title, schedule, mealType, onToggle }) => (
-  <Box sx={{ flex: 1 }}>
-    <Typography
-      variant="subtitle2"
+const ScheduleTable = ({ schedule, onToggle }) => (
+  <Box>
+    <Box
       sx={{
-        textAlign: 'center',
-        fontWeight: 600,
-        py: 1,
+        display: 'flex',
         bgcolor: 'primary.main',
         color: 'white',
+        fontWeight: 600,
       }}
     >
-      {title}
-    </Typography>
+      <Box sx={{ width: 100, py: 1, pl: 2 }}>
+        <Typography variant="subtitle2" fontWeight={600}>Day</Typography>
+      </Box>
+      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={600}>Lunch</Typography>
+      </Box>
+      <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
+        <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
+      </Box>
+    </Box>
     {DAYS.map((day, index) => {
       const attendance = schedule?.[day] ?? 0;
-      const isPresent = (attendance & mealType) !== 0;
+      const hasLunch = (attendance & MEAL.LUNCH) !== 0;
+      const hasDinner = (attendance & MEAL.DINNER) !== 0;
 
       return (
-        <ButtonBase
+        <Box
           key={day}
-          onClick={() => onToggle(day, mealType)}
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            px: 2,
-            py: 1,
             borderBottom: '1px solid',
             borderColor: 'divider',
           }}
         >
-          <Typography variant="body2">{DAY_LABELS[index]}</Typography>
-          {isPresent ? (
-            <CheckCircleIcon color="success" fontSize="small" />
-          ) : (
-            <CancelIcon color="error" fontSize="small" />
-          )}
-        </ButtonBase>
+          <Box sx={{ width: 100, py: 1, pl: 2 }}>
+            <Typography variant="body2">{DAY_LABELS[index]}</Typography>
+          </Box>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <Switch
+              checked={hasLunch}
+              onChange={() => onToggle(day, MEAL.LUNCH)}
+              size="small"
+            />
+          </Box>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <Switch
+              checked={hasDinner}
+              onChange={() => onToggle(day, MEAL.DINNER)}
+              size="small"
+            />
+          </Box>
+        </Box>
       );
     })}
   </Box>
@@ -166,10 +177,8 @@ const DefaultSchedulePage = () => {
             <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 2, fontWeight: 500 }}>
               My Default Schedule
             </Typography>
-            <Paper elevation={2} sx={{ display: 'flex', overflow: 'hidden' }}>
-              <MealColumn title="LUNCH" schedule={schedule} mealType={MEAL.LUNCH} onToggle={handleToggle} />
-              <Box sx={{ width: '1px', bgcolor: 'divider' }} />
-              <MealColumn title="DINNER" schedule={schedule} mealType={MEAL.DINNER} onToggle={handleToggle} />
+            <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+              <ScheduleTable schedule={schedule} onToggle={handleToggle} />
             </Paper>
           </>
         ) : null}

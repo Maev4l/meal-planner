@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -9,11 +9,11 @@ import {
   CircularProgress,
   Alert,
   Paper,
+  Switch,
+  Snackbar,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SettingsIcon from '@mui/icons-material/Settings';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import moment from 'moment';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
@@ -37,14 +37,7 @@ const getWeekDates = (year, week) => {
   return DAYS.map((_, i) => monday.clone().add(i, 'days').format('D MMM'));
 };
 
-const MealIcon = ({ isPresent }) =>
-  isPresent ? (
-    <CheckCircleIcon color="success" fontSize="small" />
-  ) : (
-    <CancelIcon color="error" fontSize="small" />
-  );
-
-const ScheduleTable = ({ schedule, dates }) => (
+const ScheduleTable = ({ schedule, dates, onToggle }) => (
   <Box>
     <Box
       sx={{
@@ -85,11 +78,19 @@ const ScheduleTable = ({ schedule, dates }) => (
               {dates[index]}
             </Typography>
           </Box>
-          <Box sx={{ flex: 1, textAlign: 'center' }}>
-            <MealIcon isPresent={hasLunch} />
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <Switch
+              checked={hasLunch}
+              onChange={() => onToggle(day, MEAL.LUNCH)}
+              size="small"
+            />
           </Box>
-          <Box sx={{ flex: 1, textAlign: 'center' }}>
-            <MealIcon isPresent={hasDinner} />
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <Switch
+              checked={hasDinner}
+              onChange={() => onToggle(day, MEAL.DINNER)}
+              size="small"
+            />
           </Box>
         </Box>
       );
@@ -108,6 +109,7 @@ const PersonalSchedulePage = () => {
   const [schedule, setSchedule] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -143,6 +145,26 @@ const PersonalSchedulePage = () => {
     setYear(newYear);
     setWeek(newWeek);
   };
+
+  const handleToggle = useCallback(async (day, mealType) => {
+    const prevSchedule = schedule;
+    const newSchedule = {
+      ...schedule,
+      [day]: (schedule[day] ?? 0) ^ mealType,
+    };
+    setSchedule(newSchedule);
+
+    try {
+      const period = `${year}-${week}`;
+      await api.createSchedule(groupId, {
+        period,
+        schedule: newSchedule,
+      });
+    } catch {
+      setSchedule(prevSchedule);
+      setSaveError('Failed to save schedule');
+    }
+  }, [schedule, groupId, year, week]);
 
   return (
     <>
@@ -193,10 +215,16 @@ const PersonalSchedulePage = () => {
           <Alert severity="error">{error}</Alert>
         ) : schedule ? (
           <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-            <ScheduleTable schedule={schedule} dates={getWeekDates(year, week)} />
+            <ScheduleTable schedule={schedule} dates={getWeekDates(year, week)} onToggle={handleToggle} />
           </Paper>
         ) : null}
       </Box>
+      <Snackbar
+        open={!!saveError}
+        autoHideDuration={4000}
+        onClose={() => setSaveError(null)}
+        message={saveError}
+      />
     </>
   );
 };
