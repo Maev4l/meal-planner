@@ -272,13 +272,18 @@ const GroupSchedulePage = () => {
   const dates = getWeekDates(year, week);
 
   return (
-    <>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 56px)', // Account for bottom navigation
+        mx: -2, // Offset container padding
+      }}
+    >
       <AppBar
-        position="sticky"
+        position="static"
         sx={{
-          width: '100vw',
-          ml: 'calc(-50vw + 50%)',
-          top: 0,
+          width: '100%',
         }}
       >
         <Toolbar>
@@ -310,10 +315,10 @@ const GroupSchedulePage = () => {
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Box sx={{ py: 2 }}>
+      <Box sx={{ py: 2, px: 2 }}>
         <WeekNavigator year={year} week={week} onChange={handleWeekChange} />
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <ToggleButtonGroup
             value={view}
             exclusive
@@ -324,7 +329,16 @@ const GroupSchedulePage = () => {
             <ToggleButton value="everyone">Everyone</ToggleButton>
           </ToggleButtonGroup>
         </Box>
+      </Box>
 
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          px: 2,
+          pb: 2,
+        }}
+      >
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
@@ -345,7 +359,7 @@ const GroupSchedulePage = () => {
         onClose={() => setSaveError(null)}
         message={saveError}
       />
-    </>
+    </Box>
   );
 };
 
