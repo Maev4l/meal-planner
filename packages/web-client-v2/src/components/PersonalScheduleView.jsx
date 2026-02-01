@@ -62,6 +62,12 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week, comments,
                 onChange={() => onToggle(day, MEAL.LUNCH)}
                 size="small"
                 disabled={isPast}
+                sx={{
+                  '& .MuiSwitch-switchBase:not(.Mui-checked)': {
+                    color: 'error.main',
+                    '& + .MuiSwitch-track': { backgroundColor: 'error.main' },
+                  },
+                }}
               />
             </Box>
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -70,6 +76,12 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week, comments,
                 onChange={() => onToggle(day, MEAL.DINNER)}
                 size="small"
                 disabled={isPast}
+                sx={{
+                  '& .MuiSwitch-switchBase:not(.Mui-checked)': {
+                    color: 'error.main',
+                    '& + .MuiSwitch-track': { backgroundColor: 'error.main' },
+                  },
+                }}
               />
             </Box>
             <Box sx={{ width: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
