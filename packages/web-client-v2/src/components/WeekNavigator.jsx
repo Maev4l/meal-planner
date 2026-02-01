@@ -2,15 +2,7 @@ import { Box, IconButton, Typography } from '@mui/material';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
-const getCurrentWeek = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
-  const week = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-  return { year, week };
-};
+import { getCurrentWeek } from '../constants/schedule';
 
 const WeekNavigator = ({ year, week, onChange }) => {
   const current = getCurrentWeek();
