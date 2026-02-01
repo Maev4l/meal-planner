@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }) => {
           authenticated: true,
           memberId,
           name: payload.name || payload['cognito:username'],
+          email: payload.email || null,
         });
       } else {
         setUser(null);

@@ -7,6 +7,8 @@ import { SchedulesProvider } from './contexts/SchedulesContext';
 import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
+import AccountPage from './pages/AccountPage';
+import AboutPage from './pages/AboutPage';
 import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import CommentsPage from './pages/CommentsPage';
@@ -125,6 +127,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/account"
+            element={
+              <ProtectedRoute>
+                <AccountPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/about"
+            element={
+              <ProtectedRoute>
+                <AboutPage />
               </ProtectedRoute>
             }
           />
