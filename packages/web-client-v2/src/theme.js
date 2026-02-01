@@ -1,8 +1,18 @@
 import { createTheme } from '@mui/material/styles';
 
-export const theme = createTheme({
+const fontFamily = [
+  '-apple-system',
+  'BlinkMacSystemFont',
+  '"Segoe UI"',
+  'Roboto',
+  '"Helvetica Neue"',
+  'Arial',
+  'sans-serif',
+].join(',');
+
+export const createAppTheme = (prefersDarkMode) => createTheme({
   palette: {
-    mode: 'light',
+    mode: prefersDarkMode ? 'dark' : 'light',
     primary: {
       main: '#1976d2',
     },
@@ -11,14 +21,6 @@ export const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+    fontFamily,
   },
 });
