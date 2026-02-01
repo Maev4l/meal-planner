@@ -1,7 +1,9 @@
-import { Box, Typography, Switch } from '@mui/material';
+import { Box, Typography, Switch, IconButton } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { DAYS, DAY_LABELS, MEAL, getTodayIndex } from '../constants/schedule';
 
-const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
+const PersonalScheduleView = ({ schedule, dates, onToggle, year, week, comments, onDayClick }) => {
   const todayIndex = getTodayIndex(year, week);
 
   return (
@@ -23,6 +25,7 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
         <Box sx={{ flex: 1, py: 1, textAlign: 'center' }}>
           <Typography variant="subtitle2" fontWeight={600}>Dinner</Typography>
         </Box>
+        <Box sx={{ width: 48 }} />
       </Box>
       {DAYS.map((day, index) => {
         const attendance = schedule?.[day] ?? 0;
@@ -30,6 +33,8 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
         const hasDinner = (attendance & MEAL.DINNER) !== 0;
         const isToday = index === todayIndex;
         const isPast = todayIndex >= 0 && index < todayIndex;
+        const dayComments = comments?.[day];
+        const hasComment = dayComments?.lunch || dayComments?.dinner;
 
         return (
           <Box
@@ -66,6 +71,14 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week }) => {
                 size="small"
                 disabled={isPast}
               />
+            </Box>
+            <Box sx={{ width: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {hasComment && (
+                <ChatBubbleOutlineIcon sx={{ fontSize: 16, color: 'primary.main', mr: -0.5 }} />
+              )}
+              <IconButton size="small" onClick={() => onDayClick(day, index)}>
+                <ChevronRightIcon />
+              </IconButton>
             </Box>
           </Box>
         );

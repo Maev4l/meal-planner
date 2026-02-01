@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
 import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
+import CommentsPage from './pages/CommentsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -108,6 +109,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <DefaultSchedulePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:groupId/:groupName/day/:day"
+            element={
+              <ProtectedRoute>
+                <CommentsPage />
               </ProtectedRoute>
             }
           />

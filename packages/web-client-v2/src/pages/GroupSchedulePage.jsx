@@ -33,6 +33,7 @@ const GroupSchedulePage = () => {
   const [week, setWeek] = useState(current.week);
   const [view, setView] = useState('personal');
   const [schedule, setSchedule] = useState(null);
+  const [comments, setComments] = useState(null);
   const [members, setMembers] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,6 +63,7 @@ const GroupSchedulePage = () => {
         const currentMember = group.members[user.memberId];
         if (currentMember) {
           setSchedule({ ...currentMember.schedule });
+          setComments(currentMember.comments ?? null);
         } else {
           setError('You are not a member of this group');
         }
@@ -131,6 +133,18 @@ const GroupSchedulePage = () => {
   }, [schedule, groupId, year, week, user.memberId]);
 
   const dates = getWeekDates(year, week);
+
+  const handleDayClick = useCallback((day, dayIndex) => {
+    navigate(`/groups/${groupId}/${groupName}/day/${day}`, {
+      state: {
+        year,
+        week,
+        dayIndex,
+        initialComments: comments?.[day] ?? null,
+        allComments: comments ?? {},
+      },
+    });
+  }, [navigate, groupId, groupName, year, week, comments]);
 
   return (
     <Box
@@ -212,7 +226,15 @@ const GroupSchedulePage = () => {
               <Alert severity="error">{error}</Alert>
             ) : view === 'personal' && schedule ? (
               <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-                <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle} year={year} week={week} />
+                <PersonalScheduleView
+                  schedule={schedule}
+                  dates={dates}
+                  onToggle={handleToggle}
+                  year={year}
+                  week={week}
+                  comments={comments}
+                  onDayClick={handleDayClick}
+                />
               </Paper>
             ) : view === 'everyone' && members ? (
               <MembersScheduleView members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
