@@ -3,8 +3,19 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
+import packageJson from './package.json' with { type: 'json' };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Get git commit hash at build time
+const getGitCommitHash = () => {
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim();
+  } catch {
+    return 'unknown';
+  }
+};
 
 export default defineConfig({
   plugins: [
@@ -52,5 +63,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version),
+    __GIT_COMMIT_HASH__: JSON.stringify(getGitCommitHash()),
   },
 });

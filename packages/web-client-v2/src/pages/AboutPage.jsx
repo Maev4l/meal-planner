@@ -4,6 +4,10 @@ import {
   AppBar,
   Toolbar,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
@@ -43,10 +47,16 @@ const AboutPage = () => {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-        <Typography variant="body1" color="text.secondary">
-          Version 1.0.0
-        </Typography>
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <List disablePadding>
+          <ListItem>
+            <ListItemText primary="Version" secondary={__APP_VERSION__} />
+          </ListItem>
+          <Divider />
+          <ListItem>
+            <ListItemText primary="Build" secondary={__GIT_COMMIT_HASH__} />
+          </ListItem>
+        </List>
       </Box>
     </Box>
   );
