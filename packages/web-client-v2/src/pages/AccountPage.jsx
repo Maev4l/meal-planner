@@ -138,18 +138,20 @@ const AccountPage = () => {
           onChange={(e) => setOldPassword(e.target.value)}
           size="small"
           sx={{ mb: 2 }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowOldPassword(!showOldPassword)}
-                  edge="end"
-                  size="small"
-                >
-                  {showOldPassword ? <Visibility /> : <VisibilityOff />}
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showOldPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -161,18 +163,20 @@ const AccountPage = () => {
           onChange={(e) => setNewPassword(e.target.value)}
           size="small"
           sx={{ mb: 1 }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  edge="end"
-                  size="small"
-                >
-                  {showNewPassword ? <Visibility /> : <VisibilityOff />}
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showNewPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -195,18 +199,20 @@ const AccountPage = () => {
           error={confirmPassword.length > 0 && !passwordsMatch}
           helperText={confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match' : ''}
           sx={{ mb: 2 }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  edge="end"
-                  size="small"
-                >
-                  {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
-                </IconButton>
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
           }}
         />
 

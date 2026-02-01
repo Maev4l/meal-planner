@@ -12,17 +12,12 @@ import {
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const { user } = useAuth();
 
   return (
     <Box
@@ -66,20 +61,8 @@ const SettingsPage = () => {
             <ListItemIcon>
               <InfoOutlinedIcon />
             </ListItemIcon>
-            <ListItemText primary="About" secondary="v1.0.0" />
+            <ListItemText primary="About" />
             <ChevronRightIcon color="action" />
-          </ListItem>
-          <Divider />
-
-          {/* Sign Out */}
-          <ListItem onClick={handleSignOut} sx={{ cursor: 'pointer' }}>
-            <ListItemIcon>
-              <LogoutIcon color="error" />
-            </ListItemIcon>
-            <ListItemText
-              primary="Sign Out"
-              primaryTypographyProps={{ color: 'error' }}
-            />
           </ListItem>
         </List>
       </Box>

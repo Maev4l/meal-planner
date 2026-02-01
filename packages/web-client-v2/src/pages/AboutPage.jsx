@@ -45,7 +45,7 @@ const AboutPage = () => {
 
       <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
         <Typography variant="body1" color="text.secondary">
-          About information will be available here.
+          Version 1.0.0
         </Typography>
       </Box>
     </Box>
