@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,11 +26,12 @@ import { getCurrentWeek, getWeekDates } from '../constants/schedule';
 const GroupSchedulePage = () => {
   const { groupId, groupName } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const current = getCurrentWeek();
-  const [year, setYear] = useState(current.year);
-  const [week, setWeek] = useState(current.week);
+  const [year, setYear] = useState(location.state?.year ?? current.year);
+  const [week, setWeek] = useState(location.state?.week ?? current.week);
   const [view, setView] = useState('personal');
   const [schedule, setSchedule] = useState(null);
   const [comments, setComments] = useState(null);

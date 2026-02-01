@@ -81,7 +81,7 @@ const CommentDetailPage = () => {
         saturday: getComments('saturday'),
         sunday: getComments('sunday'),
       });
-      navigate(-1);
+      navigate(`/groups/${groupId}/${groupName}`, { state: { year, week } });
     } catch {
       setSaveError('Failed to save comment');
     } finally {
@@ -111,7 +111,7 @@ const CommentDetailPage = () => {
           <IconButton
             edge="start"
             color="inherit"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/groups/${groupId}/${groupName}`, { state: { year, week } })}
           >
             <ArrowBackIcon />
           </IconButton>
