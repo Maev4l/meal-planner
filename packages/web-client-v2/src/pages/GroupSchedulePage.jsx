@@ -21,7 +21,8 @@ import { api } from '../services/api';
 import WeekNavigator from '../components/WeekNavigator';
 import PersonalScheduleView from '../components/PersonalScheduleView';
 import MembersScheduleView from '../components/MembersScheduleView';
-import { getCurrentWeek, getWeekDates } from '../constants/schedule';
+import CommentsDrawer from '../components/CommentsDrawer';
+import { getCurrentWeek, getWeekDates, DAY_LABELS, DAYS } from '../constants/schedule';
 
 const GroupSchedulePage = () => {
   const { groupId, groupName } = useParams();
@@ -39,6 +40,7 @@ const GroupSchedulePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saveError, setSaveError] = useState(null);
+  const [commentsSheetDay, setCommentsSheetDay] = useState(null);
   const todayCardRef = useRef(null);
 
   // Scroll to today's card when view changes to "everyone" and data is loaded
@@ -147,6 +149,22 @@ const GroupSchedulePage = () => {
     });
   }, [navigate, groupId, groupName, year, week, comments]);
 
+  // Get all comments for a given day from all members
+  const getCommentsForDay = (dayKey) => {
+    if (!members) return [];
+    return Object.entries(members)
+      .filter(([, member]) => {
+        const dayComments = member.comments?.[dayKey];
+        return dayComments?.lunch || dayComments?.dinner;
+      })
+      .map(([, member]) => ({
+        memberName: member.memberName,
+        lunch: member.comments?.[dayKey]?.lunch || '',
+        dinner: member.comments?.[dayKey]?.dinner || '',
+      }))
+      .sort((a, b) => a.memberName.localeCompare(b.memberName));
+  };
+
   return (
     <Box
       sx={{
@@ -238,7 +256,14 @@ const GroupSchedulePage = () => {
                 />
               </Paper>
             ) : view === 'everyone' && members ? (
-              <MembersScheduleView members={members} dates={dates} year={year} week={week} todayRef={todayCardRef} />
+              <MembersScheduleView
+                members={members}
+                dates={dates}
+                year={year}
+                week={week}
+                todayRef={todayCardRef}
+                onCommentsClick={(dayIndex) => setCommentsSheetDay(dayIndex)}
+              />
             ) : null}
           </Box>
         </PullToRefresh>
@@ -248,6 +273,16 @@ const GroupSchedulePage = () => {
         autoHideDuration={4000}
         onClose={() => setSaveError(null)}
         message={saveError}
+      />
+
+      <CommentsDrawer
+        open={commentsSheetDay !== null}
+        onClose={() => setCommentsSheetDay(null)}
+        dayLabel={commentsSheetDay !== null ? DAY_LABELS[commentsSheetDay] : ''}
+        year={year}
+        week={week}
+        dayIndex={commentsSheetDay}
+        comments={commentsSheetDay !== null ? getCommentsForDay(DAYS[commentsSheetDay]) : []}
       />
     </Box>
   );

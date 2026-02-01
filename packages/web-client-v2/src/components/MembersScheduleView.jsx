@@ -1,12 +1,20 @@
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, IconButton } from '@mui/material';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { DAYS, DAY_LABELS, MEAL, getTodayIndex } from '../constants/schedule';
 
-const MembersScheduleView = ({ members, dates, year, week, todayRef }) => {
+const MembersScheduleView = ({ members, dates, year, week, todayRef, onCommentsClick }) => {
   const getMealAttendees = (dayKey, mealType) => {
     return Object.entries(members)
       .filter(([, member]) => ((member.schedule?.[dayKey] ?? 0) & mealType) !== 0)
       .map(([, member]) => member.memberName.toUpperCase())
       .sort();
+  };
+
+  const hasCommentsForDay = (dayKey) => {
+    return Object.values(members).some((member) => {
+      const dayComments = member.comments?.[dayKey];
+      return dayComments?.lunch || dayComments?.dinner;
+    });
   };
 
   const todayIndex = getTodayIndex(year, week);
@@ -29,9 +37,20 @@ const MembersScheduleView = ({ members, dates, year, week, todayRef }) => {
               borderColor: 'primary.main',
             }}
           >
-            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-              {DAY_LABELS[index]}, {dates[index]}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {DAY_LABELS[index]}, {dates[index]}
+              </Typography>
+              {hasCommentsForDay(day) && (
+                <IconButton
+                  size="small"
+                  onClick={() => onCommentsClick(index)}
+                  sx={{ p: 0.5 }}
+                >
+                  <ChatBubbleOutlineIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                </IconButton>
+              )}
+            </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Box>
                 <Typography variant="body2" color="text.secondary" component="span">
