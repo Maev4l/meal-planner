@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Box, TextField, Button, Typography, Alert, Paper, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Typography, Alert, Paper, CircularProgress, IconButton, InputAdornment } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const { signIn, error: authError } = useAuth();
@@ -64,13 +67,28 @@ const LoginPage = () => {
           <TextField
             fullWidth
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             margin="normal"
             required
             autoComplete="current-password"
             disabled={isSubmitting}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
           <Button
             type="submit"
