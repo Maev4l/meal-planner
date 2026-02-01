@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { signIn as cognitoSignIn, signOut as cognitoSignOut, fetchAuthSession } from 'aws-amplify/auth';
 

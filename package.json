@@ -10,7 +10,9 @@
     "serve-web-client-dev": "webpack serve --config ./packages/web-client/webpack.config.dev.babel.js",
     "invalidate-web-client": "aws cloudfront create-invalidation --path '/*' --distribution-id $(aws cloudformation describe-stacks --stack-name meal-planner-web-client-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' | jq -r '.mealPlannerWebClientDistributionId')",
     "build-web-client-v2": "yarn output-api-stack && yarn workspace @meal-planner/web-client-v2 build",
-    "serve-web-client-v2": "yarn workspace @meal-planner/web-client-v2 dev"
+    "serve-web-client-v2": "yarn workspace @meal-planner/web-client-v2 dev",
+    "deploy-web-client-v2": "sls deploy --service=web-client-v2",
+    "upload-web-client-v2": "yarn build-web-client-v2 && aws s3 sync ./packages/web-client-v2/dist s3://meal-planner-web-client --delete"
 
   },
   "private": true,
