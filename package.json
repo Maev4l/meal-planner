@@ -13,6 +13,7 @@
   "private": true,
   "workspaces": [
     "packages/api",
+    "packages/cli",
     "packages/web-client-v2"
   ],
   "devDependencies": {

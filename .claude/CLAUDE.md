@@ -10,3 +10,9 @@ In addition, for each meal, they can attach a comment.
 - Everything is deployed on AWS.
 - The project is a monorepo based on yarn workspaces.
 - This project relies on serverless framework (including serverless compose)
+
+## Guidelines
+- Update the md files according to changes:
+  - @ui.md for frontend
+  - @backend.md for API
+  - @cli.md for CLI
