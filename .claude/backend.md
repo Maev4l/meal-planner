@@ -13,3 +13,4 @@
 
 ## Gotchas
 - Cognito users identifiers are a uuid, but in the application, it is the same id, but with dash removed and in upper case.
+
