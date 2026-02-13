@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,16 +9,27 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Snackbar,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleCopyUserId = (e) => {
+    e.stopPropagation();
+    if (user?.memberId) {
+      navigator.clipboard.writeText(user.memberId);
+      setSnackbarOpen(true);
+    }
+  };
 
   return (
     <Box
@@ -51,7 +63,23 @@ const SettingsPage = () => {
             <ListItemIcon>
               <AccountCircleIcon />
             </ListItemIcon>
-            <ListItemText primary="Account" secondary={user?.name || '—'} />
+            <ListItemText
+              primary="Account"
+              secondary={
+                <>
+                  <Typography component="span" variant="body2">{user?.name || '—'}</Typography>
+                  <br />
+                  <Typography
+                    component="span"
+                    variant="caption"
+                    sx={{ color: 'text.disabled', display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                  >
+                    {user?.memberId}
+                    <ContentCopyIcon sx={{ fontSize: 12, cursor: 'pointer' }} onClick={handleCopyUserId} />
+                  </Typography>
+                </>
+              }
+            />
             <ChevronRightIcon color="action" />
           </ListItem>
           <Divider />
@@ -66,6 +94,12 @@ const SettingsPage = () => {
           </ListItem>
         </List>
       </Box>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        message="User ID copied"
+      />
     </Box>
   );
 };
