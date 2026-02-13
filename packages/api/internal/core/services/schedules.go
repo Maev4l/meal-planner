@@ -78,37 +78,40 @@ func (s *service) GetData(memberId string, period string) ([]*domain.MemberDefau
 	// Retrieve schedules (requester's schedules across groups + members of the groups requester belongs to) for the period
 	defaultSchedules, memberSchedules, memberComments, memberNotices, _ := s.repo.GetMemberData(memberId, year, week)
 
-	// Group by member id
-	defaultSchedulesByMember := map[string]*domain.MemberDefaultSchedule{}
-	memberSchedulesByMember := map[string]*domain.MemberSchedule{}
-	memberCommentsByMember := map[string]*domain.MemberComments{}
+	// Group by member id and group id (a member can belong to multiple groups)
+	defaultSchedulesByKey := map[string]*domain.MemberDefaultSchedule{}
+	memberSchedulesByKey := map[string]*domain.MemberSchedule{}
+	memberCommentsByKey := map[string]*domain.MemberComments{}
 
 	for _, s := range defaultSchedules {
-		defaultSchedulesByMember[s.MemberId] = s
+		key := s.MemberId + "#" + s.GroupId
+		defaultSchedulesByKey[key] = s
 	}
 
 	for _, s := range memberSchedules {
-		memberSchedulesByMember[s.MemberId] = s
+		key := s.MemberId + "#" + s.GroupId
+		memberSchedulesByKey[key] = s
 	}
 
 	for _, c := range memberComments {
-		memberCommentsByMember[c.MemberId] = c
+		key := c.MemberId + "#" + c.GroupId
+		memberCommentsByKey[key] = c
 	}
 
 	computedMemberSchedules := []*domain.MemberSchedule{}
 	computedMemberComments := []*domain.MemberComments{}
 
-	// For each member, compute the schedule and the comments for the period
-	for userId, defaultSchedule := range defaultSchedulesByMember {
+	// For each member+group, compute the schedule and the comments for the period
+	for key, defaultSchedule := range defaultSchedulesByKey {
 
-		memberSchedule := memberSchedulesByMember[userId]
+		memberSchedule := memberSchedulesByKey[key]
 
 		// Compute schedule
 		computedMemberSchedule := computeMemberSchedule(year, week, defaultSchedule, memberSchedule)
 		computedMemberSchedules = append(computedMemberSchedules, computedMemberSchedule)
 
 		// Compute comments
-		comments := memberCommentsByMember[userId]
+		comments := memberCommentsByKey[key]
 		computedComments := computeMemberComments(year, week, &defaultSchedule.ScheduleBase, comments)
 		computedMemberComments = append(computedMemberComments, computedComments)
 	}
