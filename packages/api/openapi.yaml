@@ -11,6 +11,21 @@ servers:
 
 paths:
   /api/appadmin/users:
+    get:
+      summary: List all users
+      description: Retrieve all users stored in the Cognito user pool
+      operationId: listUsers
+      tags:
+        - Admin
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersResponse'
+        '401':
+          description: Unauthorized
     post:
       summary: Register a new user
       description: Enroll a user into the Identity Provider (Cognito)
@@ -273,6 +288,31 @@ components:
       description: Cognito User Pool JWT token
 
   schemas:
+    ListUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/ListUsersUserResponse'
+
+    ListUsersUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the user
+        name:
+          type: string
+          description: Username
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+        role:
+          type: string
+          description: Application role (e.g., AppAdmin, Regular)
+
     RegisterUserRequest:
       type: object
       required:

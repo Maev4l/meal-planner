@@ -29,6 +29,9 @@ func init() {
 	s := services.New(r, c)
 	h := handlers.NewHTTPHandler(s)
 
+	// List all users from IdP
+	router.GET("/api/appadmin/users", h.ListUsers)
+
 	// Enroll user into IdP
 	router.POST("/api/appadmin/users", h.RegisterUser)
 

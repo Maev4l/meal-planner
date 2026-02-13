@@ -67,6 +67,40 @@ func (i *idp) GetUser(name string) (*domain.User, error) {
 	}, nil
 }
 
+func (i *idp) ListUsers() ([]*domain.User, error) {
+	var users []*domain.User
+	var paginationToken *string
+
+	for {
+		resp, err := i.client.ListUsers(context.TODO(), &cognitoidentityprovider.ListUsersInput{
+			UserPoolId:      aws.String(userPoolId),
+			PaginationToken: paginationToken,
+		})
+
+		if err != nil {
+			log.Error().Msgf("Failed to list users: %s", err.Error())
+			return nil, err
+		}
+
+		for _, u := range resp.Users {
+			id, role := parseUserAttributes(u.Attributes)
+			users = append(users, &domain.User{
+				Id:        id,
+				Name:      *u.Username,
+				CreatedAt: u.UserCreateDate,
+				Role:      roles.APPLICATION_ROLE(role),
+			})
+		}
+
+		if resp.PaginationToken == nil {
+			break
+		}
+		paginationToken = resp.PaginationToken
+	}
+
+	return users, nil
+}
+
 func (i *idp) RegisterUser(name string, password string, role string) (*domain.User, error) {
 
 	resp, err := i.client.AdminCreateUser(context.TODO(), &cognitoidentityprovider.AdminCreateUserInput{

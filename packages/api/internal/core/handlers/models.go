@@ -5,6 +5,17 @@ import (
 	"time"
 )
 
+type ListUsersUserResponse struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"createdAt"`
+	Role      string `json:"role"`
+}
+
+type ListUsersResponse struct {
+	Users []ListUsersUserResponse `json:"users"`
+}
+
 type CreateGroupRequest struct {
 	Name string `json:"name"`
 }

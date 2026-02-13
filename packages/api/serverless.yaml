@@ -182,6 +182,7 @@ resources:
                     - cognito-idp:AdminSetUserPassword
                     - cognito-idp:AdminEnableUser
                     - cognito-idp:AdminGetUser
+                    - cognito-idp:ListUsers
                   Resource: !GetAtt UserPool.Arn
     UserPool:
       Type: AWS::Cognito::UserPool

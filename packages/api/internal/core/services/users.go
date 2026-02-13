@@ -8,6 +8,10 @@ import (
 	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 )
 
+func (s *service) ListUsers() ([]*domain.User, error) {
+	return s.idp.ListUsers()
+}
+
 func (s *service) UnregisterUser(userName string) error {
 
 	return nil

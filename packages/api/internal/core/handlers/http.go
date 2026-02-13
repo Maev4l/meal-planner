@@ -28,6 +28,44 @@ func NewHTTPHandler(service ports.PlannerService) *HTTPHandler {
 }
 
 /*
+Endpoint: GET /api/appadmin/users
+*/
+func (hdl *HTTPHandler) ListUsers(c *gin.Context) {
+	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+	if info.role != roles.AppAdmin {
+		log.Error().Msgf("'%s' is not App Admin.", info.userName)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Not Administrator.",
+		})
+		return
+	}
+
+	users, err := hdl.svc.ListUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to list users.",
+		})
+		return
+	}
+
+	response := ListUsersResponse{
+		Users: make([]ListUsersUserResponse, 0, len(users)),
+	}
+	for _, u := range users {
+		response.Users = append(response.Users, ListUsersUserResponse{
+			Id:        u.Id,
+			Name:      u.Name,
+			CreatedAt: u.CreatedAt.Format(time.RFC3339),
+			Role:      string(u.Role),
+		})
+	}
+
+	log.Info().Msgf("Listed %d users.", len(users))
+	c.JSON(http.StatusOK, response)
+}
+
+/*
 Endpoint: DELETE /api/appadmin/users/:userId
 */
 func (hdl *HTTPHandler) UnregisterUser(c *gin.Context) {
