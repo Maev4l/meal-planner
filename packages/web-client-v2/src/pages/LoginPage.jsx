@@ -61,6 +61,7 @@ const LoginPage = () => {
             margin="normal"
             required
             autoComplete="username"
+            autoCapitalize="none"
             autoFocus
             disabled={isSubmitting}
           />
@@ -73,6 +74,7 @@ const LoginPage = () => {
             margin="normal"
             required
             autoComplete="current-password"
+            autoCapitalize="none"
             disabled={isSubmitting}
             slotProps={{
               input: {
