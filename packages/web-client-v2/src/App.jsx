@@ -1,3 +1,4 @@
+// Edited by Claude.
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Container, Box, CircularProgress, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
@@ -12,6 +13,7 @@ import AboutPage from './pages/AboutPage';
 import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import CommentsPage from './pages/CommentsPage';
+import UpdatePrompt from './components/UpdatePrompt';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -150,6 +152,7 @@ const App = () => {
         </SchedulesProvider>
       </Container>
       {!isLoading && isAuthenticated && <BottomNav />}
+      <UpdatePrompt />
     </>
   );
 };
