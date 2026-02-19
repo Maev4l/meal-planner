@@ -1,3 +1,5 @@
+// Edited by Claude.
+// Warm Bistro themed comments page with elegant form design
 import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -7,12 +9,15 @@ import {
   Toolbar,
   IconButton,
   TextField,
-  Divider,
   CircularProgress,
   Snackbar,
   Button,
+  alpha,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import LunchDiningIcon from '@mui/icons-material/LunchDining';
+import DinnerDiningIcon from '@mui/icons-material/DinnerDining';
+import SaveIcon from '@mui/icons-material/Save';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import { api } from '../services/api';
@@ -26,24 +31,23 @@ const CommentDetailPage = () => {
   const location = useLocation();
 
   // Get data passed via navigation state
-  const {
-    year,
-    week,
-    dayIndex,
-    initialComments,
-    allComments,
-  } = location.state || {};
+  const { year, week, dayIndex, initialComments, allComments } =
+    location.state || {};
 
   // Compute full date with long month name
   const getFullDate = () => {
     const jan4 = dayjs(`${year}-01-04`);
     const firstMonday = jan4.startOf('isoWeek');
     const targetDay = firstMonday.add(week - 1, 'week').add(dayIndex, 'day');
-    return targetDay.format('D MMMM');
+    return targetDay.format('D MMMM YYYY');
   };
 
-  const [lunchComment, setLunchComment] = useState(initialComments?.lunch ?? '');
-  const [dinnerComment, setDinnerComment] = useState(initialComments?.dinner ?? '');
+  const [lunchComment, setLunchComment] = useState(
+    initialComments?.lunch ?? ''
+  );
+  const [dinnerComment, setDinnerComment] = useState(
+    initialComments?.dinner ?? ''
+  );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
@@ -91,8 +95,20 @@ const CommentDetailPage = () => {
 
   if (!year || !week) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 8,
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={40} />
+        <Typography variant="body2" color="text.secondary">
+          Loading...
+        </Typography>
       </Box>
     );
   }
@@ -102,7 +118,7 @@ const CommentDetailPage = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 56px)',
+        height: 'calc(100vh - 68px)',
         mx: -2,
       }}
     >
@@ -111,7 +127,17 @@ const CommentDetailPage = () => {
           <IconButton
             edge="start"
             color="inherit"
-            onClick={() => navigate(`/groups/${groupId}/${groupName}`, { state: { year, week } })}
+            onClick={() =>
+              navigate(`/groups/${groupId}/${groupName}`, {
+                state: { year, week },
+              })
+            }
+            sx={{
+              '&:hover': {
+                backgroundColor: (theme) =>
+                  alpha(theme.palette.common.white, 0.1),
+              },
+            }}
           >
             <ArrowBackIcon />
           </IconButton>
@@ -122,60 +148,220 @@ const CommentDetailPage = () => {
               position: 'absolute',
               left: '50%',
               transform: 'translateX(-50%)',
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontWeight: 600,
             }}
           >
-            {decodeURIComponent(groupName)}
+            Comments
           </Typography>
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ p: 2, flex: 1, overflow: 'auto' }}>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ textAlign: 'center' }}>
-          {DAY_LABELS[dayIndex]} {getFullDate()}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-          You can leave a comment for each meal
-        </Typography>
-
-        <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>Lunch</Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          placeholder="Add a comment for lunch..."
-          value={lunchComment}
-          onChange={(e) => handleCommentChange('lunch', e.target.value)}
-          variant="outlined"
-          size="small"
-          disabled={isPast}
-        />
-
-        <Divider sx={{ my: 3 }} />
-
-        <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>Dinner</Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          placeholder="Add a comment for dinner..."
-          value={dinnerComment}
-          onChange={(e) => handleCommentChange('dinner', e.target.value)}
-          variant="outlined"
-          size="small"
-          disabled={isPast}
-        />
-
-        {!isPast && (
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleSave}
-            disabled={!isDirty || saving}
-            sx={{ mt: 3 }}
+      <Box
+        sx={{
+          p: 3,
+          flex: 1,
+          overflow: 'auto',
+          backgroundColor: 'background.default',
+        }}
+      >
+        {/* Date header */}
+        <Box
+          sx={{
+            textAlign: 'center',
+            mb: 4,
+            animation: 'fadeInUp 0.4s ease-out forwards',
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontWeight: 600,
+              color: 'text.primary',
+              mb: 0.5,
+            }}
           >
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        )}
+            {DAY_LABELS[dayIndex]}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {getFullDate()}
+          </Typography>
+        </Box>
+
+        {/* Comments form */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+          }}
+        >
+          {/* Lunch comment section */}
+          <Box
+            sx={{
+              animation: 'fadeInUp 0.4s ease-out forwards',
+              animationDelay: '0.1s',
+              opacity: 0,
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 1.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: (theme) =>
+                    alpha(theme.palette.amber.main, 0.15),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <LunchDiningIcon
+                  sx={{ fontSize: 20, color: 'secondary.dark' }}
+                />
+              </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                  color: 'text.primary',
+                }}
+              >
+                Lunch
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              placeholder={
+                isPast ? 'Past meals cannot be edited' : 'Add a note for lunch...'
+              }
+              value={lunchComment}
+              onChange={(e) => handleCommentChange('lunch', e.target.value)}
+              variant="outlined"
+              disabled={isPast}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'background.paper',
+                },
+              }}
+            />
+          </Box>
+
+          {/* Dinner comment section */}
+          <Box
+            sx={{
+              animation: 'fadeInUp 0.4s ease-out forwards',
+              animationDelay: '0.2s',
+              opacity: 0,
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 1.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: (theme) =>
+                    alpha(theme.palette.burgundy.main, 0.1),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <DinnerDiningIcon
+                  sx={{ fontSize: 20, color: 'primary.main' }}
+                />
+              </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                  color: 'text.primary',
+                }}
+              >
+                Dinner
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              placeholder={
+                isPast
+                  ? 'Past meals cannot be edited'
+                  : 'Add a note for dinner...'
+              }
+              value={dinnerComment}
+              onChange={(e) => handleCommentChange('dinner', e.target.value)}
+              variant="outlined"
+              disabled={isPast}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'background.paper',
+                },
+              }}
+            />
+          </Box>
+
+          {/* Save button */}
+          {!isPast && (
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
+              onClick={handleSave}
+              disabled={!isDirty || saving}
+              startIcon={
+                saving ? (
+                  <CircularProgress size={18} sx={{ color: 'inherit' }} />
+                ) : (
+                  <SaveIcon />
+                )
+              }
+              sx={{
+                mt: 2,
+                py: 1.5,
+                animation: 'fadeInUp 0.4s ease-out forwards',
+                animationDelay: '0.3s',
+                opacity: 0,
+              }}
+            >
+              {saving ? 'Saving...' : 'Save Comments'}
+            </Button>
+          )}
+
+          {isPast && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                textAlign: 'center',
+                fontStyle: 'italic',
+                mt: 2,
+              }}
+            >
+              Comments for past meals are read-only
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       <Snackbar

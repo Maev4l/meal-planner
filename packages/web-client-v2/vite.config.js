@@ -72,13 +72,21 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        // Only split aws-amplify into a separate chunk since it's independent.
-        // React and MUI must stay together to avoid circular dependencies
+        // Split vendors into separate chunks to reduce main bundle size.
+        // React and MUI core must stay together to avoid circular dependencies
         // that cause "Cannot read properties of undefined (reading 'createContext')" at runtime.
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             if (id.includes('aws-amplify')) {
               return 'aws-vendor';
+            }
+            // MUI icons are large and safe to split
+            if (id.includes('@mui/icons-material')) {
+              return 'mui-icons';
+            }
+            // React Router is independent
+            if (id.includes('react-router')) {
+              return 'router';
             }
           }
         },

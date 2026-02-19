@@ -1,7 +1,22 @@
 // Edited by Claude.
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Container, Box, CircularProgress, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
+// Warm Bistro themed app with elegant bottom navigation
+import { useState, useEffect } from 'react';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import {
+  Container,
+  Box,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
+  alpha,
+} from '@mui/material';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useAuth } from './contexts/AuthContext';
 import { SchedulesProvider } from './contexts/SchedulesContext';
@@ -14,16 +29,17 @@ import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import CommentsPage from './pages/CommentsPage';
 import UpdatePrompt from './components/UpdatePrompt';
+import SplashScreen from './components/SplashScreen';
+
+// Minimum splash screen duration in milliseconds
+const MIN_SPLASH_DURATION = 2000;
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Splash screen handles loading state at app level
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -36,12 +52,9 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Splash screen handles loading state at app level
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return null;
   }
 
   if (isAuthenticated) {
@@ -63,14 +76,48 @@ const BottomNav = () => {
   const valueToPath = ['/', '/settings'];
 
   return (
-    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+    <Paper
+      sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        borderRadius: 0,
+        borderTop: (theme) =>
+          `1px solid ${alpha(theme.palette.charcoal.main, 0.08)}`,
+      }}
+      elevation={0}
+    >
       <BottomNavigation
         value={pathToValue[location.pathname] ?? 0}
         onChange={(_, newValue) => navigate(valueToPath[newValue])}
         showLabels
+        sx={{
+          height: 68,
+          '& .MuiBottomNavigationAction-root': {
+            py: 1,
+            minWidth: 80,
+            '& .MuiBottomNavigationAction-label': {
+              fontSize: '0.7rem',
+              fontWeight: 500,
+              mt: 0.5,
+              transition: 'all 0.2s ease',
+              '&.Mui-selected': {
+                fontSize: '0.7rem',
+                fontWeight: 600,
+              },
+            },
+          },
+        }}
       >
-        <BottomNavigationAction label="Home" icon={<HomeIcon />} />
-        <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
+        <BottomNavigationAction
+          label="Groups"
+          icon={<RestaurantIcon sx={{ fontSize: 24 }} />}
+        />
+        <BottomNavigationAction
+          label="Settings"
+          icon={<SettingsIcon sx={{ fontSize: 24 }} />}
+        />
       </BottomNavigation>
     </Paper>
   );
@@ -78,77 +125,93 @@ const BottomNav = () => {
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
+  // Ensure splash screen shows for at least MIN_SPLASH_DURATION
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, MIN_SPLASH_DURATION);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show splash screen until both auth check completes AND minimum time elapsed
+  const showSplash = isLoading || !minTimeElapsed;
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ pb: 8 }}>
+      <Container maxWidth="lg" sx={{ pb: 10 }}>
         <SchedulesProvider>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <GroupsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups/:groupId/:groupName"
-            element={
-              <ProtectedRoute>
-                <GroupSchedulePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups/:groupId/:groupName/default"
-            element={
-              <ProtectedRoute>
-                <DefaultSchedulePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups/:groupId/:groupName/day/:day"
-            element={
-              <ProtectedRoute>
-                <CommentsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings/account"
-            element={
-              <ProtectedRoute>
-                <AccountPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings/about"
-            element={
-              <ProtectedRoute>
-                <AboutPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <GroupsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId/:groupName"
+              element={
+                <ProtectedRoute>
+                  <GroupSchedulePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId/:groupName/default"
+              element={
+                <ProtectedRoute>
+                  <DefaultSchedulePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId/:groupName/day/:day"
+              element={
+                <ProtectedRoute>
+                  <CommentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/account"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/about"
+              element={
+                <ProtectedRoute>
+                  <AboutPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </SchedulesProvider>
       </Container>
       {!isLoading && isAuthenticated && <BottomNav />}
