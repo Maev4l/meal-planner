@@ -32,6 +32,7 @@ export default defineConfig({
         display: 'standalone',
         scope: '/',
         start_url: '/',
+        // PNG icons required for Android/iOS PWA install prompts (SVG not supported)
         icons: [
           {
             src: 'logo144.png',
@@ -39,20 +40,20 @@ export default defineConfig({
             type: 'image/png',
           },
           {
-            src: 'logo192.svg',
+            src: 'logo192.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/png',
           },
           {
-            src: 'logo512.svg',
+            src: 'logo512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
           },
           {
-            src: 'logo512.svg',
+            src: 'logo512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'any maskable',
+            type: 'image/png',
+            purpose: 'maskable',
           },
         ],
       },
