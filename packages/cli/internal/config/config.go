@@ -8,10 +8,9 @@ import (
 )
 
 type Config struct {
-	ClientID   string `json:"clientId"`
 	UserPoolID string `json:"userPoolId"`
 	Region     string `json:"region"`
-	URL        string `json:"url"`
+	TableName  string `json:"tableName"`
 }
 
 func Load(path string) (*Config, error) {

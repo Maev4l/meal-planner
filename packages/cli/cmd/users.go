@@ -2,17 +2,23 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 
+	ddbtypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/spf13/cobra"
 
-	"isnan.eu/meal-planner/cli/internal/api"
-	"isnan.eu/meal-planner/cli/internal/auth"
+	"isnan.eu/meal-planner/cli/internal/cognito"
 	"isnan.eu/meal-planner/cli/internal/config"
+	"isnan.eu/meal-planner/cli/internal/dynamodb"
 )
+
+var forceDelete bool
+var dryRun bool
 
 var usersCmd = &cobra.Command{
 	Use:   "users",
@@ -29,13 +35,12 @@ var usersListCmd = &cobra.Command{
 		}
 
 		ctx := context.Background()
-		token, err := auth.Authenticate(ctx, cfg.Region, cfg.UserPoolID, cfg.ClientID, username, password)
+		client, err := cognito.NewClient(ctx, cfg.Region, cfg.UserPoolID)
 		if err != nil {
-			return fmt.Errorf("authenticating: %w", err)
+			return fmt.Errorf("creating Cognito client: %w", err)
 		}
 
-		client := api.NewClient(cfg.URL, token)
-		users, err := client.ListUsers()
+		users, err := client.ListUsers(ctx)
 		if err != nil {
 			return fmt.Errorf("listing users: %w", err)
 		}
@@ -43,7 +48,7 @@ var usersListCmd = &cobra.Command{
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 		fmt.Fprintln(w, "ID\tNAME\tROLE\tCREATED AT")
 		for _, u := range users {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, u.Name, u.Role, u.CreatedAt)
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, u.Name, u.Role, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
 		}
 		w.Flush()
 
@@ -51,7 +56,238 @@ var usersListCmd = &cobra.Command{
 	},
 }
 
+var usersInspectCmd = &cobra.Command{
+	Use:   "inspect <user-id>",
+	Short: "Show all DynamoDB items for a user",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		userID := args[0]
+
+		cfg, err := config.Load(cfgFile)
+		if err != nil {
+			return fmt.Errorf("loading config: %w", err)
+		}
+
+		ctx := context.Background()
+
+		// Verify user exists in Cognito
+		cognitoClient, err := cognito.NewClient(ctx, cfg.Region, cfg.UserPoolID)
+		if err != nil {
+			return fmt.Errorf("creating Cognito client: %w", err)
+		}
+
+		user, err := cognitoClient.GetUser(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("checking user: %w", err)
+		}
+		if user == nil {
+			return fmt.Errorf("unknown user: %s", userID)
+		}
+
+		ddbClient, err := dynamodb.NewClient(ctx, cfg.Region, cfg.TableName)
+		if err != nil {
+			return fmt.Errorf("creating DynamoDB client: %w", err)
+		}
+
+		// Query all items with PK = member#<userID>
+		pk := "member#" + userID
+		items, err := ddbClient.QueryByPK(ctx, pk)
+		if err != nil {
+			return fmt.Errorf("querying user items: %w", err)
+		}
+
+		if len(items) == 0 {
+			fmt.Printf("User %s (%s) has no items in DynamoDB\n", user.Name, userID)
+			return nil
+		}
+
+		// Count items by entity type
+		entityCounts := make(map[string]int)
+		for _, item := range items {
+			entityType := entityTypeFromSK(item.SK)
+			entityCounts[entityType]++
+		}
+
+		fmt.Printf("User: %s (%s)\n", user.Name, userID)
+		fmt.Printf("DynamoDB items: %d\n", len(items))
+		for entityType, count := range entityCounts {
+			fmt.Printf("  - %s: %d\n", entityType, count)
+		}
+
+		fmt.Println("\nDetails:")
+		for _, item := range items {
+			fmt.Printf("  %s\n", formatItemDetail(item))
+		}
+
+		return nil
+	},
+}
+
+// entityTypeFromSK infers the entity type from the DynamoDB sort key.
+// SK patterns: group#, schedule#default#group#, schedule#<week>#group#, comments#, notice#
+func entityTypeFromSK(sk string) string {
+	switch {
+	case strings.HasPrefix(sk, "group#"):
+		return "Membership"
+	case strings.HasPrefix(sk, "schedule#default#"):
+		return "Default Schedule"
+	case strings.HasPrefix(sk, "schedule#"):
+		return "Schedule"
+	case strings.HasPrefix(sk, "comments#"):
+		return "Comments"
+	case strings.HasPrefix(sk, "notice#"):
+		return "Notice"
+	default:
+		return "Unknown"
+	}
+}
+
+// getStringAttr extracts a string or number attribute value from DynamoDB item.
+func getStringAttr(attrs map[string]ddbtypes.AttributeValue, key string) string {
+	if v, ok := attrs[key].(*ddbtypes.AttributeValueMemberS); ok {
+		return v.Value
+	}
+	// Numbers are stored as strings in DynamoDB N type
+	if v, ok := attrs[key].(*ddbtypes.AttributeValueMemberN); ok {
+		return v.Value
+	}
+	return ""
+}
+
+// formatItemDetail returns a human-readable description of a DynamoDB item.
+func formatItemDetail(item dynamodb.Item) string {
+	entityType := entityTypeFromSK(item.SK)
+	groupID := getStringAttr(item.Attributes, "GroupId")
+	groupName := getStringAttr(item.Attributes, "GroupName")
+	year := getStringAttr(item.Attributes, "Year")
+	week := getStringAttr(item.Attributes, "WeekNumber")
+
+	switch entityType {
+	case "Membership":
+		return fmt.Sprintf("[%s] %s (%s)", entityType, groupName, groupID)
+	case "Default Schedule":
+		return fmt.Sprintf("[%s] %s", entityType, groupName)
+	case "Schedule":
+		return fmt.Sprintf("[%s] %s (week %s-%s)", entityType, groupName, year, week)
+	case "Comments":
+		return fmt.Sprintf("[%s] %s (week %s-%s)", entityType, groupName, year, week)
+	case "Notice":
+		return fmt.Sprintf("[%s] %s (week %s-%s)", entityType, groupName, year, week)
+	default:
+		return fmt.Sprintf("[%s] %s", entityType, item.SK)
+	}
+}
+
+var usersDeleteCmd = &cobra.Command{
+	Use:   "delete <user-id>",
+	Short: "Delete a user and all associated data",
+	Long:  "Deletes all DynamoDB items (memberships, schedules, comments, notices) and removes the user from Cognito.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		userID := args[0]
+
+		cfg, err := config.Load(cfgFile)
+		if err != nil {
+			return fmt.Errorf("loading config: %w", err)
+		}
+
+		ctx := context.Background()
+
+		// Verify user exists in Cognito
+		cognitoClient, err := cognito.NewClient(ctx, cfg.Region, cfg.UserPoolID)
+		if err != nil {
+			return fmt.Errorf("creating Cognito client: %w", err)
+		}
+
+		user, err := cognitoClient.GetUser(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("checking user: %w", err)
+		}
+		if user == nil {
+			return fmt.Errorf("unknown user: %s", userID)
+		}
+
+		ddbClient, err := dynamodb.NewClient(ctx, cfg.Region, cfg.TableName)
+		if err != nil {
+			return fmt.Errorf("creating DynamoDB client: %w", err)
+		}
+
+		// Query all items for this user
+		pk := "member#" + userID
+		items, err := ddbClient.QueryByPK(ctx, pk)
+		if err != nil {
+			return fmt.Errorf("querying user items: %w", err)
+		}
+
+		// Count items by entity type
+		entityCounts := make(map[string]int)
+		for _, item := range items {
+			entityType := entityTypeFromSK(item.SK)
+			entityCounts[entityType]++
+		}
+
+		// Show what will be deleted
+		if dryRun {
+			fmt.Println("[DRY RUN] The following would be deleted:")
+			fmt.Println()
+		}
+
+		fmt.Printf("User: %s (%s)\n", user.Name, userID)
+		fmt.Printf("DynamoDB items to delete: %d\n", len(items))
+
+		// Show breakdown by entity type
+		for entityType, count := range entityCounts {
+			fmt.Printf("  - %s: %d\n", entityType, count)
+		}
+
+		// In dry-run mode, show detailed items
+		if dryRun {
+			fmt.Println("\nDetails:")
+			for _, item := range items {
+				fmt.Printf("  %s\n", formatItemDetail(item))
+			}
+			fmt.Println("\n[DRY RUN] No changes made.")
+			return nil
+		}
+
+		if !forceDelete {
+			fmt.Print("\nAre you sure you want to delete this user? [y/N]: ")
+			reader := bufio.NewReader(os.Stdin)
+			response, _ := reader.ReadString('\n')
+			response = strings.TrimSpace(strings.ToLower(response))
+			if response != "y" && response != "yes" {
+				fmt.Println("Aborted.")
+				return nil
+			}
+		}
+
+		// Delete DynamoDB items
+		if len(items) > 0 {
+			fmt.Printf("Deleting %d DynamoDB items...\n", len(items))
+			if err := ddbClient.DeleteItems(ctx, items); err != nil {
+				return fmt.Errorf("deleting DynamoDB items: %w", err)
+			}
+			fmt.Println("DynamoDB items deleted.")
+		}
+
+		// Delete Cognito user
+		fmt.Printf("Deleting Cognito user %s...\n", user.Name)
+		if err := cognitoClient.DeleteUser(ctx, user.Name); err != nil {
+			return fmt.Errorf("deleting Cognito user: %w", err)
+		}
+		fmt.Println("Cognito user deleted.")
+
+		fmt.Printf("\nUser %s successfully deleted.\n", user.Name)
+		return nil
+	},
+}
+
 func init() {
+	usersDeleteCmd.Flags().BoolVarP(&forceDelete, "force", "f", false, "skip confirmation prompt")
+	usersDeleteCmd.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be deleted without making changes")
+
 	usersCmd.AddCommand(usersListCmd)
+	usersCmd.AddCommand(usersInspectCmd)
+	usersCmd.AddCommand(usersDeleteCmd)
 	rootCmd.AddCommand(usersCmd)
 }

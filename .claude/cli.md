@@ -5,45 +5,62 @@
 - Source code: @../packages/cli
 - Admin CLI tool written in Golang, using cobra
 - Built for the current platform (not Lambda)
-- Config from JSON file (`--config`, defaults to `./config.json`), same format as serverless output.json
-- Auth via Cognito (`--username` / `--password` persistent flags on root command)
+- Config from JSON file (`--config`, defaults to `config.json` next to binary)
+- Uses AWS IAM credentials (env vars, AWS profile, or instance role)
 
 ## Structure
 
-- `cmd/root.go` — root command with persistent flags (config, username, password)
-- `cmd/users.go` — `users list` subcommand
-- `internal/config/` — config file loader (JSON → apiURL, region, userPoolId, clientId)
-- `internal/auth/` — Cognito authentication (USER_PASSWORD_AUTH flow → IdToken)
-- `internal/api/` — API client and response models
+- `cmd/root.go` — root command with `--config` persistent flag
+- `cmd/users.go` — users subcommands (list, inspect, delete)
+- `cmd/groups.go` — groups subcommands (list, inspect, delete)
+- `internal/config/` — config file loader (JSON → userPoolId, region, tableName)
+- `internal/cognito/` — Cognito client (ListUsers, GetUser, DeleteUser)
+- `internal/dynamodb/` — DynamoDB client (QueryByPK, QueryByGSI1, ScanGroups, DeleteItems)
 
 ## Configuration
 
-The CLI reads a JSON config file (`--config`, defaults to `./config.json`):
+The CLI reads a JSON config file (`--config`, defaults to `config.json` next to binary):
 
 ```json
 {
-  "clientId": "Cognito app client ID",
-  "userPoolId": "Cognito user pool ID (e.g. eu-west-1_XXXXXXX)",
-  "region": "AWS region (e.g. eu-west-1)",
-  "url": "Full API URL (e.g. https://api-meal-planner.isnan.eu)"
+  "userPoolId": "Cognito user pool ID (e.g. eu-central-1_XXXXXXX)",
+  "region": "AWS region (e.g. eu-central-1)",
+  "tableName": "DynamoDB table name (e.g. meal-planner-data)"
 }
 ```
 
 ## Authentication
 
-Cognito credentials can be provided via flags or environment variables. Flags take precedence.
+The CLI uses AWS IAM credentials to access Cognito and DynamoDB directly. Credentials are resolved via the standard AWS SDK chain:
 
-| Method | Username | Password |
-|--------|----------|----------|
-| Flag | `--username` | `--password` |
-| Env var | `MPCLI_USERNAME` | `MPCLI_PASSWORD` |
+1. Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
+2. AWS credentials file (`~/.aws/credentials`)
+3. IAM instance role (when running on EC2/Lambda)
 
 ## Commands
 
-- `users list` — lists all users (ID, NAME, ROLE, CREATED AT) via `GET /api/appadmin/users`
+### Users
+- `users list` — lists all users (ID, NAME, ROLE, CREATED AT) from Cognito
+- `users inspect <id>` — shows all DynamoDB items for a user (memberships, schedules, comments, notices)
+- `users delete <id>` — deletes all DynamoDB items and removes user from Cognito
+  - `--dry-run` — show what would be deleted without making changes
+  - `-f, --force` — skip confirmation prompt
+
+### Groups
+- `groups list` — lists all groups (ID, NAME, CREATED AT) from DynamoDB
+- `groups inspect <id>` — shows group members and weekly schedules
+- `groups delete <id>` — deletes group and all associated data (memberships, schedules, comments, notices)
+  - `--dry-run` — show what would be deleted without making changes
+  - `-f, --force` — skip confirmation prompt
 
 ## Tasks
 
 - [x] Scaffold CLI package as yarn workspace
+- [x] Refactor to use AWS SDK directly instead of HTTP API
 - [x] Add `users list` command
+- [x] Add `users inspect` command
+- [x] Add `users delete` command with dry-run
+- [x] Add `groups list` command
+- [x] Add `groups inspect` command
+- [x] Add `groups delete` command with dry-run
 - [ ] Add more admin commands (TBD)
