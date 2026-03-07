@@ -6,10 +6,10 @@ In addition, for each meal, they can attach a comment.
 
 ## Design
 - The UI is a React based application, based on MUI (Material UI): @ui.md.
-- The backend is AWS Lamdba written in Golang: @backend.md.
+- The backend is AWS Lambda written in Golang: @backend.md.
+- Infrastructure is managed with Terraform: @../packages/infrastructure
 - Everything is deployed on AWS.
 - The project is a monorepo based on yarn workspaces.
-- This project relies on serverless framework (including serverless compose)
 
 ## Guidelines
 - Update the md files according to changes:

@@ -110,10 +110,10 @@ const SettingsPage = () => {
   const { user } = useAuth();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const handleCopyUserId = (e) => {
+  const handleCopyEmail = (e) => {
     e.stopPropagation();
-    if (user?.memberId) {
-      navigator.clipboard.writeText(user.memberId);
+    if (user?.email) {
+      navigator.clipboard.writeText(user.email);
       setSnackbarOpen(true);
     }
   };
@@ -207,14 +207,13 @@ const SettingsPage = () => {
                 variant="caption"
                 sx={{
                   color: 'text.disabled',
-                  fontFamily: 'monospace',
-                  fontSize: '0.7rem',
+                  fontSize: '0.75rem',
                 }}
               >
-                {user?.memberId?.substring(0, 12)}...
+                {user?.email || '—'}
               </Typography>
               <Box
-                onClick={handleCopyUserId}
+                onClick={handleCopyEmail}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -282,7 +281,7 @@ const SettingsPage = () => {
         open={snackbarOpen}
         autoHideDuration={2000}
         onClose={() => setSnackbarOpen(false)}
-        message="User ID copied to clipboard"
+        message="Email copied to clipboard"
       />
     </Box>
   );

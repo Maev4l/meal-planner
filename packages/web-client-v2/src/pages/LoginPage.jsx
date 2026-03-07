@@ -180,12 +180,13 @@ const LoginPage = () => {
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="Username"
+              label="Email"
+              type="email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               margin="normal"
               required
-              autoComplete="username"
+              autoComplete="email"
               autoCapitalize="none"
               autoFocus
               disabled={isSubmitting}

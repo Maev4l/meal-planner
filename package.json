@@ -2,21 +2,18 @@
   "name": "meal-planner",
   "version": "1.0.0",
   "scripts": {
-    "deploy-api": "make -C packages/api package && sls deploy --service=api",
-    "output-api-stack": "aws cloudformation describe-stacks --stack-name meal-planner-api-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' > ./packages/web-client-v2/output.json",
-    "build-web-client": "yarn output-api-stack && yarn workspace @meal-planner/web-client-v2 build",
-    "serve-web-client": "yarn workspace @meal-planner/web-client-v2 dev",
-    "deploy-web-client": "sls deploy --service=web-client-v2",
-    "upload-web-client": "yarn build-web-client && aws s3 sync ./packages/web-client-v2/dist s3://meal-planner-web-client --delete",
-    "invalidate-web-client": "aws cloudfront create-invalidation --path '/*' --distribution-id $(aws cloudformation describe-stacks --stack-name meal-planner-web-client-dev --query 'Stacks[0].Outputs' | jq 'map({(.ExportName): .OutputValue}) | add' | jq -r '.mealPlannerWebClientDistributionId')"
+    "apply-infra": "yarn workspace @meal-planner/infrastructure deploy",
+    "deploy-backend": "make -C packages/api package && yarn apply-infra",
+    "build-frontend": "yarn workspace @meal-planner/infrastructure output && yarn workspace @meal-planner/web-client-v2 build",
+    "deploy-frontend": "yarn build-frontend && yarn workspace @meal-planner/infrastructure invalidate-frontend",
+    "frontend-dev": "yarn workspace @meal-planner/web-client-v2 dev"
   },
   "private": true,
   "workspaces": [
     "packages/api",
     "packages/cli",
+    "packages/infrastructure",
     "packages/web-client-v2"
   ],
-  "devDependencies": {
-    "prettier": "3.1.1"
-  }
+  "devDependencies": {}
 }

@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }) => {
       const session = await fetchAuthSession();
       if (session.tokens?.idToken) {
         const payload = session.tokens.idToken.payload;
-        // Convert UUID from lowercase with dashes to uppercase without dashes
-        const memberId = payload.sub.replace(/-/g, '').toUpperCase();
+        // Use custom:Id directly (already in correct format)
+        const memberId = payload['custom:Id'];
         setUser({
           authenticated: true,
           memberId,

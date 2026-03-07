@@ -1,7 +1,4 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { config } from '../config';
-
-const API_BASE_URL = config.api.baseUrl;
 
 const getToken = async () => {
   try {
@@ -24,7 +21,7 @@ const fetchWithAuth = async (url, options = {}) => {
     headers['Authorization'] = token;
   }
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });

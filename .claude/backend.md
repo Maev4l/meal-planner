@@ -3,11 +3,18 @@
 ## Design
 
 - Source code: @../packages/api
-- The API is an AWS lambda function, written in Golang, leveraging the serverless framework
+- Infrastructure: @../packages/infrastructure (Terraform)
+- The API is an AWS Lambda function, written in Golang
 - The directory structure is vaguely inspired by an hexagonal architecture
 - Data storage is ensured by AWS DynamoDB, with a single table design approach
 - The members are stored in Cognito
 - An Open API specs is located in the openapi.yaml file
+
+## Infrastructure
+
+- Domain: `meal-planner.isnan.eu`
+- CloudFront serves both frontend (S3) and API (`/api/*` -> API Gateway)
+- Terraform modules from `github.com/Maev4l/terraform-modules`
 
 ## DynamoDB Data Model
 

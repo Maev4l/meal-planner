@@ -13,7 +13,7 @@ import (
 	"isnan.eu/meal-planner/api/internal/core/services"
 )
 
-var ginLambda *ginadapter.GinLambda
+var ginLambda *ginadapter.GinLambdaV2
 
 func init() {
 
@@ -23,6 +23,9 @@ func init() {
 	config.AllowCredentials = true
 	config.AllowAllOrigins = true
 	router.Use(cors.New(config))
+
+	// Reject unapproved users
+	router.Use(handlers.RequireApproved())
 
 	r := repositories.NewDynamoDB()
 	c := repositories.NewCognito()
@@ -50,11 +53,10 @@ func init() {
 	// Get all schedules associated with a calendar week
 	router.GET("/api/schedules/:period", h.GetSchedules)
 
-	ginLambda = ginadapter.New(router)
+	ginLambda = ginadapter.NewV2(router)
 }
 
-func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// If no name is provided in the HTTP request body, throw an error
+func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	return ginLambda.ProxyWithContext(ctx, req)
 }
 func main() {

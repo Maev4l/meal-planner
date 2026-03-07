@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/lestrrat-go/jwx/jwt"
-	"isnan.eu/meal-planner/api/internal/helper"
+	"github.com/rs/zerolog/log"
 )
 
 type tokenInfo struct {
 	userId   string
 	userName string
+	approved bool
 }
 
 func parseAuthHeader(raw string) *tokenInfo {
@@ -18,9 +21,10 @@ func parseAuthHeader(raw string) *tokenInfo {
 
 	token, _ := jwt.Parse([]byte(raw))
 
-	id, exists := token.Get("sub")
+	// User ID from custom:Id claim (no normalization needed)
+	id, exists := token.Get("custom:Id")
 	if exists {
-		info.userId = helper.Normalize(fmt.Sprintf("%v", id))
+		info.userId = fmt.Sprintf("%v", id)
 	}
 
 	username, exists := token.Get("cognito:username")
@@ -28,5 +32,29 @@ func parseAuthHeader(raw string) *tokenInfo {
 		info.userName = fmt.Sprintf("%v", username)
 	}
 
+	// Check if user is approved
+	approved, exists := token.Get("custom:Approved")
+	if exists {
+		info.approved = fmt.Sprintf("%v", approved) == "true"
+	}
+
 	return &info
+}
+
+// RequireApproved is a middleware that rejects requests from unapproved users
+func RequireApproved() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		info := parseAuthHeader(c.Request.Header.Get("Authorization"))
+
+		if !info.approved {
+			log.Warn().Msgf("Unapproved user '%s' attempted to access API.", info.userName)
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "User not approved.",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
 }

@@ -30,7 +30,6 @@ package-api: build-api
 clean:
 	rm -rf $(BIN_DIR)
 	rm -rf dist
-	rm -rf .serverless
 
 # Run tests
 test:

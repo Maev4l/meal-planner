@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 	"github.com/rs/zerolog/log"
 	"isnan.eu/meal-planner/api/internal/core/domain"
-	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type idp struct {
@@ -24,37 +23,40 @@ func NewCognito() *idp {
 	}
 }
 
-// parseUserId extracts the user ID from Cognito user attributes
-func parseUserId(attributes []types.AttributeType) string {
+// parseUserAttributes extracts custom:Id and name from Cognito attributes
+func parseUserAttributes(attributes []types.AttributeType) (id, name string) {
 	for _, att := range attributes {
-		if *(att.Name) == "sub" {
-			return helper.Normalize((*att.Value))
+		switch *att.Name {
+		case "custom:Id":
+			id = *att.Value
+		case "name":
+			name = *att.Value
 		}
 	}
-	return ""
+	return id, name
 }
 
-func (i *idp) GetUser(name string) (*domain.User, error) {
+func (i *idp) GetUser(username string) (*domain.User, error) {
 	resp, err := i.client.AdminGetUser(context.TODO(), &cognitoidentityprovider.AdminGetUserInput{
 		UserPoolId: aws.String(userPoolId),
-		Username:   aws.String(name),
+		Username:   aws.String(username),
 	})
 
 	if err != nil {
-		log.Error().Msgf("Failed to get user '%s': %s", name, err.Error())
+		log.Error().Msgf("Failed to get user '%s': %s", username, err.Error())
 		return nil, err
 	}
 
 	if resp == nil {
-		log.Warn().Msgf("User '%s' does not exist.", name)
+		log.Warn().Msgf("User '%s' does not exist.", username)
 		return nil, nil
 	}
 
-	id := parseUserId(resp.UserAttributes)
+	id, name := parseUserAttributes(resp.UserAttributes)
 
 	return &domain.User{
 		Id:        id,
-		Name:      *resp.Username,
+		Name:      name,
 		CreatedAt: resp.UserCreateDate,
 	}, nil
 }

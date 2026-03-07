@@ -69,6 +69,14 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      // Proxy /api/* to production backend during local development
+      '/api': {
+        target: 'https://meal-planner.isnan.eu',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   build: {
     rollupOptions: {

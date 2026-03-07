@@ -4,11 +4,15 @@ yarn.lock
 yarn-error.log
 
 node_modules/
-.serverless/
-.webpack/
 .bin/
 bin/
 dist/
 
 output.json
 config.json
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+tfplan

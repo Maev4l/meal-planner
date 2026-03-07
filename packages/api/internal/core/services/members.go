@@ -137,7 +137,7 @@ func (s *service) CreateMember(requesterMemberId string, groupId string, memberN
 	current := time.Now().UTC()
 	member := domain.Member{
 		Id:        getUserRes.user.Id,
-		Name:      memberName,
+		Name:      getUserRes.user.Name, // Use name attribute from Cognito
 		CreatedAt: &current,
 		Role:      role,
 		GroupId:   getGroupRes.group.Id,

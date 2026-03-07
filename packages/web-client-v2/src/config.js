@@ -6,7 +6,4 @@ export const config = {
     userPoolClientId: outputConfig.mealPlannerClientId,
     region: outputConfig.mealPlannerRegion,
   },
-  api: {
-    baseUrl: 'https://api-meal-planner.isnan.eu',
-  },
 };
