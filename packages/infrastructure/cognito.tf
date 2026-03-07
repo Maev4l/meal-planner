@@ -3,13 +3,19 @@
 resource "aws_cognito_user_pool" "meal_planner" {
   name = "meal-planner"
 
-  # Admin-only user creation (no self-registration)
+  # Allow self-registration (pending admin approval via custom:Approved)
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    allow_admin_create_user_only = false
   }
 
   username_configuration {
     case_sensitive = false
+  }
+
+  # Lambda triggers for user management
+  lambda_config {
+    pre_sign_up       = module.user_management.function_arn
+    post_confirmation = module.user_management.function_arn
   }
 
   account_recovery_setting {

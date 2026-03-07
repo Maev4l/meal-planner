@@ -1,6 +1,7 @@
 // Edited by Claude.
 // Warm Bistro themed login page with elegant animations
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -241,20 +242,34 @@ const LoginPage = () => {
           </Box>
         </Box>
 
-        {/* Decorative footer */}
+        {/* Link to sign up */}
         <Typography
-          variant="caption"
+          variant="body2"
           sx={{
             display: 'block',
             textAlign: 'center',
-            mt: 4,
+            mt: 3,
             color: 'text.secondary',
-            opacity: 0.6,
             animation: 'fadeIn 0.5s ease-out forwards',
             animationDelay: '0.6s',
           }}
         >
-          Plan together, dine together
+          Don't have an account?{' '}
+          <Typography
+            component={Link}
+            to="/signup"
+            variant="body2"
+            sx={{
+              color: 'primary.main',
+              textDecoration: 'none',
+              fontWeight: 500,
+              '&:hover': {
+                textDecoration: 'underline',
+              },
+            }}
+          >
+            Create account
+          </Typography>
         </Typography>
       </Box>
     </Box>

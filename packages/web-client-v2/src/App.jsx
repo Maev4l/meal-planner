@@ -22,6 +22,7 @@ import { useAuth } from './contexts/AuthContext';
 import { SchedulesProvider } from './contexts/SchedulesContext';
 import GroupsPage from './pages/GroupsPage';
 import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
@@ -152,6 +153,14 @@ const App = () => {
               element={
                 <PublicRoute>
                   <LoginPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <PublicRoute>
+                  <SignUpPage />
                 </PublicRoute>
               }
             />

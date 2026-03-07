@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { signIn as cognitoSignIn, signOut as cognitoSignOut, fetchAuthSession } from 'aws-amplify/auth';
+import { signIn as cognitoSignIn, signOut as cognitoSignOut, signUp as cognitoSignUp, fetchAuthSession } from 'aws-amplify/auth';
 
 const AuthContext = createContext(null);
 
@@ -83,15 +83,29 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Sign up new user - returns without setting user state (pending admin approval)
+  const signUp = useCallback(async (email, password, name) => {
+    await cognitoSignUp({
+      username: email,
+      password,
+      options: {
+        userAttributes: {
+          name,
+        },
+      },
+    });
+  }, []);
+
   const value = useMemo(() => ({
     user,
     isLoading,
     isAuthenticated: !!user,
     error,
     signIn,
+    signUp,
     signOut,
     getToken,
-  }), [user, isLoading, error, signIn, signOut, getToken]);
+  }), [user, isLoading, error, signIn, signUp, signOut, getToken]);
 
   return (
     <AuthContext.Provider value={value}>

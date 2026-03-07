@@ -2,7 +2,7 @@
 
 ## Design
 
-- Source code: @../packages/api
+- Source code: @../packages/functions/api
 - Infrastructure: @../packages/infrastructure (Terraform)
 - The API is an AWS Lambda function, written in Golang
 - The directory structure is vaguely inspired by an hexagonal architecture

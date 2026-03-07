@@ -1,7 +1,8 @@
 # Lambda function and API Gateway trigger
 
 locals {
-  api_filename = "../api/dist/bootstrap.zip"
+  api_filename             = "../functions/api/dist/bootstrap.zip"
+  user_management_filename = "../functions/user-management/dist/bootstrap.zip"
 }
 
 module "api" {
@@ -48,4 +49,34 @@ module "api_trigger" {
   routes = [
     "ANY /api/{proxy+}"
   ]
+}
+
+module "user_management" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.4.1"
+
+  function_name = "meal-planner-user-management"
+  architecture  = "arm64"
+  memory_size   = 128
+
+  additional_policy_arns = [aws_iam_policy.user_management.arn]
+
+  zip = {
+    filename = local.user_management_filename
+    runtime  = "provided.al2023"
+    handler  = "bootstrap"
+  }
+
+  environment_variables = {
+    REGION        = var.region
+    SNS_TOPIC_ARN = data.aws_sns_topic.alerting.arn
+  }
+}
+
+module "user_management_trigger" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.4.1"
+
+  function_name = module.user_management.function_name
+  function_arn  = module.user_management.function_arn
+
+  user_pool_id = aws_cognito_user_pool.meal_planner.id
 }

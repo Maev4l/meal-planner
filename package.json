@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "scripts": {
     "apply-infra": "yarn workspace @meal-planner/infrastructure deploy",
-    "deploy-backend": "make -C packages/api package && yarn apply-infra",
+    "build-backend": "make -C packages/functions build",
+    "deploy-backend": "make -C packages/functions package && yarn apply-infra",
     "build-frontend": "yarn workspace @meal-planner/infrastructure output && yarn workspace @meal-planner/web-client-v2 build",
     "deploy-frontend": "yarn build-frontend && yarn workspace @meal-planner/infrastructure invalidate-frontend",
     "frontend-dev": "yarn workspace @meal-planner/web-client-v2 dev"
   },
   "private": true,
   "workspaces": [
-    "packages/api",
+    "packages/functions/api",
     "packages/cli",
     "packages/infrastructure",
     "packages/web-client-v2"

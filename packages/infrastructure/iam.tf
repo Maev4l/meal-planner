@@ -44,3 +44,30 @@ resource "aws_iam_policy" "api" {
   name   = "meal-planner-api"
   policy = data.aws_iam_policy_document.api.json
 }
+
+#
+# User Management Policy (role managed by lambda-function module)
+#
+data "aws_iam_policy_document" "user_management" {
+  statement {
+    effect    = "Allow"
+    actions   = ["sns:Publish"]
+    resources = [data.aws_sns_topic.alerting.arn]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "cognito-idp:AdminGetUser",
+      "cognito-idp:AdminUpdateUserAttributes",
+      "cognito-idp:AdminLinkProviderForUser",
+      "cognito-idp:ListUsers",
+    ]
+    resources = ["arn:aws:cognito-idp:${local.region}:${local.account_id}:userpool/*"]
+  }
+}
+
+resource "aws_iam_policy" "user_management" {
+  name   = "meal-planner-user-management"
+  policy = data.aws_iam_policy_document.user_management.json
+}
