@@ -10,7 +10,6 @@ import {
 } from 'react-router-dom';
 import {
   Container,
-  Box,
   BottomNavigation,
   BottomNavigationAction,
   Paper,

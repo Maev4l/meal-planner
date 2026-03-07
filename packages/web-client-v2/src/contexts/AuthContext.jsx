@@ -1,8 +1,33 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { signIn as cognitoSignIn, signOut as cognitoSignOut, signUp as cognitoSignUp, fetchAuthSession } from 'aws-amplify/auth';
+import { signIn as cognitoSignIn, signOut as cognitoSignOut, signUp as cognitoSignUp, signInWithRedirect, fetchAuthSession } from 'aws-amplify/auth';
 
 const AuthContext = createContext(null);
+
+// Check URL for OAuth errors (returned after redirect)
+const checkOAuthError = () => {
+  const params = new URLSearchParams(window.location.search);
+  const errorDesc = params.get('error_description');
+
+  if (errorDesc) {
+    // Clean up URL
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Check if this is the "linked to existing account" message (success case)
+    if (errorDesc.toLowerCase().includes('linked')) {
+      return { type: 'linked' };
+    }
+
+    // Check for "user already exists" (native signup when federated exists)
+    if (errorDesc.toLowerCase().includes('user already exists')) {
+      return { type: 'error', message: 'An account with this email already exists.' };
+    }
+
+    // Other errors
+    return { type: 'error', message: errorDesc };
+  }
+  return null;
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -16,6 +41,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [oauthMessage, setOauthMessage] = useState(null); // { type: 'success' | 'error', text: string }
 
   const getToken = useCallback(async () => {
     try {
@@ -50,8 +76,31 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    // Check for OAuth callback errors (e.g., account linking)
+    const oauthResult = checkOAuthError();
+    if (oauthResult?.type === 'linked') {
+      setOauthMessage({
+        type: 'success',
+        text: 'Your Google account has been linked. Please sign in again.',
+      });
+    } else if (oauthResult?.type === 'error') {
+      setOauthMessage({
+        type: 'error',
+        text: oauthResult.message,
+      });
+    }
     checkAuth();
   }, [checkAuth]);
+
+  // Clear the OAuth message
+  const clearOauthMessage = useCallback(() => {
+    setOauthMessage(null);
+  }, []);
+
+  // Sign in with Google OAuth
+  const signInWithGoogle = useCallback(async () => {
+    await signInWithRedirect({ provider: 'Google' });
+  }, []);
 
   const signIn = useCallback(async (username, password) => {
     setError(null);
@@ -101,11 +150,14 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isAuthenticated: !!user,
     error,
+    oauthMessage,
+    clearOauthMessage,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     getToken,
-  }), [user, isLoading, error, signIn, signUp, signOut, getToken]);
+  }), [user, isLoading, error, oauthMessage, clearOauthMessage, signIn, signInWithGoogle, signUp, signOut, getToken]);
 
   return (
     <AuthContext.Provider value={value}>

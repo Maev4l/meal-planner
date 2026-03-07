@@ -16,6 +16,26 @@
 - CloudFront serves both frontend (S3) and API (`/api/*` -> API Gateway)
 - Terraform modules from `github.com/Maev4l/terraform-modules`
 
+### Cognito Configuration
+
+- User Pool: `meal-planner`
+- Auth domain: `meal-planner-auth.isnan.eu` (custom domain with wildcard cert)
+- Self-registration enabled (admin approval via `custom:Approved` attribute)
+- Google OAuth identity provider
+- Lambda triggers: `user-management` (pre_sign_up, post_confirmation)
+
+### SSM Parameters (secrets)
+
+Google OAuth credentials stored in SSM Parameter Store:
+- `meal-planner.google.client.id` (SecureString)
+- `meal-planner.google.client.secret` (SecureString)
+
+### Terraform Files
+
+- `cognito.tf` — User pool, client, domain, Google identity provider
+- `route53.tf` — DNS records including `meal-planner-auth.isnan.eu`
+- `ssm.tf` — Data sources for Google OAuth secrets
+
 ## DynamoDB Data Model
 
 ### Table Structure

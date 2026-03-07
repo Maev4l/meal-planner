@@ -71,4 +71,62 @@ resource "aws_cognito_user_pool_client" "meal_planner" {
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
   ]
+
+  # OAuth configuration
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_scopes                 = ["openid", "email", "profile"]
+  supported_identity_providers         = ["COGNITO", "Google"]
+
+  callback_urls = [
+    "https://meal-planner.isnan.eu/",
+    "http://localhost:3000/"
+  ]
+  logout_urls = [
+    "https://meal-planner.isnan.eu/login",
+    "http://localhost:3000/login"
+  ]
+
+  # Attributes included in ID token
+  read_attributes = [
+    "custom:Id",
+    "custom:Approved",
+    "email",
+    "name"
+  ]
+
+  write_attributes = []
+
+  depends_on = [aws_cognito_identity_provider.google]
+}
+
+# Cognito domain for hosted UI (custom domain)
+resource "aws_cognito_user_pool_domain" "meal_planner_domain" {
+  domain          = "meal-planner-auth.isnan.eu"
+  user_pool_id    = aws_cognito_user_pool.meal_planner.id
+  certificate_arn = data.aws_acm_certificate.wildcard_isnan.arn
+}
+
+# Google Identity Provider
+resource "aws_cognito_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.meal_planner.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id        = data.aws_ssm_parameter.google_client_id.value
+    client_secret    = data.aws_ssm_parameter.google_client_secret.value
+    authorize_scopes = "openid email profile"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    name     = "name"
+    username = "sub"
+  }
+
+  # AWS auto-populates additional OIDC fields in provider_details
+  lifecycle {
+    ignore_changes = [provider_details]
+  }
 }

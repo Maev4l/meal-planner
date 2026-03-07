@@ -48,8 +48,8 @@ const AttendeeChip = ({ name }) => {
       label={name}
       sx={{
         height: 28,
-        backgroundColor: (theme) => alpha(color, 0.1),
-        borderColor: (theme) => alpha(color, 0.2),
+        backgroundColor: alpha(color, 0.1),
+        borderColor: alpha(color, 0.2),
         border: '1px solid',
         '& .MuiChip-label': {
           fontSize: '0.75rem',

@@ -15,6 +15,15 @@ Amplify.configure({
     Cognito: {
       userPoolId: config.cognito.userPoolId,
       userPoolClientId: config.cognito.userPoolClientId,
+      loginWith: {
+        oauth: {
+          domain: config.oauth.domain,
+          scopes: config.oauth.scopes,
+          redirectSignIn: [config.oauth.redirectSignIn],
+          redirectSignOut: [config.oauth.redirectSignOut],
+          responseType: config.oauth.responseType,
+        },
+      },
     },
   },
 });
