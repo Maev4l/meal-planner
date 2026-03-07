@@ -29,15 +29,6 @@ func init() {
 	s := services.New(r, c)
 	h := handlers.NewHTTPHandler(s)
 
-	// List all users from IdP
-	router.GET("/api/appadmin/users", h.ListUsers)
-
-	// Enroll user into IdP
-	router.POST("/api/appadmin/users", h.RegisterUser)
-
-	// Offboard user
-	router.DELETE("/api/appadmin/users/:userId", h.UnregisterUser)
-
 	// Create a group
 	router.POST("/api/groups", h.CreateGroup)
 

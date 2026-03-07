@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -11,8 +10,6 @@ import (
 	"isnan.eu/meal-planner/api/internal/core/domain"
 	"isnan.eu/meal-planner/api/internal/core/ports"
 )
-
-var RESERVED_USERNAMES = []string{"admin"}
 
 func (s *service) parsePeriod(period string) (int, int, error) {
 	p := strings.Split(period, "-")
@@ -47,11 +44,6 @@ func (s *service) parsePeriod(period string) (int, int, error) {
 	// TODO: Check if the period is too far in the future
 	return year, week, nil
 
-}
-
-func validateUsername(name string) bool {
-	index := slices.IndexFunc(RESERVED_USERNAMES, func(s string) bool { return s == name })
-	return (index == -1)
 }
 
 func (s *service) validateGroupOperation(groupId string, memberId string) (*domain.Group, *domain.Member, error) {

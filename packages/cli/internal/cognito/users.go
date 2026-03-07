@@ -18,7 +18,6 @@ import (
 type User struct {
 	ID        string
 	Name      string
-	Role      string
 	CreatedAt time.Time
 }
 
@@ -55,11 +54,10 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 		}
 
 		for _, u := range resp.Users {
-			id, role := parseUserAttributes(u.Attributes)
+			id := parseUserID(u.Attributes)
 			users = append(users, User{
 				ID:        id,
 				Name:      aws.ToString(u.Username),
-				Role:      role,
 				CreatedAt: aws.ToTime(u.UserCreateDate),
 			})
 		}
@@ -73,17 +71,14 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
-// parseUserAttributes extracts the normalized user ID and role from Cognito attributes.
-func parseUserAttributes(attributes []types.AttributeType) (id, role string) {
+// parseUserID extracts the normalized user ID from Cognito attributes.
+func parseUserID(attributes []types.AttributeType) string {
 	for _, att := range attributes {
-		switch aws.ToString(att.Name) {
-		case "sub":
-			id = normalizeID(aws.ToString(att.Value))
-		case "custom:Role":
-			role = aws.ToString(att.Value)
+		if aws.ToString(att.Name) == "sub" {
+			return normalizeID(aws.ToString(att.Value))
 		}
 	}
-	return id, role
+	return ""
 }
 
 // normalizeID converts a UUID to the application format (uppercase, no dashes).

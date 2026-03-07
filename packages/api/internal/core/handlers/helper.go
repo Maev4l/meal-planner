@@ -4,14 +4,12 @@ import (
 	"fmt"
 
 	"github.com/lestrrat-go/jwx/jwt"
-	"isnan.eu/meal-planner/api/internal/core/domain/roles"
 	"isnan.eu/meal-planner/api/internal/helper"
 )
 
 type tokenInfo struct {
 	userId   string
 	userName string
-	role     roles.APPLICATION_ROLE
 }
 
 func parseAuthHeader(raw string) *tokenInfo {
@@ -28,13 +26,6 @@ func parseAuthHeader(raw string) *tokenInfo {
 	username, exists := token.Get("cognito:username")
 	if exists {
 		info.userName = fmt.Sprintf("%v", username)
-	}
-
-	role, exists := token.Get("custom:Role")
-	if exists {
-		info.role = roles.APPLICATION_ROLE(fmt.Sprintf("%v", role))
-	} else {
-		info.role = roles.RegularUser
 	}
 
 	return &info

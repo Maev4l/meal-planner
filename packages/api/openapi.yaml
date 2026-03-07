@@ -10,70 +10,6 @@ servers:
 
 
 paths:
-  /api/appadmin/users:
-    get:
-      summary: List all users
-      description: Retrieve all users stored in the Cognito user pool
-      operationId: listUsers
-      tags:
-        - Admin
-      responses:
-        '200':
-          description: Users retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListUsersResponse'
-        '401':
-          description: Unauthorized
-    post:
-      summary: Register a new user
-      description: Enroll a user into the Identity Provider (Cognito)
-      operationId: registerUser
-      tags:
-        - Admin
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterUserRequest'
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RegisterUserResponse'
-        '400':
-          description: Invalid request
-        '401':
-          description: Unauthorized
-        '409':
-          description: User already exists
-
-  /api/appadmin/users/{userId}:
-    delete:
-      summary: Unregister a user
-      description: Offboard a user from the system
-      operationId: unregisterUser
-      tags:
-        - Admin
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: The ID of the user to unregister
-      responses:
-        '204':
-          description: User unregistered successfully
-        '401':
-          description: Unauthorized
-        '404':
-          description: User not found
-
   /api/groups:
     post:
       summary: Create a group
@@ -288,59 +224,6 @@ components:
       description: Cognito User Pool JWT token
 
   schemas:
-    ListUsersResponse:
-      type: object
-      properties:
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/ListUsersUserResponse'
-
-    ListUsersUserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the user
-        name:
-          type: string
-          description: Username
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp when the user was created
-        role:
-          type: string
-          description: Application role (e.g., AppAdmin, Regular)
-
-    RegisterUserRequest:
-      type: object
-      required:
-        - name
-        - password
-      properties:
-        name:
-          type: string
-          description: Username for the new user
-        password:
-          type: string
-          format: password
-          description: Password for the new user
-
-    RegisterUserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique identifier of the user
-        name:
-          type: string
-          description: Username
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp when the user was created
-
     CreateGroupRequest:
       type: object
       required:
@@ -651,8 +534,6 @@ components:
           format: date-time
 
 tags:
-  - name: Admin
-    description: User administration operations
   - name: Groups
     description: Group management
   - name: Members

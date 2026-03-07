@@ -26,7 +26,6 @@ type User struct {
 	Id        string
 	Name      string
 	CreatedAt *time.Time
-	Role      roles.APPLICATION_ROLE
 }
 
 type ScheduleBase struct {

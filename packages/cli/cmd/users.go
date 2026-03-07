@@ -46,9 +46,9 @@ var usersListCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tNAME\tROLE\tCREATED AT")
+		fmt.Fprintln(w, "ID\tNAME\tCREATED AT")
 		for _, u := range users {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, u.Name, u.Role, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
+			fmt.Fprintf(w, "%s\t%s\t%s\n", u.ID, u.Name, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
 		}
 		w.Flush()
 
