@@ -40,8 +40,10 @@ The CLI uses AWS IAM credentials to access Cognito and DynamoDB directly. Creden
 ## Commands
 
 ### Users
-- `users list` — lists all users (ID, NAME, CREATED AT) from Cognito
+- `users list` — lists all users (ID, NAME, APPROVED, CREATED AT) from Cognito
 - `users inspect <id>` — shows all DynamoDB items for a user (memberships, schedules, comments, notices)
+- `users approve <id>` — approve a user (set custom:Approved = true)
+- `users unapprove <id>` — unapprove a user (set custom:Approved = false)
 - `users delete <id>` — deletes all DynamoDB items and removes user from Cognito
   - `--dry-run` — show what would be deleted without making changes
   - `-f, --force` — skip confirmation prompt

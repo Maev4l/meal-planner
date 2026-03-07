@@ -6,7 +6,6 @@ package cognito
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -16,8 +15,9 @@ import (
 )
 
 type User struct {
-	ID        string
+	ID        string // custom:Id attribute (app user ID)
 	Name      string
+	Approved  bool
 	CreatedAt time.Time
 }
 
@@ -54,10 +54,11 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 		}
 
 		for _, u := range resp.Users {
-			id := parseUserID(u.Attributes)
+			id, approved := parseUserAttributes(u.Attributes)
 			users = append(users, User{
 				ID:        id,
 				Name:      aws.ToString(u.Username),
+				Approved:  approved,
 				CreatedAt: aws.ToTime(u.UserCreateDate),
 			})
 		}
@@ -71,19 +72,19 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
-// parseUserID extracts the normalized user ID from Cognito attributes.
-func parseUserID(attributes []types.AttributeType) string {
+// parseUserAttributes extracts custom:Id and custom:Approved from Cognito attributes.
+func parseUserAttributes(attributes []types.AttributeType) (id string, approved bool) {
 	for _, att := range attributes {
-		if aws.ToString(att.Name) == "sub" {
-			return normalizeID(aws.ToString(att.Value))
+		name := aws.ToString(att.Name)
+		value := aws.ToString(att.Value)
+		switch name {
+		case "custom:Id":
+			id = value
+		case "custom:Approved":
+			approved = value == "true"
 		}
 	}
-	return ""
-}
-
-// normalizeID converts a UUID to the application format (uppercase, no dashes).
-func normalizeID(val string) string {
-	return strings.ToUpper(strings.ReplaceAll(val, "-", ""))
+	return
 }
 
 // GetUser retrieves a user by ID, or nil if not found.
@@ -110,6 +111,29 @@ func (c *Client) DeleteUser(ctx context.Context, username string) error {
 	})
 	if err != nil {
 		return fmt.Errorf("deleting user: %w", err)
+	}
+	return nil
+}
+
+// SetApproval updates the custom:Approved attribute for a user.
+func (c *Client) SetApproval(ctx context.Context, username string, approved bool) error {
+	value := "false"
+	if approved {
+		value = "true"
+	}
+
+	_, err := c.client.AdminUpdateUserAttributes(ctx, &cognitoidentityprovider.AdminUpdateUserAttributesInput{
+		UserPoolId: aws.String(c.userPoolID),
+		Username:   aws.String(username),
+		UserAttributes: []types.AttributeType{
+			{
+				Name:  aws.String("custom:Approved"),
+				Value: aws.String(value),
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("updating user approval: %w", err)
 	}
 	return nil
 }

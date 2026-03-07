@@ -46,9 +46,13 @@ var usersListCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tNAME\tCREATED AT")
+		fmt.Fprintln(w, "ID\tNAME\tAPPROVED\tCREATED AT")
 		for _, u := range users {
-			fmt.Fprintf(w, "%s\t%s\t%s\n", u.ID, u.Name, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
+			approved := "no"
+			if u.Approved {
+				approved = "yes"
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, u.Name, approved, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
 		}
 		w.Flush()
 
@@ -282,6 +286,76 @@ var usersDeleteCmd = &cobra.Command{
 	},
 }
 
+var usersApproveCmd = &cobra.Command{
+	Use:   "approve <user-id>",
+	Short: "Approve a user (set custom:Approved = true)",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		userID := args[0]
+
+		cfg, err := config.Load(cfgFile)
+		if err != nil {
+			return fmt.Errorf("loading config: %w", err)
+		}
+
+		ctx := context.Background()
+		client, err := cognito.NewClient(ctx, cfg.Region, cfg.UserPoolID)
+		if err != nil {
+			return fmt.Errorf("creating Cognito client: %w", err)
+		}
+
+		user, err := client.GetUser(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("checking user: %w", err)
+		}
+		if user == nil {
+			return fmt.Errorf("unknown user: %s", userID)
+		}
+
+		if err := client.SetApproval(ctx, user.Name, true); err != nil {
+			return fmt.Errorf("approving user: %w", err)
+		}
+
+		fmt.Printf("User %s has been approved\n", user.Name)
+		return nil
+	},
+}
+
+var usersUnapproveCmd = &cobra.Command{
+	Use:   "unapprove <user-id>",
+	Short: "Unapprove a user (set custom:Approved = false)",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		userID := args[0]
+
+		cfg, err := config.Load(cfgFile)
+		if err != nil {
+			return fmt.Errorf("loading config: %w", err)
+		}
+
+		ctx := context.Background()
+		client, err := cognito.NewClient(ctx, cfg.Region, cfg.UserPoolID)
+		if err != nil {
+			return fmt.Errorf("creating Cognito client: %w", err)
+		}
+
+		user, err := client.GetUser(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("checking user: %w", err)
+		}
+		if user == nil {
+			return fmt.Errorf("unknown user: %s", userID)
+		}
+
+		if err := client.SetApproval(ctx, user.Name, false); err != nil {
+			return fmt.Errorf("unapproving user: %w", err)
+		}
+
+		fmt.Printf("User %s has been unapproved\n", user.Name)
+		return nil
+	},
+}
+
 func init() {
 	usersDeleteCmd.Flags().BoolVarP(&forceDelete, "force", "f", false, "skip confirmation prompt")
 	usersDeleteCmd.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be deleted without making changes")
@@ -289,5 +363,7 @@ func init() {
 	usersCmd.AddCommand(usersListCmd)
 	usersCmd.AddCommand(usersInspectCmd)
 	usersCmd.AddCommand(usersDeleteCmd)
+	usersCmd.AddCommand(usersApproveCmd)
+	usersCmd.AddCommand(usersUnapproveCmd)
 	rootCmd.AddCommand(usersCmd)
 }
