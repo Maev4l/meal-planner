@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { signIn as cognitoSignIn, signOut as cognitoSignOut, signUp as cognitoSignUp, signInWithRedirect, fetchAuthSession } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 
 const AuthContext = createContext(null);
 
@@ -90,6 +91,28 @@ export const AuthProvider = ({ children }) => {
       });
     }
     checkAuth();
+
+    // Listen for auth events (token refresh, sign out, etc.)
+    const hubListener = Hub.listen('auth', ({ payload }) => {
+      switch (payload.event) {
+        case 'signedIn':
+          checkAuth();
+          break;
+        case 'signedOut':
+          setUser(null);
+          break;
+        case 'tokenRefresh':
+          // Tokens refreshed successfully, update user state
+          checkAuth();
+          break;
+        case 'tokenRefresh_failure':
+          // Refresh token expired, user needs to re-login
+          setUser(null);
+          break;
+      }
+    });
+
+    return () => hubListener();
   }, [checkAuth]);
 
   // Clear the OAuth message
