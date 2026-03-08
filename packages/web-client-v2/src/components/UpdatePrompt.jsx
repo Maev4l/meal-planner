@@ -4,15 +4,28 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Snackbar, Box, Typography, alpha } from '@mui/material';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 
+// Check for updates every 1 minutes (in milliseconds)
+const UPDATE_CHECK_INTERVAL = 60 * 1000;
+
 /**
  * PWA update prompt - shows a clickable banner when a new version is available.
  * Clicking anywhere on the banner triggers the update and page reload.
+ * Periodically checks for updates in the background.
  */
 const UpdatePrompt = () => {
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onRegisteredSW(swUrl, registration) {
+      if (registration) {
+        // Check for updates periodically
+        setInterval(() => {
+          registration.update();
+        }, UPDATE_CHECK_INTERVAL);
+      }
+    },
+  });
 
   const handleUpdate = () => {
     updateServiceWorker(true);
