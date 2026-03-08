@@ -27,13 +27,15 @@ const UpdatePrompt = () => {
     },
   });
 
+  if (!needRefresh) return null;
+
   const handleUpdate = () => {
     updateServiceWorker(true);
   };
 
   return (
     <Snackbar
-      open={needRefresh}
+      open
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       sx={{ bottom: { xs: 82, sm: 24 } }} // Above bottom nav on mobile (adjusted for new nav height)
     >

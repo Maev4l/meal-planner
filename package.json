@@ -6,7 +6,8 @@
     "build-backend": "make -C packages/functions build",
     "deploy-backend": "make -C packages/functions package && yarn apply-infra",
     "build-frontend": "yarn workspace @meal-planner/infrastructure output && yarn workspace @meal-planner/web-client-v2 build",
-    "deploy-frontend": "yarn build-frontend && yarn workspace @meal-planner/infrastructure invalidate-frontend",
+    "sync-frontend": "aws s3 sync packages/web-client-v2/dist s3://$(cd packages/infrastructure && terraform output -raw webclient_bucket) --delete",
+    "deploy-frontend": "yarn build-frontend && yarn sync-frontend && yarn workspace @meal-planner/infrastructure invalidate-frontend",
     "frontend-dev": "yarn workspace @meal-planner/web-client-v2 dev"
   },
   "private": true,
