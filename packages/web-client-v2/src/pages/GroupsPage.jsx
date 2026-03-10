@@ -101,9 +101,7 @@ const GroupCard = ({ group, onSelect, delay }) => {
                 fontWeight: 600,
                 color: 'text.primary',
                 mb: 0.5,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                wordBreak: 'break-word',
               }}
             >
               {groupName}
