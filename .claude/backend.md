@@ -49,10 +49,19 @@ Google OAuth credentials stored in SSM Parameter Store:
 | Entity | PK | SK | GSI1PK | GSI1SK |
 |--------|----|----|--------|--------|
 | **Group** | `group#<id>` | `group#<id>` | — | — |
+| **Invite** | `invite#<code>` | `invite#<code>` | `group#<groupId>` | `invite#<code>` |
 | **Member** | `member#<id>` | `group#<groupId>` | `group#<groupId>` | `member#<id>` |
 | **Schedule** | `member#<id>` | `schedule#<schedId>#group#<groupId>` | `group#<groupId>` | `schedule#<schedId>` |
 | **Comments** | `member#<id>` | `comments#<weekId>#group#<groupId>` | `group#<groupId>` | `comments#<weekId>` |
 | **Notice** | `member#<id>` | `notice#<weekId>#group#<groupId>` | `group#<groupId>` | `notice#<weekId>` |
+
+### Entity Attributes
+
+**Group:**
+- `GroupName`, `AdminId`, `CreatedAt`
+
+**Invite:**
+- `GroupId`, `GroupName`, `CreatedBy`, `CreatedAt`, `ExpiresAt` (TTL: 7 days)
 
 ### Access Patterns
 
@@ -62,8 +71,12 @@ Google OAuth credentials stored in SSM Parameter Store:
 
 **GSI1 (group-centric):**
 - List group members: `GSI1PK=group#<id>, GSI1SK begins_with member#`
+- List group invites: `GSI1PK=group#<id>, GSI1SK begins_with invite#`
 - Get group schedules for a week: `GSI1PK=group#<id>, GSI1SK=schedule#<year>-<week>`
 - Get group comments/notices: same pattern with `comments#` or `notice#`
+
+**Invite lookup:**
+- Get invite by code: `PK=invite#<code>, SK=invite#<code>`
 
 ### Schedule Values
 Meal attendance encoding:
@@ -81,9 +94,59 @@ Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 ## Gotchas
 - Cognito users identifiers are a uuid, but in the application, it is the same id, but with dash removed and in upper case.
 
-## Future use cases
+## API Endpoints
 
-### Remove member from a given group
+### Groups
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/groups` | Authenticated | Create group (creator becomes admin) |
+| `PUT` | `/api/groups/{groupId}` | GroupAdmin | Update group (rename) |
+| `DELETE` | `/api/groups/{groupId}` | GroupAdmin | Delete group and all related data |
+
+### Invites
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/groups/{groupId}/invites` | GroupAdmin | Create invite, returns code |
+| `GET` | `/api/invites/{code}` | Authenticated | Get invite details (group name, validity) |
+| `POST` | `/api/invites/{code}/redeem` | Authenticated | Join the group |
+| `DELETE` | `/api/groups/{groupId}/invites/{code}` | GroupAdmin | Revoke an invite |
+
+### Members
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `DELETE` | `/api/groups/{groupId}/members/{memberId}` | GroupAdmin | Remove member (delete all their group data) |
+| `DELETE` | `/api/groups/{groupId}/members/me` | Member | Leave group (self-remove) |
+
+**Note:** Admin cannot leave/be kicked if they are the only admin.
+
+### Schedules, Comments, Notices
+
+Existing endpoints unchanged.
+
+## Group Management
+
+### Roles
+- **GroupAdmin**: Creator of the group. Only 1 admin per group. Can invite, kick, rename, delete group.
+- **Member**: Can view schedules, set own attendance, add comments/notices.
+
+### Create Group
+1. Create Group record with `AdminId` = requester
+2. Create Member record for admin (Role = GroupAdmin)
+3. Create default schedule for admin
+
+### Delete Group
+**Authorization:** Only GroupAdmin can delete.
+
+**Steps:**
+1. Query GSI1: `GSI1PK=group#<groupId>` → returns all members, schedules, comments, notices, invites
+2. BatchWriteItem to delete all items
+3. Delete Group record: `PK=group#<groupId>, SK=group#<groupId>`
+
+### Remove Member (or Leave Group)
+**Authorization:** GroupAdmin can remove any member. Any member can leave (self-remove). Admin cannot leave.
 
 **Items to delete:**
 
@@ -95,84 +158,39 @@ Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 | Comments | `PK=member#<memberId>, SK=comments#<year>-<week>#group#<groupId>` |
 | Notices | `PK=member#<memberId>, SK=notice#<year>-<week>#group#<groupId>` |
 
-**Current key design limitation:**
-
-The `groupId` is at the **end** of the SK (`schedule#2024-15#group#<groupId>`), so `begins_with` cannot target a specific group directly.
-
-**Recommended approach:** Single query + filter
+**Implementation:**
 ```
-PK = member#<memberId>
+Query: PK = member#<memberId>
 FilterExpression: contains(SK, "group#<groupId>")
 ```
-- 1 round trip, simpler implementation
-- RCUs: Reads all items for this member (all groups), filter discards unwanted
-- Acceptable if members typically belong to few groups
+Then BatchWriteItem to delete all matching items.
 
-**Note:** `FilterExpression` reduces returned data but **not consumed RCUs**.
+## Invite Flow
 
-**Potential optimization (if needed):**
+### Create Invite
+1. Validate requester is GroupAdmin
+2. Generate unique code (e.g., 8-char alphanumeric)
+3. Save Invite record with TTL = 7 days
+4. Return code (frontend builds shareable link)
 
-Restructure SK to put groupId first:
+### Redeem Invite
+1. Lookup invite by code
+2. Validate not expired
+3. Check user not already member of group
+4. Create Member record (Role = Member)
+5. Create default schedule
+6. (Optional) Delete invite after redemption or keep for reuse
+
+### Invite URL Format
 ```
-SK: group#<groupId>#schedule#<schedId>
-SK: group#<groupId>#comments#<weekId>
-```
-Then `SK begins_with group#<groupId>#` would efficiently target all items for that member-group pair in one query.
-
-### Remove a given group
-
-**Authorization:** Only a `GroupAdmin` of this specific group can remove it.
-
-**Items to delete:**
-
-| Entity | Key Pattern |
-|--------|-------------|
-| Group | `PK=group#<groupId>, SK=group#<groupId>` |
-| All Members | `PK=member#<memberId>, SK=group#<groupId>` |
-| All Schedules | `PK=member#<memberId>, SK=schedule#<schedId>#group#<groupId>` |
-| All Comments | `PK=member#<memberId>, SK=comments#<weekId>#group#<groupId>` |
-| All Notices | `PK=member#<memberId>, SK=notice#<weekId>#group#<groupId>` |
-
-**Recommended approach:** Single GSI1 query
-
-GSI1 enables efficient group-scoped queries since all group-related items share `GSI1PK=group#<groupId>`.
-
-**Steps:**
-1. Query GSI1: `GSI1PK=group#<groupId>` → returns all members, schedules, comments, notices
-2. Extract PK/SK from each returned item
-3. BatchWriteItem to delete all items
-4. DeleteItem for the Group record: `PK=group#<groupId>, SK=group#<groupId>` (not in GSI1, delete separately)
-
-**Verdict:** This use case is well supported by the current key design.
-
-### Offboard (remove) a user globally
-
-When removing a user from Cognito, all their DynamoDB data must be deleted.
-
-**Items to delete:**
-
-| Entity | Key Pattern |
-|--------|-------------|
-| All Memberships | `PK=member#<memberId>, SK=group#<groupId>` |
-| All Schedules | `PK=member#<memberId>, SK=schedule#<schedId>#group#<groupId>` |
-| All Comments | `PK=member#<memberId>, SK=comments#<weekId>#group#<groupId>` |
-| All Notices | `PK=member#<memberId>, SK=notice#<weekId>#group#<groupId>` |
-
-**Recommended approach:** Single primary index query
-
-All items share the same PK, so a single query returns everything:
-```
-PK = member#<memberId>
+https://meal-planner.isnan.eu/invite/{code}
 ```
 
-**Steps:**
-1. Query primary index: `PK=member#<memberId>` → returns all items across all groups
-2. BatchWriteItem to delete all returned items
-3. Delete Cognito user (separate operation)
+## CLI Operations (unchanged)
 
-**Why query first?**
-
-DynamoDB requires the **full primary key** (PK + SK) to delete an item. There is no "delete all items in partition" operation. Each delete needs the exact PK+SK combination, so the query step is unavoidable to discover all SK values.
-
-**Verdict:** Most efficient use case — the partition key design makes this a simple, targeted query with zero wasted RCUs.
+Offboarding a user globally (via CLI) deletes all their DynamoDB data:
+```
+Query: PK = member#<memberId>
+```
+Returns all items across all groups → BatchWriteItem to delete.
 

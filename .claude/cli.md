@@ -13,6 +13,7 @@
 - `cmd/root.go` — root command with `--config` persistent flag
 - `cmd/users.go` — users subcommands (list, inspect, delete)
 - `cmd/groups.go` — groups subcommands (list, inspect, delete)
+- `cmd/invites.go` — invites subcommands (list, delete)
 - `internal/config/` — config file loader (JSON → userPoolId, region, tableName)
 - `internal/cognito/` — Cognito client (ListUsers, GetUser, DeleteUser)
 - `internal/dynamodb/` — DynamoDB client (QueryByPK, QueryByGSI1, ScanGroups, DeleteItems)
@@ -50,9 +51,14 @@ The CLI uses AWS IAM credentials to access Cognito and DynamoDB directly. Creden
 
 ### Groups
 - `groups list` — lists all groups (ID, NAME, CREATED AT) from DynamoDB
-- `groups inspect <id>` — shows group members and weekly schedules
-- `groups delete <id>` — deletes group and all associated data (memberships, schedules, comments, notices)
+- `groups inspect <id>` — shows group members, invites, and weekly schedules
+- `groups delete <id>` — deletes group and all associated data (memberships, schedules, comments, notices, invites)
   - `--dry-run` — show what would be deleted without making changes
+  - `-f, --force` — skip confirmation prompt
+
+### Invites
+- `invites list <groupId>` — lists all pending invites for a group (CODE, CREATED BY, CREATED AT, EXPIRES AT)
+- `invites delete <code>` — deletes a specific invite
   - `-f, --force` — skip confirmation prompt
 
 ## Tasks
@@ -65,4 +71,7 @@ The CLI uses AWS IAM credentials to access Cognito and DynamoDB directly. Creden
 - [x] Add `groups list` command
 - [x] Add `groups inspect` command
 - [x] Add `groups delete` command with dry-run
-- [ ] Add more admin commands (TBD)
+- [ ] Add `invites list` command
+- [ ] Add `invites delete` command
+- [ ] Update `groups inspect` to show invites
+- [ ] Update `groups delete` to include invites
