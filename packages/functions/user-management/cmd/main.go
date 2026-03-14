@@ -22,5 +22,12 @@ func main() {
 		}, true
 	}
 
+	handler.GetCustomAttributes = func(ctx context.Context, event *cognito.PostConfirmationEvent) ([]cognito.Attribute, error) {
+		attrs := []cognito.Attribute{
+			{Name: "custom:Approved", Value: "false"},
+		}
+		return attrs, nil
+	}
+
 	lambda.Start(handler.Handle)
 }
