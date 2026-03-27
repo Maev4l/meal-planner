@@ -21,7 +21,7 @@ export const getWeekDates = (year, week) => {
   const jan4 = dayjs(`${year}-01-04`);
   const firstMonday = jan4.startOf('isoWeek');
   const targetMonday = firstMonday.add(week - 1, 'week');
-  return DAYS.map((_, i) => targetMonday.add(i, 'day').format('D MMM'));
+  return DAYS.map((_, i) => targetMonday.add(i, 'day').format('D MMMM'));
 };
 
 export const getTodayIndex = (year, week) => {
