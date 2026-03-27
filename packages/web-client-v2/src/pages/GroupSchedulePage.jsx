@@ -192,7 +192,7 @@ const GroupSchedulePage = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 68px)', // Account for bottom navigation (increased height)
+        height: 'var(--vh-with-nav)', // Account for bottom navigation
         mx: -2,
       }}
     >

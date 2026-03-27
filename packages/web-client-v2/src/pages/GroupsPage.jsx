@@ -159,7 +159,7 @@ const GroupsPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: 'var(--vh-full)',
         pb: 10,
       }}
     >

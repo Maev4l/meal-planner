@@ -96,7 +96,7 @@ const LoginPage = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '100vh',
+        minHeight: 'var(--vh-full)',
         position: 'relative',
         overflow: 'hidden',
         mx: -2,

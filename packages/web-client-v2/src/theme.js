@@ -186,6 +186,18 @@ export const createAppTheme = (prefersDarkMode) => {
           '@import': [
             "url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@400;500;600;700&display=swap')",
           ].join(', '),
+          // Dynamic viewport height for virtual keyboard support
+          ':root': {
+            '--vh-full': '100dvh',
+            '--vh-with-nav': 'calc(100dvh - 68px)',
+          },
+          // Fallback for browsers without dvh support
+          '@supports not (height: 100dvh)': {
+            ':root': {
+              '--vh-full': '100vh',
+              '--vh-with-nav': 'calc(100vh - 68px)',
+            },
+          },
           html: {
             scrollBehavior: 'smooth',
           },

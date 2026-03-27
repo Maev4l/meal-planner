@@ -125,7 +125,7 @@ const SettingsPage = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(100vh - 68px)',
+        height: 'var(--vh-with-nav)',
         mx: -2,
       }}
     >
