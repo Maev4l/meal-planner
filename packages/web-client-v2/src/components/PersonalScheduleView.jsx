@@ -235,28 +235,32 @@ const PersonalScheduleView = ({
                 justifyContent: 'center',
               }}
             >
-              {hasComment && (
-                <ChatBubbleOutlineIcon
-                  sx={{
-                    fontSize: 14,
-                    color: 'primary.main',
-                    mr: -0.5,
-                  }}
-                />
+              {!isPast && (
+                <>
+                  {hasComment && (
+                    <ChatBubbleOutlineIcon
+                      sx={{
+                        fontSize: 14,
+                        color: 'primary.main',
+                        mr: -0.5,
+                      }}
+                    />
+                  )}
+                  <IconButton
+                    size="small"
+                    onClick={() => onDayClick(day, index)}
+                    sx={{
+                      color: 'text.secondary',
+                      p: 0.5,
+                      '&:hover': {
+                        color: 'primary.main',
+                      },
+                    }}
+                  >
+                    <ChevronRightIcon fontSize="small" />
+                  </IconButton>
+                </>
               )}
-              <IconButton
-                size="small"
-                onClick={() => onDayClick(day, index)}
-                sx={{
-                  color: 'text.secondary',
-                  p: 0.5,
-                  '&:hover': {
-                    color: 'primary.main',
-                  },
-                }}
-              >
-                <ChevronRightIcon fontSize="small" />
-              </IconButton>
             </Box>
           </Box>
         );
