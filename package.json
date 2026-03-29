@@ -2,20 +2,15 @@
   "name": "meal-planner",
   "version": "1.0.0",
   "scripts": {
-    "infra:apply": "yarn workspace @meal-planner/infrastructure deploy",
+    "infra:apply": "terraform -chdir=packages/infrastructure apply -auto-approve",
+    "infra:output": "terraform -chdir=packages/infrastructure output -json > packages/web-client-v2/output.json",
     "backend:build": "make -C packages/functions build",
     "backend:deploy": "make -C packages/functions package && yarn infra:apply",
-    "frontend:build": "yarn workspace @meal-planner/infrastructure output && yarn workspace @meal-planner/web-client-v2 build",
-    "frontend:sync": "aws s3 sync packages/web-client-v2/dist s3://$(cd packages/infrastructure && terraform output -raw webclient_bucket) --delete",
-    "frontend:deploy": "yarn frontend:build && yarn frontend:sync && yarn workspace @meal-planner/infrastructure invalidate-frontend",
-    "frontend:serve": "yarn workspace @meal-planner/web-client-v2 dev"
+    "frontend:build": "yarn infra:output && yarn --cwd packages/web-client-v2 build",
+    "frontend:sync": "aws s3 sync packages/web-client-v2/dist s3://$(terraform -chdir=packages/infrastructure output -raw webclient_bucket) --delete",
+    "frontend:invalidate": "aws cloudfront create-invalidation --path '/*' --distribution-id $(terraform -chdir=packages/infrastructure output -raw cloudfront_distribution_id)",
+    "frontend:deploy": "yarn frontend:build && yarn frontend:sync && yarn frontend:invalidate",
+    "frontend:serve": "yarn --cwd packages/web-client-v2 dev"
   },
-  "private": true,
-  "workspaces": [
-    "packages/functions",
-    "packages/cli",
-    "packages/infrastructure",
-    "packages/web-client-v2"
-  ],
-  "devDependencies": {}
+  "private": true
 }
