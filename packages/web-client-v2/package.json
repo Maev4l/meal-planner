@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "deploy": "yarn build && aws s3 sync ./dist s3://$(terraform output -raw webclient_bucket) --delete"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "11.13.5",
