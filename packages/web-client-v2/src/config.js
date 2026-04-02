@@ -7,9 +7,9 @@ const logoutUrl = isDev ? 'http://localhost:3000/login' : 'https://meal-planner.
 
 export const config = {
   cognito: {
-    userPoolId: outputConfig.mealPlannerUserPoolId,
-    userPoolClientId: outputConfig.mealPlannerClientId,
-    region: outputConfig.mealPlannerRegion,
+    userPoolId: outputConfig.cognito_user_pool_id.value,
+    userPoolClientId: outputConfig.cognito_user_pool_client_id.value,
+    region: outputConfig.region.value,
   },
   // OAuth configuration for Google sign-in
   oauth: {
