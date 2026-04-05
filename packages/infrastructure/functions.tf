@@ -6,7 +6,7 @@ locals {
 }
 
 module "api" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.5.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.6.0"
 
   function_name = "meal-planner-api"
   architecture  = "arm64"
@@ -19,6 +19,7 @@ module "api" {
     filename = local.api_filename
     runtime  = "provided.al2023"
     handler  = "bootstrap"
+    hash     = filebase64sha256("../functions/api/bin/bootstrap")
   }
 
   environment_variables = {
@@ -29,7 +30,7 @@ module "api" {
 }
 
 module "api_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.5.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.6.0"
 
   function_name = module.api.function_name
   function_arn  = module.api.function_arn
@@ -52,7 +53,7 @@ module "api_trigger" {
 }
 
 module "user_management" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.5.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.6.0"
 
   function_name = "meal-planner-user-management"
   architecture  = "arm64"
@@ -64,6 +65,7 @@ module "user_management" {
     filename = local.user_management_filename
     runtime  = "provided.al2023"
     handler  = "bootstrap"
+    hash     = filebase64sha256("../functions/user-management/bin/bootstrap")
   }
 
   environment_variables = {
@@ -73,7 +75,7 @@ module "user_management" {
 }
 
 module "user_management_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.5.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.6.0"
 
   function_name = module.user_management.function_name
   function_arn  = module.user_management.function_arn
