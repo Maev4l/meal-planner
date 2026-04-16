@@ -258,6 +258,7 @@ const GroupSchedulePage = () => {
             exclusive
             onChange={handleViewChange}
             size="small"
+            sx={{ gap: 1 }}
           >
             <ToggleButton value="personal">
               <PersonIcon sx={{ fontSize: 18, mr: 0.75 }} />
