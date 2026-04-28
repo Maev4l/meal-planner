@@ -23,6 +23,7 @@
 - Self-registration enabled (admin approval via `custom:Approved` attribute)
 - Google OAuth identity provider
 - Lambda triggers: `user-management` (pre_sign_up, post_confirmation)
+- Token TTLs: access/ID = 60 min, refresh = 1 year (absolute expiry; re-login required yearly or on explicit sign-out, password change, or admin disable)
 
 ### SSM Parameters (secrets)
 
