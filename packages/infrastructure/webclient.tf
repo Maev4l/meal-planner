@@ -2,6 +2,8 @@
 
 resource "aws_s3_bucket" "webclient" {
   bucket = "meal-planner-web-client"
+  # Allow `terraform destroy` to remove the bucket even when objects remain.
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_public_access_block" "webclient" {
