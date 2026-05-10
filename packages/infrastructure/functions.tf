@@ -6,7 +6,7 @@ locals {
 }
 
 module "api" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.6.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.7.1"
 
   function_name = "meal-planner-api"
   architecture  = "arm64"
@@ -30,14 +30,14 @@ module "api" {
 }
 
 module "api_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.6.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.7.1"
 
-  function_name = module.api.function_name
-  function_arn  = module.api.function_arn
-  invoke_arn    = module.api.invoke_arn
-  cors          = false
+  # api_name produces "meal-planner-api-http-api" — byte-identical to the v1.6.0
+  # default (which was "${function_name}-http-api"). Keeping this value avoids
+  # API Gateway rename/recreation.
+  api_name = "meal-planner-api"
 
-  # Allow CloudFront to reach the API Gateway via execute-api endpoint
+  cors                         = false
   disable_execute_api_endpoint = false
 
   # JWT Authorizer integrated with Cognito User Pool
@@ -47,13 +47,20 @@ module "api_trigger" {
     audience = [aws_cognito_user_pool_client.meal_planner.id]
   }
 
-  routes = [
-    "ANY /api/{proxy+}"
-  ]
+  # v1.7.1 supports multiple integrations behind one HTTP API. Single entry "api"
+  # for now; key becomes part of state addresses (see state mv in Task 4).
+  integrations = {
+    api = {
+      function_name = module.api.function_name
+      function_arn  = module.api.function_arn
+      invoke_arn    = module.api.invoke_arn
+      routes        = ["ANY /api/{proxy+}"]
+    }
+  }
 }
 
 module "user_management" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.6.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.7.1"
 
   function_name = "meal-planner-user-management"
   architecture  = "arm64"
@@ -75,7 +82,7 @@ module "user_management" {
 }
 
 module "user_management_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.6.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.7.1"
 
   function_name = module.user_management.function_name
   function_arn  = module.user_management.function_arn
