@@ -15,21 +15,27 @@ func main() {
 	router := gin.New()
 	router.Use(handlers.HttpLogger())
 	router.Use(gin.Recovery())
-	router.Use(handlers.RequireApproved())
 
 	r := repositories.NewDynamoDB()
 	c := repositories.NewCognito()
 	s := services.New(r, c)
 	h := handlers.NewHTTPHandler(s)
 
-	// Routes — preserved bit-for-bit from the previous main.go.
-	router.POST("/api/groups", h.CreateGroup)
-	router.POST("/api/groups/:groupId/members", h.CreateMember)
-	router.POST("/api/groups/:groupId/schedules", h.CreateSchedule)
-	router.POST("/api/groups/:groupId/comments", h.CreateComments)
-	router.POST("/api/groups/:groupId/notices", h.CreateNotice)
-	router.DELETE("/api/groups/:groupId/notices/:period", h.DeleteNotice)
-	router.GET("/api/schedules/:period", h.GetSchedules)
+	// RequireApproved sits on the /api group, not router-global. This keeps
+	// LWA's HTTP readiness probe on "/" out of the auth middleware (Gin
+	// returns 404, which LWA treats as healthy; <500 means "ready"). With
+	// auth global, an empty Authorization header panics parseAuthHeader and
+	// LWA never sees ready → cold-start times out.
+	api := router.Group("/api")
+	api.Use(handlers.RequireApproved())
+
+	api.POST("/groups", h.CreateGroup)
+	api.POST("/groups/:groupId/members", h.CreateMember)
+	api.POST("/groups/:groupId/schedules", h.CreateSchedule)
+	api.POST("/groups/:groupId/comments", h.CreateComments)
+	api.POST("/groups/:groupId/notices", h.CreateNotice)
+	api.DELETE("/groups/:groupId/notices/:period", h.DeleteNotice)
+	api.GET("/schedules/:period", h.GetSchedules)
 
 	// PORT is injected by the LWA layer in AWS; defaults to 8080 for local runs.
 	port := os.Getenv("PORT")
