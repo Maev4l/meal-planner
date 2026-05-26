@@ -3,6 +3,12 @@
 locals {
   api_filename             = "../functions/api/dist/bootstrap.zip"
   user_management_filename = "../functions/user-management/dist/bootstrap.zip"
+
+  # AWS Lambda Web Adapter (arm64) - publisher account 753240598075.
+  # Bump intentionally; release notes:
+  # https://github.com/aws/aws-lambda-web-adapter/releases
+  lwa_layer_version = 27
+  lwa_layer_arn     = "arn:aws:lambda:${var.region}:753240598075:layer:LambdaAdapterLayerArm64:${local.lwa_layer_version}"
 }
 
 module "api" {
@@ -15,6 +21,10 @@ module "api" {
 
   additional_policy_arns = [aws_iam_policy.api.arn]
 
+  # AWS Lambda Web Adapter (arm64). The layer's Extension intercepts the
+  # Lambda runtime API and forwards events as HTTP requests to PORT.
+  layers = [local.lwa_layer_arn]
+
   zip = {
     filename = local.api_filename
     runtime  = "provided.al2023"
@@ -26,6 +36,11 @@ module "api" {
     DYNAMODB_TABLE_NAME = aws_dynamodb_table.meal_planner.name
     REGION              = var.region
     USER_POOL_ID        = aws_cognito_user_pool.meal_planner.id
+
+    # AWS Lambda Web Adapter forwards events to this port on 127.0.0.1.
+    # Must match the port the Gin server binds to in api/cmd/api/main.go.
+    PORT                = "8080"
+    AWS_LWA_INVOKE_MODE = "buffered"
   }
 }
 
