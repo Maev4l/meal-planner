@@ -16,3 +16,6 @@ config.json
 .terraform.lock.hcl
 *.tfplan
 tfplan
+
+# Local dev env file for the api lambda (gitignored on purpose; see api/.env.local.example).
+packages/functions/api/.env.local

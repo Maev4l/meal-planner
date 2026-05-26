@@ -1,4 +1,4 @@
-.PHONY: build build-api build-user-management package package-api package-user-management clean test
+.PHONY: build build-api build-user-management package package-api package-user-management clean test run-api-local
 
 # Build settings for AWS Lambda (ARM64)
 GOOS := linux
@@ -35,3 +35,9 @@ clean:
 # Run tests for all functions
 test:
 	go test -v ./...
+
+# Run the API lambda locally as a plain HTTP server (Web Adapter mode).
+# Requires AWS credentials in the environment (e.g. `aws sso login`)
+# and env vars sourced from api/.env.local (gitignored).
+run-api-local:
+	@set -a && . ./api/.env.local && set +a && go run ./api/cmd/api
