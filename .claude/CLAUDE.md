@@ -9,7 +9,10 @@ In addition, for each meal, they can attach a comment.
 - The backend is AWS Lambda written in Golang: @backend.md.
 - Infrastructure is managed with Terraform: @../packages/infrastructure
 - Everything is deployed on AWS.
-- The project is a monorepo based on yarn workspaces.
+- The project is a monorepo. It does NOT use yarn workspaces: each JS package
+  manages its own `node_modules` / `yarn.lock`. Run package commands with
+  `yarn --cwd packages/<pkg> ...`; the root `package.json` holds only NPM scripts
+  and declares no dependencies.
 
 ## Guidelines
 - Update the md files according to changes:
