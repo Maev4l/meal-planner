@@ -16,6 +16,15 @@
 - CloudFront serves both frontend (S3) and API (`/api/*` -> API Gateway)
 - Terraform modules from `github.com/Maev4l/terraform-modules`
 
+#### Cache-Control (PWA update correctness)
+
+Response-headers policies (`cloudfront.tf`) set the `Cache-Control` the browser sees,
+so the stable-named PWA app shell never reinstalls a phantom service worker:
+- App shell (default behavior + `/sw.js`): `no-cache` (always revalidate)
+- Content-hashed `/assets/*`: `public, max-age=31536000, immutable`
+- Deploy invalidates `/*` (`yarn frontend:invalidate`)
+- Client polls `registration.update()` hourly + on `visibilitychange` (`UpdatePrompt.jsx`)
+
 ### Cognito Configuration
 
 - User Pool: `meal-planner`

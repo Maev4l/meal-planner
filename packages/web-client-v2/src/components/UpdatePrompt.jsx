@@ -4,8 +4,12 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Snackbar, Box, Typography, alpha } from '@mui/material';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 
-// Check for updates every 1 minutes (in milliseconds)
-const UPDATE_CHECK_INTERVAL = 60 * 1000;
+// Background safety-net poll interval. Hourly (not 60s): visibilitychange below
+// covers the common open/background/return pattern, so a tighter interval would
+// only re-fetch sw.js more often — maximizing the chance of catching a divergent
+// edge copy and re-showing a phantom "update available" banner — without
+// delivering new versions any faster.
+const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000;
 
 /**
  * PWA update prompt - shows a clickable banner when a new version is available.
@@ -19,10 +23,18 @@ const UpdatePrompt = () => {
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
       if (registration) {
-        // Check for updates periodically
+        // Background safety net: catch a deploy while the app sits open and idle.
         setInterval(() => {
           registration.update();
         }, UPDATE_CHECK_INTERVAL);
+
+        // Primary trigger: re-check the instant the user returns to the app. This
+        // is what makes a fresh deploy show up quickly for normal usage.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            registration.update();
+          }
+        });
       }
     },
   });
