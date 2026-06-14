@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { SchedulesProvider } from './contexts/SchedulesContext';
+import { PWAProvider } from './contexts/PWAContext';
 import { ToastProvider } from './components/ui/Toast';
 import { ChalkSprite } from './components/Icon';
 import BottomNav from './components/ui/BottomNav';
@@ -41,7 +42,8 @@ const App = () => {
   if (isLoading || !minElapsed) return <SplashScreen />;
 
   return (
-    <ToastProvider>
+    <PWAProvider>
+      <ToastProvider>
       <ChalkSprite />
       <div className="mx-auto w-full max-w-md min-h-dvh pb-[90px]">
         <SchedulesProvider>
@@ -59,7 +61,8 @@ const App = () => {
       </div>
       {!isLoading && isAuthenticated && <BottomNav />}
       <UpdatePrompt />
-    </ToastProvider>
+      </ToastProvider>
+    </PWAProvider>
   );
 };
 

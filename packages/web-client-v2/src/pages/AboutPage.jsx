@@ -2,10 +2,14 @@
 // Logic preserved:
 //   - navigate(-1) on back button
 //   - __APP_VERSION__ and __GIT_COMMIT_HASH__ build-time globals for version/build info
+//   - manual update check via PWAContext (usePWA)
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
 import Icon from '../components/Icon';
+import Button from '../components/ui/Button';
+import { usePWA } from '../contexts/PWAContext';
 
 // An info row showing a labelled value with a coral icon box.
 const InfoRow = ({ iconName, label, value }) => (
@@ -25,6 +29,25 @@ const InfoRow = ({ iconName, label, value }) => (
 
 const AboutPage = () => {
   const navigate = useNavigate();
+  const { needRefresh, checkForUpdate, applyUpdate } = usePWA();
+  const [isChecking, setIsChecking] = useState(false);
+  const [checkComplete, setCheckComplete] = useState(false);
+
+  const handleCheckUpdate = useCallback(async () => {
+    if (isChecking) return;
+    setIsChecking(true);
+    setCheckComplete(false);
+
+    await checkForUpdate();
+
+    // Brief delay so the "checking" state is visible, then show the result. If an
+    // update was found, needRefresh flips and the button becomes "tap to install".
+    setTimeout(() => {
+      setIsChecking(false);
+      setCheckComplete(true);
+      setTimeout(() => setCheckComplete(false), 2000);
+    }, 500);
+  }, [checkForUpdate, isChecking]);
 
   return (
     <div className="flex flex-col">
@@ -55,6 +78,42 @@ const AboutPage = () => {
         {/* Version & build info rows */}
         <InfoRow iconName="code" label="Version" value={__APP_VERSION__} />
         <InfoRow iconName="branch" label="Build" value={__GIT_COMMIT_HASH__} />
+
+        {/* Update: when a new version is waiting, tapping installs it; otherwise a manual check. */}
+        {needRefresh ? (
+          <Button
+            variant="primary"
+            onClick={applyUpdate}
+            className="mt-2 flex items-center justify-center gap-2"
+          >
+            <Icon name="refresh" className="w-[18px] h-[18px]" />
+            Update available — tap to install
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            onClick={handleCheckUpdate}
+            disabled={isChecking}
+            className="mt-2 flex items-center justify-center gap-2"
+          >
+            {isChecking ? (
+              <>
+                <Icon name="refresh" className="w-[18px] h-[18px] animate-spin" />
+                Checking…
+              </>
+            ) : checkComplete ? (
+              <>
+                <span className="text-sage font-bold">✓</span>
+                Up to date
+              </>
+            ) : (
+              <>
+                <Icon name="refresh" className="w-[18px] h-[18px]" />
+                Check for updates
+              </>
+            )}
+          </Button>
+        )}
 
         {/* Footer */}
         <div className="font-hand text-chalk-faint text-center mt-6 text-[18px]">
