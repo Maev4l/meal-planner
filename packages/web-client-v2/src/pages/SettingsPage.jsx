@@ -1,289 +1,102 @@
-// Edited by Claude.
-// Warm Bistro themed settings page with elegant list design
-import { useState } from 'react';
-import {
-  Box,
-  Typography,
-  AppBar,
-  Toolbar,
-  Snackbar,
-  Avatar,
-  alpha,
-} from '@mui/material';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import SettingsIcon from '@mui/icons-material/Settings';
+// Ardoise chalk re-skin of SettingsPage.
+// Logic preserved: useAuth() for user data, navigate to /settings/account and /settings/about,
+// navigator.clipboard.writeText(user.email) on copy icon click.
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import TopBar from '../components/ui/TopBar';
+import Avatar from '../components/ui/Avatar';
+import IconButton from '../components/ui/IconButton';
+import Icon from '../components/Icon';
+import { useToast } from '../components/ui/Toast';
 
-// Generate consistent color from string for avatar backgrounds
-const stringToColor = (str) => {
-  const colors = [
-    '#722F37', // burgundy
-    '#D4A373', // amber
-    '#87A878', // sage
-    '#C9705E', // terracotta
-  ];
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-};
+// A single navigable settings row.
+const SettingsRow = ({ iconName, title, sub, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex items-center gap-3.5 p-[15px] rounded-[16px] bg-chalk/[0.04] border border-line mb-3 w-full text-left cursor-pointer"
+  >
+    {/* Icon box */}
+    <div className="w-[42px] h-[42px] rounded-[12px] grid place-items-center bg-coral/15 text-coral flex-none">
+      <Icon name={iconName} className="w-5 h-5" />
+    </div>
 
-const SettingsItem = ({ icon: Icon, title, subtitle, onClick, action }) => {
-  return (
-    <Box
-      onClick={onClick}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        p: 2,
-        cursor: onClick ? 'pointer' : 'default',
-        borderRadius: 3,
-        backgroundColor: 'background.paper',
-        mb: 1.5,
-        border: (theme) =>
-          `1px solid ${alpha(theme.palette.charcoal.main, 0.06)}`,
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': onClick
-          ? {
-              transform: 'translateY(-1px)',
-              boxShadow: (theme) =>
-                `0 4px 16px ${alpha(theme.palette.charcoal.main, 0.08)}`,
-            }
-          : {},
-        animation: 'fadeInUp 0.4s ease-out forwards',
-      }}
-    >
-      <Box
-        sx={{
-          width: 44,
-          height: 44,
-          borderRadius: 2.5,
-          backgroundColor: (theme) =>
-            alpha(theme.palette.burgundy.main, 0.08),
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            fontWeight: 500,
-            color: 'text.primary',
-          }}
-        >
-          {title}
-        </Typography>
-        {subtitle && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {subtitle}
-          </Typography>
-        )}
-      </Box>
-      {action || (
-        <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 22 }} />
-      )}
-    </Box>
-  );
-};
+    {/* Labels */}
+    <div className="flex-1 min-w-0">
+      <div className="font-semibold text-[14.5px] text-chalk">{title}</div>
+      <div className="text-chalk-dim text-xs mt-0.5">{sub}</div>
+    </div>
+
+    {/* Chevron */}
+    <span className="ml-auto text-chalk-faint text-[20px]">→</span>
+  </button>
+);
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const toast = useToast();
 
   const handleCopyEmail = (e) => {
+    // Stop the event from bubbling so only the copy fires, not any parent onClick.
     e.stopPropagation();
     if (user?.email) {
       navigator.clipboard.writeText(user.email);
-      setSnackbarOpen(true);
+      toast('Email copied');
     }
   };
 
-  const userColor = user?.name ? stringToColor(user.name) : '#722F37';
-
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'var(--vh-with-nav)',
-        mx: -2,
-      }}
-    >
-      <AppBar position="static" sx={{ width: '100%' }}>
-        <Toolbar sx={{ justifyContent: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <SettingsIcon sx={{ fontSize: 24 }} />
-            <Typography
-              variant="h6"
-              component="h1"
-              sx={{
-                fontFamily: '"Playfair Display", Georgia, serif',
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-              }}
-            >
-              Settings
-            </Typography>
-          </Box>
-        </Toolbar>
-      </AppBar>
+    <div className="flex flex-col">
+      <TopBar title="Settings" />
 
-      <Box
-        sx={{
-          flex: 1,
-          overflow: 'auto',
-          p: 2,
-          backgroundColor: 'background.default',
-        }}
-      >
-        {/* User profile card */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            p: 2.5,
-            borderRadius: 3,
-            backgroundColor: 'background.paper',
-            mb: 3,
-            border: (theme) =>
-              `1px solid ${alpha(theme.palette.charcoal.main, 0.06)}`,
-            boxShadow: (theme) =>
-              `0 4px 16px ${alpha(theme.palette.charcoal.main, 0.06)}`,
-            animation: 'fadeInUp 0.4s ease-out forwards',
-          }}
-        >
-          <Avatar
-            sx={{
-              width: 56,
-              height: 56,
-              bgcolor: userColor,
-              fontSize: '1.4rem',
-              fontWeight: 600,
-            }}
-          >
-            {user?.name?.charAt(0).toUpperCase() || '?'}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontFamily: '"Playfair Display", Georgia, serif',
-                fontWeight: 600,
-                color: 'text.primary',
-              }}
-            >
+      <div className="px-5 pb-6">
+        {/* Profile card */}
+        <div className="bg-chalk/5 border border-line rounded-[18px] p-[18px] flex items-center gap-3.5 mb-5">
+          <Avatar name={user?.name || '?'} size={56} />
+
+          <div className="flex-1 min-w-0">
+            <div className="font-hand font-bold text-[26px] leading-tight truncate">
               {user?.name || 'Unknown'}
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.75,
-                mt: 0.5,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  color: 'text.disabled',
-                  fontSize: '0.75rem',
-                }}
-              >
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-chalk-dim text-xs truncate">
                 {user?.email || '—'}
-              </Typography>
-              <Box
+              </span>
+              {/* Copy email button — small, inline */}
+              <IconButton
+                name="copy"
+                label="Copy email"
                 onClick={handleCopyEmail}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  p: 0.5,
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: (theme) =>
-                      alpha(theme.palette.charcoal.main, 0.08),
-                  },
-                }}
-              >
-                <ContentCopyIcon
-                  sx={{ fontSize: 14, color: 'text.disabled' }}
-                />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+                className="w-6 h-6 border-0 flex-none"
+              />
+            </div>
+          </div>
+        </div>
 
-        {/* Settings items */}
-        <Typography
-          variant="subtitle2"
-          sx={{
-            color: 'text.secondary',
-            mb: 1.5,
-            px: 0.5,
-            animation: 'fadeIn 0.3s ease-out forwards',
-          }}
-        >
-          ACCOUNT
-        </Typography>
-
-        <SettingsItem
-          icon={AccountCircleIcon}
+        {/* Account section */}
+        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-faint my-3">
+          Account
+        </div>
+        <SettingsRow
+          iconName="key"
           title="Account Details"
-          subtitle="Manage your profile and preferences"
+          sub="Change password &amp; sign out"
           onClick={() => navigate('/settings/account')}
         />
 
-        <Typography
-          variant="subtitle2"
-          sx={{
-            color: 'text.secondary',
-            mb: 1.5,
-            mt: 3,
-            px: 0.5,
-            animation: 'fadeIn 0.3s ease-out forwards',
-            animationDelay: '0.1s',
-          }}
-        >
-          APP
-        </Typography>
-
-        <SettingsItem
-          icon={InfoOutlinedIcon}
+        {/* App section */}
+        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-faint my-3">
+          App
+        </div>
+        <SettingsRow
+          iconName="info"
           title="About"
-          subtitle="Version and app information"
+          sub="Version &amp; app info"
           onClick={() => navigate('/settings/about')}
         />
-      </Box>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSnackbarOpen(false)}
-        message="Email copied to clipboard"
-      />
-    </Box>
+      </div>
+    </div>
   );
 };
 

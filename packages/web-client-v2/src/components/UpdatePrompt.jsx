@@ -1,8 +1,5 @@
-// Edited by Claude.
-// Warm Bistro themed update prompt with elegant styling
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { Snackbar, Box, Typography, alpha } from '@mui/material';
-import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
+import Icon from './Icon';
 
 // Background safety-net poll interval. Hourly (not 60s): visibilitychange below
 // covers the common open/background/return pattern, so a tighter interval would
@@ -11,11 +8,6 @@ import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 // delivering new versions any faster.
 const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000;
 
-/**
- * PWA update prompt - shows a clickable banner when a new version is available.
- * Clicking anywhere on the banner triggers the update and page reload.
- * Periodically checks for updates in the background.
- */
 const UpdatePrompt = () => {
   const {
     needRefresh: [needRefresh],
@@ -23,17 +15,9 @@ const UpdatePrompt = () => {
   } = useRegisterSW({
     onRegisteredSW(swUrl, registration) {
       if (registration) {
-        // Background safety net: catch a deploy while the app sits open and idle.
-        setInterval(() => {
-          registration.update();
-        }, UPDATE_CHECK_INTERVAL);
-
-        // Primary trigger: re-check the instant the user returns to the app. This
-        // is what makes a fresh deploy show up quickly for normal usage.
+        setInterval(() => registration.update(), UPDATE_CHECK_INTERVAL);
         document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            registration.update();
-          }
+          if (document.visibilityState === 'visible') registration.update();
         });
       }
     },
@@ -41,54 +25,19 @@ const UpdatePrompt = () => {
 
   if (!needRefresh) return null;
 
-  const handleUpdate = () => {
-    updateServiceWorker(true);
-  };
-
   return (
-    <Snackbar
-      open
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      sx={{ bottom: { xs: 82, sm: 24 } }} // Above bottom nav on mobile (adjusted for new nav height)
+    <div
+      onClick={() => updateServiceWorker(true)}
+      className="fixed left-4 right-4 bottom-[90px] z-40 flex items-center gap-3 px-4 py-3.5 rounded-[16px] cursor-pointer text-chalk border-[1.5px] border-coral bg-gradient-to-br from-[#2c352d] to-[#222823] shadow-[0_18px_44px_-12px_rgba(0,0,0,0.75)] animate-[rise_0.45s_ease-out] active:scale-[0.98] max-w-md mx-auto"
     >
-      <Box
-        onClick={handleUpdate}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          px: 3,
-          py: 2,
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.burgundy.main} 0%, ${theme.palette.burgundy.dark} 100%)`,
-          color: '#FFF8F0',
-          borderRadius: 3,
-          cursor: 'pointer',
-          boxShadow: (theme) =>
-            `0 8px 32px ${alpha(theme.palette.burgundy.main, 0.4)}`,
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: (theme) =>
-              `0 12px 40px ${alpha(theme.palette.burgundy.main, 0.5)}`,
-          },
-          '&:active': {
-            transform: 'scale(0.98)',
-          },
-          animation: 'scaleIn 0.3s ease-out forwards',
-        }}
-      >
-        <SystemUpdateIcon sx={{ fontSize: 22 }} />
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 500,
-          }}
-        >
-          Update available — tap to refresh
-        </Typography>
-      </Box>
-    </Snackbar>
+      <span className="w-10 h-10 rounded-[12px] grid place-items-center bg-coral/15 text-coral flex-none">
+        <Icon name="refresh" className="w-5 h-5" />
+      </span>
+      <div>
+        <b className="block text-sm font-bold">Update available</b>
+        <small className="text-[11.5px] text-chalk-dim">Tap to refresh to the latest version</small>
+      </div>
+    </div>
   );
 };
 

@@ -1,173 +1,67 @@
-// Edited by Claude.
-// Warm Bistro themed about page with elegant info cards
-import { Box, Typography, AppBar, Toolbar, IconButton, alpha } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
-import CodeIcon from '@mui/icons-material/Code';
-import GitHubIcon from '@mui/icons-material/GitHub';
+// Ardoise chalk re-skin of AboutPage.
+// Logic preserved:
+//   - navigate(-1) on back button
+//   - __APP_VERSION__ and __GIT_COMMIT_HASH__ build-time globals for version/build info
 import { useNavigate } from 'react-router-dom';
+import TopBar from '../components/ui/TopBar';
+import IconButton from '../components/ui/IconButton';
+import Icon from '../components/Icon';
 
-const InfoItem = ({ icon: Icon, label, value, delay }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 2,
-      p: 2,
-      borderRadius: 3,
-      backgroundColor: 'background.paper',
-      mb: 1.5,
-      border: (theme) => `1px solid ${alpha(theme.palette.charcoal.main, 0.06)}`,
-      animation: 'fadeInUp 0.4s ease-out forwards',
-      animationDelay: `${delay}s`,
-      opacity: 0,
-    }}
-  >
-    <Box
-      sx={{
-        width: 40,
-        height: 40,
-        borderRadius: 2.5,
-        backgroundColor: (theme) => alpha(theme.palette.burgundy.main, 0.08),
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      <Icon sx={{ fontSize: 20, color: 'primary.main' }} />
-    </Box>
-    <Box sx={{ flex: 1 }}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.25 }}>
-        {label}
-      </Typography>
-      <Typography
-        variant="subtitle1"
-        sx={{
-          fontWeight: 500,
-          color: 'text.primary',
-          fontFamily: 'monospace',
-          fontSize: '0.9rem',
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  </Box>
+// An info row showing a labelled value with a coral icon box.
+const InfoRow = ({ iconName, label, value }) => (
+  <div className="flex items-center gap-3.5 p-4 rounded-[14px] bg-chalk/5 border border-line mb-3">
+    {/* Icon box */}
+    <div className="w-[40px] h-[40px] rounded-[12px] grid place-items-center bg-coral/15 text-coral flex-none">
+      <Icon name={iconName} className="w-5 h-5" />
+    </div>
+
+    {/* Label + value */}
+    <div className="flex-1 min-w-0">
+      <div className="text-chalk-dim text-[11px] tracking-wide">{label}</div>
+      <div className="font-mono text-[13px] text-chalk truncate">{value}</div>
+    </div>
+  </div>
 );
 
 const AboutPage = () => {
   const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'var(--vh-with-nav)',
-        mx: -2,
-      }}
-    >
-      <AppBar position="static" sx={{ width: '100%' }}>
-        <Toolbar>
+    <div className="flex flex-col">
+      <TopBar
+        title="About"
+        left={
           <IconButton
-            edge="start"
-            color="inherit"
-            onClick={() => navigate('/settings')}
-            sx={{
-              '&:hover': {
-                backgroundColor: (theme) =>
-                  alpha(theme.palette.common.white, 0.1),
-              },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography
-            variant="h6"
-            component="h1"
-            sx={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontWeight: 600,
-            }}
-          >
-            About
-          </Typography>
-        </Toolbar>
-      </AppBar>
+            name="back"
+            label="Back"
+            onClick={() => navigate(-1)}
+            className="ml-0"
+          />
+        }
+      />
 
-      <Box
-        sx={{
-          flex: 1,
-          overflow: 'auto',
-          p: 3,
-          backgroundColor: 'background.default',
-        }}
-      >
-        {/* App branding */}
-        <Box
-          sx={{
-            textAlign: 'center',
-            mb: 4,
-            animation: 'fadeInUp 0.5s ease-out forwards',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: (theme) =>
-                `linear-gradient(135deg, ${theme.palette.burgundy.main} 0%, ${theme.palette.burgundy.dark} 100%)`,
-              boxShadow: (theme) =>
-                `0 8px 32px ${alpha(theme.palette.burgundy.main, 0.35)}`,
-              mb: 2,
-            }}
-          >
-            <RestaurantIcon sx={{ fontSize: 40, color: '#FFF8F0' }} />
-          </Box>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontWeight: 600,
-              color: 'text.primary',
-              mb: 0.5,
-            }}
-          >
-            Meal Planner
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Plan together, dine together
-          </Typography>
-        </Box>
+      <div className="px-5 pb-6">
+        {/* Crest / branding */}
+        <div className="flex flex-col items-center mb-6">
+          {/* Dashed-ring crest */}
+          <div className="w-[88px] h-[88px] rounded-full border-2 border-dashed border-coral grid place-items-center mx-auto text-mustard mb-2">
+            <Icon name="meal" className="w-[58%] h-[58%]" />
+          </div>
 
-        {/* Version info */}
-        <InfoItem icon={CodeIcon} label="Version" value={__APP_VERSION__} delay={0.1} />
-        <InfoItem icon={GitHubIcon} label="Build" value={__GIT_COMMIT_HASH__} delay={0.15} />
+          <div className="font-hand font-bold text-[48px] leading-tight">Meal Planner</div>
+          <div className="font-hand text-coral text-[24px]">&agrave; table.</div>
+        </div>
+
+        {/* Version & build info rows */}
+        <InfoRow iconName="code" label="Version" value={__APP_VERSION__} />
+        <InfoRow iconName="branch" label="Build" value={__GIT_COMMIT_HASH__} />
 
         {/* Footer */}
-        <Typography
-          variant="caption"
-          sx={{
-            display: 'block',
-            textAlign: 'center',
-            mt: 4,
-            color: 'text.disabled',
-            animation: 'fadeIn 0.5s ease-out forwards',
-            animationDelay: '0.3s',
-          }}
-        >
-          Made with care for shared meals
-        </Typography>
-      </Box>
-    </Box>
+        <div className="font-hand text-chalk-faint text-center mt-6 text-[18px]">
+          made with care for shared meals
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,165 +1,42 @@
-// Edited by Claude.
-// Warm Bistro themed week navigator with proper alignment
-import { Box, IconButton, Typography, Chip, alpha } from '@mui/material';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import IconButton from './ui/IconButton';
 import { getCurrentWeek } from '../constants/schedule';
 
+// Week navigator for the Ardoise redesign.
+// Uses the shared chalk IconButton; the "back" chevron glyph is reused for all
+// three buttons — next rotates 180°, jump-to-today uses dashed coral styling.
+// The jump-to-today slot is always rendered (just invisible) so row width stays
+// constant and the layout never shifts.
 const WeekNavigator = ({ year, week, onChange }) => {
   const current = getCurrentWeek();
   const isCurrentWeek = year === current.year && week === current.week;
-  const canGoPrevious =
-    year > current.year || (year === current.year && week > current.week);
-
-  // Show jump-to-today only if previous week is not the current week
+  const canGoPrevious = year > current.year || (year === current.year && week > current.week);
   const prevWeek = week === 1 ? 52 : week - 1;
   const prevYear = week === 1 ? year - 1 : year;
-  const previousIsCurrentWeek =
-    prevYear === current.year && prevWeek === current.week;
-  const showJumpToToday = !isCurrentWeek && !previousIsCurrentWeek;
+  // Hide jump-to-today when we're already on the current week OR when pressing
+  // prev would land exactly on the current week (one step away → redundant).
+  const showJumpToToday = !isCurrentWeek && !(prevYear === current.year && prevWeek === current.week);
 
-  const handleToday = () => {
-    onChange(current.year, current.week);
-  };
-
-  const handlePrevious = () => {
-    if (!canGoPrevious) return;
-    if (week === 1) {
-      onChange(year - 1, 52);
-    } else {
-      onChange(year, week - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (week === 52) {
-      onChange(year + 1, 1);
-    } else {
-      onChange(year, week + 1);
-    }
-  };
+  const handleToday = () => onChange(current.year, current.week);
+  const handlePrevious = () => { if (canGoPrevious) onChange(week === 1 ? year - 1 : year, week === 1 ? 52 : week - 1); };
+  const handleNext = () => onChange(week === 52 ? year + 1 : year, week === 52 ? 1 : week + 1);
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        mb: 2.5,
-        gap: 0.5,
-      }}
-    >
-      {/* Jump to today button - fixed width for balance */}
-      <Box sx={{ width: 40, display: 'flex', justifyContent: 'center' }}>
-        {showJumpToToday && (
-          <IconButton
-            onClick={handleToday}
-            size="small"
-            sx={{
-              backgroundColor: (theme) =>
-                alpha(theme.palette.primary.main, 0.08),
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: (theme) =>
-                  alpha(theme.palette.primary.main, 0.15),
-              },
-            }}
-          >
-            <KeyboardDoubleArrowLeftIcon />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* Previous week - fixed width */}
-      <Box sx={{ width: 40, display: 'flex', justifyContent: 'center' }}>
-        {canGoPrevious && (
-          <IconButton
-            onClick={handlePrevious}
-            size="small"
-            sx={{ color: 'text.secondary' }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* Week display - fixed width center section */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 1,
-          px: 2,
-          py: 1,
-          borderRadius: 3,
-          backgroundColor: (theme) =>
-            alpha(theme.palette.charcoal.main, 0.04),
-          minWidth: 160,
-        }}
-      >
-        <CalendarTodayIcon
-          sx={{
-            fontSize: 18,
-            color: isCurrentWeek ? 'primary.main' : 'text.secondary',
-          }}
-        />
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 600,
-              fontFamily: '"DM Sans", sans-serif',
-              color: 'text.primary',
-              lineHeight: 1.2,
-            }}
-          >
-            Week {String(week).padStart(2, '0')}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              display: 'block',
-            }}
-          >
-            {year}
-          </Typography>
-        </Box>
+    <div className="flex items-center justify-center gap-1.5 my-1">
+      {/* jump-to-today slot is reserved (hidden, not removed) so the row width is constant */}
+      <IconButton name="back" label="Jump to this week" onClick={handleToday}
+        className={`border-dashed !border-coral !text-coral ${showJumpToToday ? '' : 'invisible'}`} />
+      <IconButton name="back" label="Previous week" onClick={handlePrevious} disabled={!canGoPrevious} />
+      <div className="flex items-center justify-between gap-2.5 px-4 py-[7px] rounded-[14px] bg-chalk/[0.06] border border-line w-[200px]">
+        <div className="min-w-0">
+          <div className="font-hand font-bold text-[23px] leading-none whitespace-nowrap">Week {String(week).padStart(2, '0')}</div>
+          <div className="text-[10px] tracking-[0.16em] uppercase text-chalk-dim mt-px">{year}</div>
+        </div>
         {isCurrentWeek && (
-          <Chip
-            label="Now"
-            size="small"
-            sx={{
-              height: 20,
-              backgroundColor: 'primary.main',
-              color: 'white',
-              fontWeight: 600,
-              fontSize: '0.65rem',
-              '& .MuiChip-label': {
-                px: 0.75,
-              },
-            }}
-          />
+          <span className="text-[9px] tracking-[0.14em] uppercase bg-mustard text-slate-0 font-bold px-[7px] py-0.5 rounded-full">Now</span>
         )}
-      </Box>
-
-      {/* Next week - fixed width */}
-      <Box sx={{ width: 40, display: 'flex', justifyContent: 'center' }}>
-        <IconButton
-          onClick={handleNext}
-          size="small"
-          sx={{ color: 'text.secondary' }}
-        >
-          <ChevronRightIcon />
-        </IconButton>
-      </Box>
-
-      {/* Spacer to balance layout - fixed width */}
-      <Box sx={{ width: 40 }} />
-    </Box>
+      </div>
+      <IconButton name="back" label="Next week" onClick={handleNext} className="rotate-180" />
+    </div>
   );
 };
 

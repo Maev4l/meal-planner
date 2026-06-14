@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Meal Planner — Direction: Ardoise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Caveat:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+<style>
+  /* ============ ARDOISE — chalkboard café ============ */
+  :root{
+    --slate-0:#171b18;
+    --slate-1:#1f2421;
+    --slate-2:#262c28;
+    --chalk:#f1ead9;
+    --chalk-dim:rgba(241,234,217,.56);
+    --chalk-faint:rgba(241,234,217,.26);
+    --coral:#e9806a;
+    --mustard:#e7c24d;
+    --sage:#9cc08a;          /* "eating" / present */
+    --red:#df6253;           /* "not eating" / absent */
+    --line:rgba(241,234,217,.18);
+    --hand:'Caveat', cursive;
+    --body:'Archivo', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:var(--body);
+    background:#0d100e;
+    color:var(--chalk);
+    padding:40px 0 64px;
+    background-image:radial-gradient(circle at 30% 0%, #16201a 0%, #0d100e 60%);
+  }
+  /* page chrome */
+  .pagehead{max-width:1180px;margin:0 auto 30px;padding:0 28px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .pagehead h1{font-family:var(--hand);font-weight:700;font-size:54px;line-height:.9;margin:0;color:var(--chalk)}
+  .pagehead h1 small{display:block;font-family:var(--body);font-weight:600;letter-spacing:.32em;text-transform:uppercase;font-size:12px;color:var(--coral);margin-bottom:6px}
+  .pagehead p{margin:0;max-width:440px;color:var(--chalk-dim);font-size:13.5px;line-height:1.6}
+  .backlink{font-family:var(--body);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--chalk-dim);text-decoration:none;border:1px solid var(--line);padding:9px 16px;border-radius:999px}
+  .backlink:hover{color:var(--chalk);border-color:var(--chalk-dim)}
+
+  .stage{display:flex;gap:30px;padding:8px 28px 0;overflow-x:auto;max-width:1180px;margin:0 auto;scrollbar-width:thin}
+  .col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .col .tag{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--chalk-faint)}
+
+  /* phone */
+  .phone{
+    width:332px;height:720px;border-radius:46px;position:relative;overflow:hidden;
+    background:linear-gradient(170deg,var(--slate-1),var(--slate-0));
+    box-shadow:0 2px 0 rgba(255,255,255,.04) inset, 0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 9px #050605, 0 0 0 11px #1b1f1c;
+  }
+  .phone::after{ /* chalk dust grain */
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+  .screen::-webkit-scrollbar{display:none}
+  .pad{padding:0 22px 26px}
+
+  /* chalk underlines & rules */
+  .rule{height:0;border-bottom:1.5px solid var(--line);margin:14px 0}
+  .rule.dash{border-bottom-style:dashed;border-color:var(--chalk-faint)}
+
+  /* topbar */
+  .bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:54px 22px 14px;background:linear-gradient(var(--slate-1) 72%,transparent)}
+  .bar .ttl{font-family:var(--hand);font-weight:700;font-size:30px;line-height:1}
+  .bar .sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--chalk-dim)}
+  .iconbtn{margin-left:auto;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--chalk-dim);background:none;cursor:pointer}
+  .iconbtn:hover{color:var(--chalk);border-color:var(--chalk-dim)}
+
+  /* === LOGIN === */
+  .login{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 30px;position:relative}
+  .crest{width:84px;height:84px;border-radius:50%;border:2px dashed var(--coral);display:grid;place-items:center;margin-bottom:26px;position:relative}
+  .crest span{font-family:var(--hand);font-weight:700;font-size:44px;color:var(--mustard);transform:rotate(-6deg)}
+  .login h2{font-family:var(--hand);font-weight:700;font-size:60px;line-height:.86;margin:0 0 30px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--chalk-dim);margin-bottom:7px}
+  .field .ip{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--line);color:var(--chalk);font-family:var(--body);font-size:15px;padding:8px 2px;outline:none}
+  .field .ip:focus{border-color:var(--coral)}
+  .btn{width:100%;border:none;cursor:pointer;font-family:var(--body);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;padding:15px;border-radius:14px;margin-top:10px;background:var(--coral);color:#221311}
+  .btn:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent;color:var(--chalk-dim);border:1.5px solid var(--line);margin-top:12px}
+  .btn.ghost:hover{color:var(--chalk)}
+  .ordiv{display:flex;align-items:center;gap:12px;color:var(--chalk-faint);font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin:22px 0 4px}
+  .ordiv::before,.ordiv::after{content:"";flex:1;border-bottom:1px dashed var(--chalk-faint)}
+  .footnote{position:absolute;bottom:30px;left:0;right:0;text-align:center;font-size:12.5px;color:var(--chalk-dim)}
+  .footnote a{color:var(--coral);text-decoration:none;font-weight:600}
+
+  /* === GROUPS === */
+  .gcard{position:relative;display:flex;align-items:center;gap:16px;padding:18px 0;cursor:pointer;border-bottom:1.5px dashed var(--chalk-faint)}
+  .gcard:hover .gname{color:var(--mustard)}
+  .gmark{flex:0 0 auto;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-family:var(--hand);font-weight:700;font-size:30px;color:var(--slate-0);transform:rotate(-3deg)}
+  .gname{font-family:var(--hand);font-weight:700;font-size:27px;line-height:1;transition:color .2s}
+  .gmeta{font-size:12px;color:var(--chalk-dim);margin-top:3px;display:flex;align-items:center;gap:8px}
+  .stack{display:flex}
+  .stack .av{width:24px;height:24px;border-radius:50%;border:2px solid var(--slate-1);display:grid;place-items:center;font-size:9.5px;font-weight:700;color:#1b1f1c;margin-left:-7px}
+  .stack .av:first-child{margin-left:0}
+  .chev{margin-left:auto;color:var(--chalk-faint);font-size:22px}
+
+  /* view switch */
+  .switch{display:flex;gap:6px;background:rgba(241,234,217,.06);border:1px solid var(--line);padding:5px;border-radius:14px;margin:4px 0 18px}
+  .switch button{flex:1;border:none;background:none;cursor:pointer;color:var(--chalk-dim);font-family:var(--body);font-weight:600;font-size:12.5px;letter-spacing:.06em;padding:9px;border-radius:10px}
+  .switch button.on{background:var(--chalk);color:var(--slate-0)}
+
+  /* week meta line */
+  .weekline{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .weekline .wk{font-family:var(--hand);font-weight:700;font-size:34px;line-height:.8}
+  .weekline .yr{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--chalk-dim)}
+  .nowtag{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate-0);background:var(--mustard);padding:3px 9px;border-radius:999px;font-weight:700}
+
+  /* === MY WEEK : one-tap toggles, green=in / red=out === */
+  .dayrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .dayrow.today{position:relative}
+  .dayrow.today::before{content:"";position:absolute;left:-22px;top:0;bottom:0;width:4px;background:var(--coral);border-radius:0 3px 3px 0}
+  .dname{width:62px;flex:0 0 auto}
+  .dname b{display:block;font-weight:600;font-size:14px}
+  .dname small{color:var(--chalk-dim);font-size:11px}
+  .today .dname b{color:var(--coral)}
+  .meals{margin-left:auto;display:flex;gap:10px}
+  .meal{ /* tap target */
+    width:74px;height:54px;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    border:1.5px solid var(--line);transition:transform .14s ease, background .18s, color .18s, border-color .18s;user-select:none}
+  .meal .mlabel{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase}
+  .meal .mglyph{font-family:var(--body);font-weight:800;font-size:17px;line-height:.7;height:17px}
+  .meal:active{transform:scale(.93)}
+  /* IN (eating) — chalk green */
+  .meal.on{border-color:var(--sage);background:rgba(156,192,138,.16);color:var(--sage)}
+  .meal.on .mglyph::after{content:"\2713"} /* ✓ */
+  /* OUT (not eating) — chalk red */
+  .meal.off{border-color:var(--red);background:rgba(223,98,83,.15);color:var(--red)}
+  .meal.off .mglyph::after{content:"\2715"} /* ✕ */
+  .hint{display:flex;gap:8px;align-items:center;color:var(--chalk-dim);margin:2px 0 14px;font-style:italic;font-family:var(--hand);font-size:18px}
+  .legend{display:flex;gap:14px;align-items:center;font-size:10.5px;letter-spacing:.04em;color:var(--chalk-dim);margin:0 0 10px}
+  .legend i{display:inline-flex;align-items:center;gap:5px}
+  .legend .dot{width:11px;height:11px;border-radius:4px;border:1.5px solid currentColor}
+  .legend .in{color:var(--sage)} .legend .out{color:var(--red)}
+
+  /* === EVERYONE : day-centric, compact name badges === */
+  .daystrip{display:flex;gap:7px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .daystrip::-webkit-scrollbar{display:none}
+  .daychip{flex:0 0 auto;width:42px;height:56px;border-radius:14px;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--chalk-dim);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+  .daychip small{font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+  .daychip b{font-size:17px;font-weight:600}
+  .daychip.on{background:var(--chalk);color:var(--slate-0);border-color:var(--chalk)}
+  .daychip .dot{width:5px;height:5px;border-radius:50%;background:var(--coral)}
+
+  .mealblock{margin-bottom:18px}
+  .mealhead{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .mealhead .mh{font-family:var(--hand);font-weight:700;font-size:28px;line-height:.8}
+  .mealhead .mh.lunch{color:var(--mustard)}
+  .mealhead .mh.dinner{color:var(--coral)}
+  .mealhead .cnt{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--slate-0);background:var(--chalk-dim);border-radius:999px;padding:2px 9px;margin-left:auto}
+  /* compact wrapping badges — see everyone at a glance, no scroll */
+  .badges{display:flex;flex-wrap:wrap;gap:7px}
+  .badge{display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 4px;border:1px solid var(--line);border-radius:999px;background:rgba(241,234,217,.05);font-size:13px;line-height:1}
+  .badge .av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:700;color:#1b1f1c;flex:0 0 auto}
+  .badge.me{border-color:var(--mustard);background:rgba(231,194,77,.14);font-weight:700}
+  .empty{color:var(--chalk-faint);font-style:italic;font-family:var(--hand);font-size:19px;padding:2px 0}
+
+  /* bottom nav */
+  .nav{position:absolute;bottom:0;left:0;right:0;height:74px;display:flex;background:rgba(23,27,24,.92);border-top:1px solid var(--line);backdrop-filter:blur(8px)}
+  .nav button{flex:1;border:none;background:none;cursor:pointer;color:var(--chalk-faint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+  .nav button.on{color:var(--chalk)}
+  .nav .ic{font-size:20px}
+
+  /* ===== section labels (two rows of screens) ===== */
+  .section{max-width:1180px;margin:40px auto 4px;padding:0 28px}
+  .section h2{font-family:var(--hand);font-weight:700;font-size:36px;line-height:.9;margin:0}
+  .section h2 small{display:block;font-family:var(--body);font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:11px;color:var(--mustard);margin-bottom:6px}
+  .section p{margin:6px 0 0;color:var(--chalk-dim);font-size:13px;max-width:560px;line-height:1.55}
+  .section .ln{height:0;border-bottom:1.5px dashed var(--chalk-faint);margin-top:12px}
+
+  /* ===== splash ===== */
+  .splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;
+    background:radial-gradient(circle at 50% 36%, #212a20 0%, #141811 72%)}
+  .splash .glow{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none}
+  .crest.big{width:120px;height:120px;margin-bottom:30px;animation:breathe 2.4s ease-in-out infinite}
+  .crest.big span{font-size:62px}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
+  .splashname{font-family:var(--hand);font-weight:700;font-size:52px;line-height:.8;margin:0;color:var(--chalk)}
+  .motif{font-family:var(--hand);font-weight:600;font-size:24px;color:var(--coral);margin-top:6px}
+  .dots{display:flex;gap:9px;margin-top:36px}
+  .dots span{width:9px;height:9px;border-radius:50%;background:var(--coral);animation:sbounce 1.4s ease-in-out infinite}
+  .dots span:nth-child(2){animation-delay:.16s;background:var(--mustard)}
+  .dots span:nth-child(3){animation-delay:.32s;background:var(--sage)}
+  @keyframes sbounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+  /* ===== sign up extras ===== */
+  .login.signup{justify-content:flex-start;padding-top:50px;padding-bottom:30px}
+  .login.signup h2{font-size:46px;margin-bottom:22px}
+  .lblrow{display:flex;justify-content:space-between;align-items:baseline}
+  .lblrow .ct{font-size:10px;letter-spacing:.12em;color:var(--chalk-faint)}
+  .help{font-size:11px;margin-top:7px;color:var(--chalk-dim)}
+  .help.ok{color:var(--sage)} .help.bad{color:var(--red)}
+  .altline{text-align:center;margin-top:16px;font-size:12.5px;color:var(--chalk-dim)}
+  .altline a{color:var(--coral);text-decoration:none;font-weight:600}
+
+  /* ===== success / pending approval ===== */
+  .crest.done{border-color:var(--sage);border-style:solid}
+  .crest.done span{color:var(--sage);font-family:var(--body);font-weight:800;font-size:44px;transform:none}
+  .login.center{justify-content:center;text-align:center;align-items:center}
+  .login.center h2{font-size:52px}
+  .login.center p{color:var(--chalk-dim);font-size:14px;line-height:1.55;max-width:250px;margin:8px 0 28px}
+
+  /* ===== first-run empty groups ===== */
+  .emptywrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:46px 8px}
+  .emptyring{width:112px;height:112px;border-radius:50%;border:2px dashed var(--chalk-faint);display:grid;place-items:center;margin-bottom:24px}
+  .emptyring span{font-family:var(--hand);font-weight:700;font-size:52px;color:var(--chalk-faint);transform:rotate(-6deg)}
+  .emptywrap h3{font-family:var(--hand);font-weight:700;font-size:34px;margin:0 0 8px;color:var(--chalk)}
+  .emptywrap p{color:var(--chalk-dim);font-size:13.5px;line-height:1.55;max-width:235px;margin:0 0 22px}
+
+  /* ===== PWA update prompt banner ===== */
+  .dimmed{opacity:.4;filter:saturate(.7);pointer-events:none}
+  .update-banner{position:absolute;left:16px;right:16px;bottom:90px;display:flex;align-items:center;gap:13px;
+    padding:14px 16px;border-radius:16px;cursor:pointer;color:var(--chalk);
+    background:linear-gradient(135deg,#2c352d,#222823);border:1.5px solid var(--coral);
+    box-shadow:0 18px 44px -12px rgba(0,0,0,.75);animation:rise .45s ease-out}
+  @keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .update-banner:active{transform:scale(.98)}
+  .update-banner .ui{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:21px;
+    background:rgba(233,128,106,.16);color:var(--coral);flex:0 0 auto}
+  .update-banner .ut b{display:block;font-size:14px;font-weight:700}
+  .update-banner .ut small{font-size:11.5px;color:var(--chalk-dim)}
+
+  /* ===== week selector (My week + Everyone) ===== */
+  .weeknav{display:flex;align-items:center;justify-content:center;gap:6px;margin:2px 0 16px}
+  .weeknav .navbtn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:none;color:var(--chalk-dim);display:grid;place-items:center;cursor:pointer;font-size:20px;line-height:1;transition:.15s}
+  .weeknav .navbtn:hover:not(:disabled){color:var(--chalk);border-color:var(--chalk-dim)}
+  .weeknav .navbtn:disabled{opacity:.22;cursor:default}
+  .weeknav .navbtn.jump{border-style:dashed;border-color:var(--coral);color:var(--coral)}
+  .weeknav .wkbox{display:flex;align-items:center;gap:10px;padding:7px 16px;border-radius:14px;background:rgba(241,234,217,.06);border:1px solid var(--line);width:200px;justify-content:space-between}
+  .weeknav .wkleft{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+  .weeknav .wkbox .cal{width:14px;height:13px;border:1.5px solid var(--chalk-dim);border-radius:3px;position:relative;flex:0 0 auto}
+  .weeknav .wkbox .cal::before{content:"";position:absolute;top:-4px;left:2px;right:2px;height:4px;border-left:1.5px solid var(--chalk-dim);border-right:1.5px solid var(--chalk-dim)}
+  .weeknav .wkbox.now .cal,.weeknav .wkbox.now .cal::before{border-color:var(--coral)}
+  .weeknav .wkmain{font-family:var(--hand);font-weight:700;font-size:23px;line-height:.8;white-space:nowrap}
+  .weeknav .wksub{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--chalk-dim);margin-top:1px}
+  .weeknav .nowchip{font-size:9px;letter-spacing:.14em;text-transform:uppercase;background:var(--mustard);color:var(--slate-0);font-weight:700;padding:2px 7px;border-radius:999px}
+  .dayrow.past{opacity:.45}
+  .dayrow.past .meal{cursor:default}
+
+  /* ===== chalk icons ===== */
+  .sprite{position:absolute;width:0;height:0;overflow:hidden}
+  .logoicon{width:64%;height:64%;color:var(--mustard)}
+  .crest.big .logoicon{width:66%;height:66%}
+  .emptyring .logoicon{color:var(--chalk-faint)}
+  .icn{width:58%;height:58%;display:block}
+
+  /* ===== settings · home ===== */
+  .seclabel{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--chalk-faint);margin:20px 0 10px}
+  .profile{display:flex;align-items:center;gap:14px;padding:18px;border-radius:18px;background:rgba(241,234,217,.05);border:1px solid var(--line)}
+  .profile .pav{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:20px;color:#1b1f1c;flex:0 0 auto}
+  .profile .pname{font-family:var(--hand);font-weight:700;font-size:26px;line-height:1}
+  .profile .pmail{display:flex;align-items:center;gap:6px;color:var(--chalk-dim);font-size:12px;margin-top:4px}
+  .profile .copy{color:var(--chalk-dim);cursor:pointer;display:inline-flex}
+  .profile .copy svg{width:14px;height:14px}
+  .setitem{display:flex;align-items:center;gap:14px;padding:15px;border-radius:16px;background:rgba(241,234,217,.04);border:1px solid var(--line);margin-bottom:11px;cursor:pointer;transition:.15s}
+  .setitem:hover{background:rgba(241,234,217,.08)}
+  .setitem .si{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:rgba(233,128,106,.14);color:var(--coral);flex:0 0 auto}
+  .setitem .stitle{font-weight:600;font-size:14.5px}
+  .setitem .ssub{color:var(--chalk-dim);font-size:12px;margin-top:2px}
+  .setitem .schev{margin-left:auto;color:var(--chalk-faint);font-size:20px}
+
+  /* ===== settings · account (change password + sign out) ===== */
+  .card{padding:18px;border-radius:18px;background:rgba(241,234,217,.05);border:1px solid var(--line);margin-bottom:16px}
+  .cardhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .cardhead .ci{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(233,128,106,.14);color:var(--coral);flex:0 0 auto}
+  .cardhead h3{font-family:var(--hand);font-weight:700;font-size:24px;margin:0;line-height:.9}
+  .reqbox{background:rgba(241,234,217,.04);border:1px dashed var(--chalk-faint);border-radius:12px;padding:13px 14px;margin:6px 0 16px}
+  .reqbox .rt{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--chalk-dim);margin-bottom:9px}
+  .req{display:flex;align-items:center;gap:9px;font-size:12.5px;margin-bottom:7px;color:var(--chalk-dim)}
+  .req:last-child{margin-bottom:0}
+  .req .rc{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800;border:1.5px solid var(--chalk-faint);color:var(--chalk-faint);flex:0 0 auto}
+  .req.ok{color:var(--sage)} .req.ok .rc{border-color:var(--sage);background:rgba(156,192,138,.16);color:var(--sage)}
+  .btn.danger{background:transparent;border:1.5px solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;gap:9px}
+  .btn.danger svg{width:18px;height:18px}
+  .btn.danger:hover{background:rgba(223,98,83,.12)}
+
+  /* ===== settings · about ===== */
+  .aboutwrap{text-align:center;padding-top:8px}
+  .aboutcrest{width:88px;height:88px;border-radius:50%;border:2px dashed var(--coral);display:grid;place-items:center;margin:0 auto 18px;color:var(--mustard)}
+  .aboutwrap h2{font-family:var(--hand);font-weight:700;font-size:48px;margin:0;line-height:.8;color:var(--chalk)}
+  .inforow{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(241,234,217,.05);border:1px solid var(--line);margin-bottom:11px;text-align:left}
+  .inforow .ii{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(233,128,106,.14);color:var(--coral);flex:0 0 auto}
+  .inforow .il{font-size:11px;color:var(--chalk-dim);letter-spacing:.04em}
+  .inforow .iv{font-family:'JetBrains Mono',monospace;font-size:13px;margin-top:3px;color:var(--chalk)}
+  .aboutfoot{text-align:center;margin-top:24px;font-family:var(--hand);font-size:18px;color:var(--chalk-faint)}
+
+  /* ===== installed · home screen + app icon asset ===== */
+  .iconshow{display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:34px}
+  .iconbig{width:160px;height:160px;border-radius:38px;background:radial-gradient(circle at 50% 40%, #2a332b, #14180f);display:grid;place-items:center;box-shadow:0 30px 60px -22px rgba(0,0,0,.8),0 0 0 1px rgba(241,234,217,.07)}
+  .iconbig .logoicon{width:62%;height:62%;color:var(--chalk)}
+  .iconpng{width:120px;height:120px;border-radius:28px;box-shadow:0 16px 36px -16px rgba(0,0,0,.7)}
+  .iconcap{font-size:11px;letter-spacing:.03em;color:var(--chalk-dim);text-align:center;line-height:1.5}
+  .iconcap b{color:var(--chalk);font-weight:600}
+  .iconcap code{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--mustard)}
+  .homescreen{position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(165deg,#3c4a4d 0%,#283440 44%,#5a3f48 100%)}
+  .hs-status{display:flex;justify-content:space-between;align-items:center;padding:16px 22px 2px;color:#fff;font-weight:600;font-size:13px}
+  .hs-status .r{font-size:11px;letter-spacing:.04em;opacity:.92}
+  .hs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 12px;padding:26px 18px 8px;align-content:start}
+  .hs-app{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .hs-tile{width:56px;height:56px;border-radius:15px;border:1px solid rgba(255,255,255,.14)}
+  .hs-tile.ours{border:none;background:radial-gradient(circle at 50% 40%, #2a332b, #14180f);display:grid;place-items:center;box-shadow:0 8px 18px -6px rgba(0,0,0,.55)}
+  .hs-tile.ours .logoicon{width:64%;height:64%;color:var(--chalk)}
+  .hs-name{font-size:9.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+  .hs-name.ph{width:30px;height:6px;border-radius:3px;background:rgba(255,255,255,.42);text-shadow:none}
+  .hs-app.ours .hs-name{font-weight:700}
+  .hs-dock{margin:auto 14px 22px;height:78px;border-radius:28px;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-around;padding:0 16px}
+  .hs-dock .hs-tile{width:54px;height:54px}
+</style>
+</head>
+<body>
+  <!-- hand-drawn chalk icon set (currentColor strokes, roughened via SVG filter) -->
+  <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+    <filter id="chalk" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <symbol id="ic-meal" viewBox="4 4 40 40"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="24" cy="24" r="8"/>
+      <path d="M24 24 L24 19"/><path d="M24 24 L29 24"/><circle cx="24" cy="24" r="0.9" fill="currentColor" stroke="none"/>
+      <path d="M8 8 L8 12.5 Q8 14.8 10 15.5"/><path d="M10 8 L10 15.5"/><path d="M12 8 L12 12.5 Q12 14.8 10 15.5"/><path d="M10 15.5 L10 40"/>
+      <path d="M40 8 L40 40"/><path d="M40 8 C 35.5 12.5, 35.5 19.5, 40 23"/></g></symbol>
+    <symbol id="ic-key" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="8.5" cy="8.5" r="4"/><path d="M11.4 11.4 L20 20 M16.5 16.5 l2.2 -2.2 M18.5 18.5 l2 -2"/></g></symbol>
+    <symbol id="ic-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <rect x="5" y="10" width="14" height="9.5" rx="2"/><path d="M8 10 V7.5 a4 4 0 0 1 8 0 V10"/></g></symbol>
+    <symbol id="ic-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="12" cy="12" r="9"/><path d="M12 11 V16"/><path d="M12 8 h0.01"/></g></symbol>
+    <symbol id="ic-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M14 5 H6 a1.2 1.2 0 0 0 -1.2 1.2 V17.8 A1.2 1.2 0 0 0 6 19 H14"/><path d="M17 8 l4 4 -4 4 M21 12 H10"/></g></symbol>
+    <symbol id="ic-code" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M9 8 L5 12 L9 16 M15 8 l4 4 -4 4"/></g></symbol>
+    <symbol id="ic-branch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="6.5" cy="6" r="2.3"/><circle cx="6.5" cy="18" r="2.3"/><circle cx="17.5" cy="8" r="2.3"/><path d="M6.5 8.3 V15.7"/><path d="M17.5 10.3 v1.2 a4.5 4.5 0 0 1 -4.5 4.5 H9"/></g></symbol>
+    <symbol id="ic-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15 V5.5 a1.5 1.5 0 0 1 1.5 -1.5 H15"/></g></symbol>
+  </defs></svg>
+
+  <div class="pagehead">
+    <h1><small>Direction 01</small>Ardoise</h1>
+    <p>The daily-specials board. Warm slate, hand-lettered chalk, a coral &amp; mustard accent. In "My week" a meal is green when you're in, red when you're out. "Everyone" reads like the board outside a café — who's in for lunch, who's in for dinner, by name.</p>
+  </div>
+
+  <div class="section">
+    <h2><small>The everyday app</small>Sign in, groups &amp; the week</h2>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- LOGIN -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="login">
+          <div class="crest"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+          <h2>Meal<br>Planner</h2>
+          <div class="field"><label>Email</label><input class="ip" value="camille@maison.fr"></div>
+          <div class="field"><label>Password</label><input class="ip" type="password" value="········"></div>
+          <button class="btn">Sign in</button>
+          <div class="ordiv">or</div>
+          <button class="btn ghost">Continue with Google</button>
+          <div class="footnote">New here? <a>Pull up a chair</a></div>
+        </div>
+      </div></div>
+      <div class="tag">Login</div>
+    </div>
+
+    <!-- GROUPS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div><div class="ttl">Your groups</div><div class="sub">3 groups</div></div><button class="iconbtn">+</button></div>
+        <div class="pad">
+          <div class="gcard"><div class="gmark" style="background:var(--coral)">FT</div><div><div class="gname">Family Table</div><div class="gmeta">5 members <span class="stack"><span class="av" style="background:var(--mustard)">CA</span><span class="av" style="background:var(--sage)">JO</span><span class="av" style="background:var(--coral)">TH</span></span></div></div><div class="chev">→</div></div>
+          <div class="gcard"><div class="gmark" style="background:var(--mustard)">3B</div><div><div class="gname">Flat 3B</div><div class="gmeta">4 members <span class="stack"><span class="av" style="background:var(--sage)">LI</span><span class="av" style="background:var(--coral)">MA</span><span class="av" style="background:var(--mustard)">SO</span></span></div></div><div class="chev">→</div></div>
+          <div class="gcard"><div class="gmark" style="background:var(--sage)">TC</div><div><div class="gname">Trail Crew</div><div class="gmeta">8 members <span class="stack"><span class="av" style="background:var(--coral)">EL</span><span class="av" style="background:var(--mustard)">NA</span><span class="av" style="background:var(--sage)">PA</span></span></div></div><div class="chev">→</div></div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="on"><span class="ic">▦</span>Groups</button>
+        <button><span class="ic">◔</span>Settings</button>
+      </div>
+      </div></div>
+      <div class="tag">Groups</div>
+    </div>
+
+    <!-- MY WEEK -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" style="margin-left:0">←</button><div><div class="ttl">Family Table</div></div><button class="iconbtn">⚙</button></div>
+        <div class="pad">
+          <div class="switch"><button class="on">My week</button><button>Everyone</button></div>
+          <div class="weeknav" id="aweeknav"></div>
+          <div class="hint">↳ tap a meal — saved instantly</div>
+          <div class="legend"><i class="in"><span class="dot"></span>in for it</i><i class="out"><span class="dot"></span>not eating</i></div>
+          <div id="aweek"></div>
+        </div>
+      </div>
+      <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">My Week · one-tap toggles</div>
+    </div>
+
+    <!-- EVERYONE -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" style="margin-left:0">←</button><div><div class="ttl">Family Table</div></div><button class="iconbtn">⚙</button></div>
+        <div class="pad">
+          <div class="switch"><button>My week</button><button class="on">Everyone</button></div>
+          <div class="weeknav" id="eweeknav"></div>
+          <div class="daystrip" id="astrip"></div>
+          <div id="atable"></div>
+        </div>
+      </div>
+      <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">Everyone · who's eating, by name</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><small>New users &amp; system</small>Onboarding &amp; app states</h2>
+    <p>Screens a member meets once or rarely: the launch splash, self-registration with admin approval, the empty first run, and the PWA "new version" prompt.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- SPLASH -->
+    <div class="col">
+      <div class="phone">
+        <div class="splash">
+          <div class="glow" style="width:56%;height:40%;top:8%;left:6%;background:rgba(233,128,106,.10)"></div>
+          <div class="glow" style="width:60%;height:46%;bottom:5%;right:5%;background:rgba(231,194,77,.09)"></div>
+          <div class="crest big"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+          <h2 class="splashname">Meal Planner</h2>
+          <div class="motif">à table.</div>
+          <div class="dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+      <div class="tag">Splash · app launch</div>
+    </div>
+
+    <!-- SIGN UP -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="login signup">
+          <div class="crest" style="width:62px;height:62px;margin-bottom:18px"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+          <h2>Create<br>account</h2>
+          <div class="field"><label>Email</label><input class="ip" value="lina@maison.fr"></div>
+          <div class="field"><div class="lblrow"><label>Name</label><span class="ct">4 / 20</span></div><input class="ip" value="Lina"></div>
+          <div class="field"><label>Password</label><input class="ip" type="password" value="············"><div class="help ok">✓ strong — meets all requirements</div></div>
+          <div class="field"><label>Confirm password</label><input class="ip" type="password" value="············"><div class="help ok">✓ passwords match</div></div>
+          <button class="btn">Create account</button>
+          <div class="altline">Already have an account? <a>Sign in</a></div>
+        </div>
+      </div></div>
+      <div class="tag">Sign up · new users</div>
+    </div>
+
+    <!-- PENDING APPROVAL -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="login center">
+          <div class="crest done"><span>✓</span></div>
+          <h2>Account<br>created</h2>
+          <p>Your registration is pending approval. An administrator will review your request and let you in.</p>
+          <button class="btn ghost" style="max-width:240px">Back to sign in</button>
+        </div>
+      </div></div>
+      <div class="tag">Pending approval · new users</div>
+    </div>
+
+    <!-- FIRST RUN — EMPTY GROUPS -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div><div class="ttl">Your groups</div><div class="sub">0 groups</div></div><button class="iconbtn">+</button></div>
+        <div class="pad">
+          <div class="emptywrap">
+            <div class="emptyring"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+            <h3>No groups yet</h3>
+            <p>Start a group for your household, or join one with an invite link to begin planning meals together.</p>
+            <button class="btn" style="max-width:230px">＋ New group</button>
+            <button class="btn ghost" style="max-width:230px">I have an invite</button>
+          </div>
+        </div>
+        <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">First run · empty state</div>
+    </div>
+
+    <!-- PWA UPDATE PROMPT -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div><div class="ttl">Your groups</div><div class="sub">3 groups</div></div><button class="iconbtn">+</button></div>
+        <div class="pad dimmed">
+          <div class="gcard"><div class="gmark" style="background:var(--coral)">FT</div><div><div class="gname">Family Table</div><div class="gmeta">5 members</div></div><div class="chev">→</div></div>
+          <div class="gcard"><div class="gmark" style="background:var(--mustard)">3B</div><div><div class="gname">Flat 3B</div><div class="gmeta">4 members</div></div><div class="chev">→</div></div>
+          <div class="gcard"><div class="gmark" style="background:var(--sage)">TC</div><div><div class="gname">Trail Crew</div><div class="gmeta">8 members</div></div><div class="chev">→</div></div>
+        </div>
+        <div class="update-banner">
+          <div class="ui">↻</div>
+          <div class="ut"><b>Update available</b><small>Tap to refresh to the latest version</small></div>
+        </div>
+        <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">PWA update prompt</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><small>Settings</small>Account &amp; app</h2>
+    <p>The settings tab: profile summary, change password, sign out, and app version info.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- SETTINGS HOME -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div class="ttl">Settings</div></div>
+        <div class="pad">
+          <div class="profile">
+            <div class="pav" style="background:var(--coral)">CA</div>
+            <div style="flex:1;min-width:0">
+              <div class="pname">Camille</div>
+              <div class="pmail">camille@maison.fr <span class="copy"><svg><use href="#ic-copy"/></svg></span></div>
+            </div>
+          </div>
+          <div class="seclabel">Account</div>
+          <div class="setitem"><div class="si"><svg class="icn"><use href="#ic-key"/></svg></div><div style="flex:1"><div class="stitle">Account details</div><div class="ssub">Change password &amp; sign out</div></div><div class="schev">→</div></div>
+          <div class="seclabel">App</div>
+          <div class="setitem"><div class="si"><svg class="icn"><use href="#ic-info"/></svg></div><div style="flex:1"><div class="stitle">About</div><div class="ssub">Version &amp; app info</div></div><div class="schev">→</div></div>
+        </div>
+        <div class="nav"><button><span class="ic">▦</span>Groups</button><button class="on"><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">Settings · home</div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" style="margin-left:0">←</button><div class="ttl">Account</div></div>
+        <div class="pad">
+          <div class="card">
+            <div class="cardhead"><div class="ci"><svg class="icn"><use href="#ic-lock"/></svg></div><h3>Change password</h3></div>
+            <div class="field"><label>Current password</label><input class="ip" type="password" value="········"></div>
+            <div class="field"><label>New password</label><input class="ip" type="password" value="············"></div>
+            <div class="reqbox">
+              <div class="rt">Password requirements</div>
+              <div class="req ok"><span class="rc">✓</span>At least 8 characters</div>
+              <div class="req ok"><span class="rc">✓</span>An uppercase letter</div>
+              <div class="req ok"><span class="rc">✓</span>A lowercase letter</div>
+              <div class="req ok"><span class="rc">✓</span>A number</div>
+              <div class="req"><span class="rc">✕</span>A special character</div>
+            </div>
+            <div class="field"><label>Confirm new password</label><input class="ip" type="password" value="············"></div>
+            <button class="btn" style="margin-top:6px">Change password</button>
+          </div>
+          <button class="btn danger"><svg><use href="#ic-logout"/></svg>Sign out</button>
+        </div>
+        <div class="nav"><button><span class="ic">▦</span>Groups</button><button class="on"><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">Account · password &amp; sign out</div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" style="margin-left:0">←</button><div class="ttl">About</div></div>
+        <div class="pad">
+          <div class="aboutwrap">
+            <div class="aboutcrest"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+            <h2>Meal Planner</h2>
+            <div class="motif">à table.</div>
+          </div>
+          <div class="inforow"><div class="ii"><svg class="icn"><use href="#ic-code"/></svg></div><div><div class="il">Version</div><div class="iv">2.0.0</div></div></div>
+          <div class="inforow"><div class="ii"><svg class="icn"><use href="#ic-branch"/></svg></div><div><div class="il">Build</div><div class="iv">f88ea83</div></div></div>
+          <div class="aboutfoot">made with care for shared meals</div>
+        </div>
+        <div class="nav"><button><span class="ic">▦</span>Groups</button><button class="on"><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">About · version &amp; info</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><small>Installed</small>On the home screen</h2>
+    <p>The same chalk place setting on the slate board, exported as the PWA app icon — what members tap once it's added to a phone. Rendered from the icon SVG to <code>app-icon.png</code> in <code>design-mockups/</code>.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- APP ICON ASSET -->
+    <div class="col">
+      <div class="iconshow">
+        <div class="iconbig"><svg class="logoicon"><use href="#ic-meal"/></svg></div>
+        <img class="iconpng" src="app-icon.png" alt="Meal Planner app icon">
+        <div class="iconcap"><b>app-icon.png</b> · 512×512<br>maskable-safe · slate + chalk</div>
+      </div>
+      <div class="tag">App icon · live SVG &amp; exported PNG</div>
+    </div>
+
+    <!-- HOME SCREEN PREVIEW -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="homescreen">
+          <div class="hs-status"><span>9:41</span><span class="r">5G · 100%</span></div>
+          <div class="hs-grid" id="hsgrid"></div>
+          <div class="hs-dock" id="hsdock"></div>
+        </div>
+      </div></div>
+      <div class="tag">Home screen preview</div>
+    </div>
+  </div>
+
+<script src="mock-data.js"></script>
+<script>
+  const PAL={cam:'var(--coral)',jon:'var(--mustard)',theo:'var(--sage)',lina:'var(--coral)',marco:'var(--mustard)',sofia:'var(--sage)',you:'#cbb9e8'};
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // ---- ISO-week helpers (real dates, like the app's dayjs isoWeek) ----
+  const isoWeek=(d)=>{
+    const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    const dayNum=(t.getUTCDay()+6)%7;            // Mon=0..Sun=6
+    t.setUTCDate(t.getUTCDate()-dayNum+3);        // nearest Thursday
+    const firstThu=new Date(Date.UTC(t.getUTCFullYear(),0,4));
+    const week=1+Math.round(((t-firstThu)/864e5 - 3 + ((firstThu.getUTCDay()+6)%7))/7);
+    return {year:t.getUTCFullYear(),week};
+  };
+  const mondayOfISOWeek=(y,w)=>{
+    const s=new Date(Date.UTC(y,0,1+(w-1)*7));
+    const dow=s.getUTCDay();
+    if(dow<=4) s.setUTCDate(s.getUTCDate()-s.getUTCDay()+1);
+    else s.setUTCDate(s.getUTCDate()+8-s.getUTCDay());
+    return s;
+  };
+  const weekDates=(y,w)=>{const m=mondayOfISOWeek(y,w);return [...Array(7)].map((_,i)=>{const dt=new Date(m);dt.setUTCDate(m.getUTCDate()+i);return dt;});};
+  const CUR=isoWeek(new Date());
+  const eqW=(a,b)=>a.year===b.year&&a.week===b.week;
+  const afterW=(a,b)=>a.year>b.year||(a.year===b.year&&a.week>b.week);   // strictly after current
+  const prevW=(s)=>s.week===1?{year:s.year-1,week:52}:{year:s.year,week:s.week-1};
+  const nextW=(s)=>s.week===52?{year:s.year+1,week:1}:{year:s.year,week:s.week+1};
+
+  // shared week-selector renderer: prev only forward of "now", jump-to-today, Now chip
+  function renderWeekNav(el,state,onChange){
+    const isNow=eqW(state,CUR);
+    const canPrev=afterW(state,CUR);                       // can't go before the current week
+    const showJump=!isNow && !eqW(prevW(state),CUR);       // hidden if prev btn already lands on "now"
+    el.innerHTML=`
+      <button class="navbtn jump" ${showJump?'':'style="visibility:hidden"'} aria-label="Jump to this week">«</button>
+      <button class="navbtn prev" ${canPrev?'':'disabled'} aria-label="Previous week">‹</button>
+      <div class="wkbox ${isNow?'now':''}">
+        <div class="wkleft">
+          <span class="cal"></span>
+          <div><div class="wkmain">Week ${String(state.week).padStart(2,'0')}</div><div class="wksub">${state.year}</div></div>
+        </div>
+        <span class="nowchip" ${isNow?'':'style="display:none"'}>Now</span>
+      </div>
+      <button class="navbtn next" aria-label="Next week">›</button>`;
+    el.querySelector('.jump').onclick=()=>onChange({...CUR});
+    const p=el.querySelector('.prev'); if(canPrev) p.onclick=()=>onChange(prevW(state));
+    el.querySelector('.next').onclick=()=>onChange(nextW(state));
+  }
+
+  // ---- My Week (one-tap: green=in, red=out), per-week state ----
+  const myweek=document.getElementById('aweek'), myNav=document.getElementById('aweeknav');
+  let myState={...CUR};
+  const myStore={};
+  const keyOf=(s)=>s.year+'-'+s.week;
+  const ensure=(s)=>{const k=keyOf(s); if(!myStore[k]) myStore[k]=WEEK.map(d=>({lunch:d.lunch,dinner:d.dinner})); return myStore[k];};
+  function renderMy(){
+    renderWeekNav(myNav,myState,(ns)=>{myState=ns;renderMy();});
+    const data=ensure(myState), dts=weekDates(myState.year,myState.week);
+    const todayIdx=eqW(myState,CUR)?((new Date().getDay()+6)%7):-1;
+    myweek.innerHTML='';
+    WEEK.forEach((d,i)=>{
+      const dt=dts[i], isToday=i===todayIdx, isPast=todayIdx>=0&&i<todayIdx;
+      const row=document.createElement('div');
+      row.className='dayrow'+(isToday?' today':'')+(isPast?' past':'');
+      row.innerHTML=`<div class="dname"><b>${d.lab}</b><small>${dt.getUTCDate()} ${MONTHS[dt.getUTCMonth()]}</small></div>
+        <div class="meals">
+          <div class="meal ${data[i].lunch?'on':'off'}" data-i="${i}" data-m="lunch"><span class="mglyph"></span><span class="mlabel">Lunch</span></div>
+          <div class="meal ${data[i].dinner?'on':'off'}" data-i="${i}" data-m="dinner"><span class="mglyph"></span><span class="mlabel">Dinner</span></div>
+        </div>`;
+      if(!isPast) row.querySelectorAll('.meal').forEach(m=>m.onclick=()=>{
+        data[+m.dataset.i][m.dataset.m]=!data[+m.dataset.i][m.dataset.m];
+        m.classList.toggle('on');m.classList.toggle('off');
+      });
+      myweek.appendChild(row);
+    });
+  }
+  renderMy();
+
+  // ---- Everyone (day-centric, compact badges), week-aware ----
+  const strip=document.getElementById('astrip'), table=document.getElementById('atable'), eNav=document.getElementById('eweeknav');
+  let eState={...CUR}, sel='wed';
+  const badge=(id)=>`<span class="badge ${id==='you'?'me':''}"><span class="av" style="background:${PAL[id]}">${MEMBERS[id].initials}</span>${id==='you'?'You':MEMBERS[id].name}</span>`;
+  const people=(ids)=> ids.length ? `<div class="badges">`+ids.map(badge).join('')+`</div>` : `<div class="empty">nobody yet — quiet one</div>`;
+  function renderEveryone(){
+    renderWeekNav(eNav,eState,(ns)=>{eState=ns;renderEveryone();});
+    const dts=weekDates(eState.year,eState.week);
+    strip.innerHTML='';
+    WEEK.forEach((d,i)=>{
+      const has=ATTEND[d.key].lunch.length||ATTEND[d.key].dinner.length;
+      const c=document.createElement('button');c.className='daychip'+(d.key===sel?' on':'');c.dataset.d=d.key;
+      c.innerHTML=`<small>${d.lab.slice(0,3)}</small><b>${dts[i].getUTCDate()}</b>${has?'<span class="dot"></span>':'<span style="height:5px"></span>'}`;
+      c.onclick=()=>{sel=d.key;renderEveryone();};
+      strip.appendChild(c);
+    });
+    const d=ATTEND[sel];
+    table.innerHTML=`
+      <div class="mealblock"><div class="mealhead"><span class="mh lunch">Lunch</span><span class="cnt">${d.lunch.length}</span></div>${people(d.lunch)}</div>
+      <div class="rule dash"></div>
+      <div class="mealblock"><div class="mealhead"><span class="mh dinner">Dinner</span><span class="cnt">${d.dinner.length}</span></div>${people(d.dinner)}</div>`;
+  }
+  renderEveryone();
+
+  // ---- Home screen preview: our app icon among other apps ----
+  const hs=document.getElementById('hsgrid');
+  if(hs){
+    const tints=[.16,.22,.13,.2,.15,.24,.18,.14,.21,.17,.19];
+    let ti=0;
+    for(let i=0;i<12;i++){
+      const app=document.createElement('div');
+      if(i===4){
+        app.className='hs-app ours';
+        app.innerHTML='<div class="hs-tile ours"><svg class="logoicon"><use href="#ic-meal"/></svg></div><div class="hs-name">Meal Planner</div>';
+      }else{
+        app.className='hs-app';
+        app.innerHTML='<div class="hs-tile" style="background:rgba(255,255,255,'+tints[ti++%tints.length]+')"></div><div class="hs-name ph"></div>';
+      }
+      hs.appendChild(app);
+    }
+    const dock=document.getElementById('hsdock');
+    if(dock) for(let i=0;i<4;i++){const t=document.createElement('div');t.className='hs-tile';t.style.background='rgba(255,255,255,0.2)';dock.appendChild(t);}
+  }
+</script>
+</body>
+</html>

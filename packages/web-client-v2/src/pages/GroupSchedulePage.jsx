@@ -1,46 +1,32 @@
-// Edited by Claude.
-// Warm Bistro themed group schedule page with elegant layout
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  AppBar,
-  Toolbar,
-  IconButton,
-  CircularProgress,
-  Alert,
-  Paper,
-  Snackbar,
-  ToggleButtonGroup,
-  ToggleButton,
-  alpha,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import TuneIcon from '@mui/icons-material/Tune';
-import PersonIcon from '@mui/icons-material/Person';
-import GroupsIcon from '@mui/icons-material/Groups';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
+import { getCurrentWeek, getWeekDates, getTodayIndex } from '../constants/schedule';
+import TopBar from '../components/ui/TopBar';
+import IconButton from '../components/ui/IconButton';
+import Spinner from '../components/ui/Spinner';
 import WeekNavigator from '../components/WeekNavigator';
 import PersonalScheduleView from '../components/PersonalScheduleView';
 import MembersScheduleView from '../components/MembersScheduleView';
-import CommentsDrawer from '../components/CommentsDrawer';
-import {
-  getCurrentWeek,
-  getWeekDates,
-  DAY_LABELS,
-  DAYS,
-} from '../constants/schedule';
+import CommentEditorSheet from '../components/CommentEditorSheet';
+import { useToast } from '../components/ui/Toast';
+
+// A day is read-only if it falls before today within the current week.
+const isPastDay = (dayIndex, year, week) => {
+  const ti = getTodayIndex(year, week);
+  return ti >= 0 && dayIndex < ti;
+};
 
 const GroupSchedulePage = () => {
   const { groupId, groupName } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-
+  const toast = useToast();
   const current = getCurrentWeek();
+
   const [year, setYear] = useState(location.state?.year ?? current.year);
   const [week, setWeek] = useState(location.state?.week ?? current.week);
   const [view, setView] = useState('personal');
@@ -49,325 +35,96 @@ const GroupSchedulePage = () => {
   const [members, setMembers] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [saveError, setSaveError] = useState(null);
-  const [commentsSheetDay, setCommentsSheetDay] = useState(null);
-  const todayCardRef = useRef(null);
+  const [editor, setEditor] = useState(null); // { day, dayIndex } | null
 
-  // Scroll to today's card when view changes to "everyone" and data is loaded
-  useEffect(() => {
-    if (!loading && view === 'everyone' && todayCardRef.current) {
-      todayCardRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
+  const loadData = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getSchedules(`${year}-${week}`);
+      const group = data.schedules?.find((g) => g.groupId === groupId);
+      if (!group) { setError('Group not found'); return; }
+      setMembers(group.members);
+      const me = group.members[user.memberId];
+      if (!me) { setError('You are not a member of this group'); return; }
+      setSchedule({ ...me.schedule });
+      setComments(me.comments ?? {});
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, [loading, view]);
+  }, [groupId, user.memberId, year, week]);
 
-  const loadData = useCallback(
-    async (showLoading = true) => {
-      if (showLoading) {
-        setLoading(true);
-      }
-      setError(null);
+  useEffect(() => { loadData(); }, [loadData]);
 
-      try {
-        const period = `${year}-${week}`;
-        const data = await api.getSchedules(period);
-        const group = data.schedules?.find((g) => g.groupId === groupId);
-
-        if (group) {
-          setMembers(group.members);
-          const currentMember = group.members[user.memberId];
-          if (currentMember) {
-            setSchedule({ ...currentMember.schedule });
-            setComments(currentMember.comments ?? null);
-          } else {
-            setError('You are not a member of this group');
-          }
-        } else {
-          setError('Group not found');
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [groupId, user.memberId, year, week]
-  );
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const handleRefresh = async () => {
-    await loadData(false);
-  };
-
-  const handleWeekChange = (newYear, newWeek) => {
-    setYear(newYear);
-    setWeek(newWeek);
-  };
-
-  const handleViewChange = (_, newView) => {
-    if (newView !== null) {
-      setView(newView);
+  const handleToggle = useCallback(async (day, meal) => {
+    const prev = schedule;
+    const next = { ...schedule, [day]: (schedule[day] ?? 0) ^ meal };
+    setSchedule(next);
+    setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
+    try {
+      await api.createSchedule(groupId, { period: `${year}-${week}`, schedule: next });
+    } catch {
+      setSchedule(prev);
+      setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
+      toast?.('Failed to save schedule');
     }
-  };
-
-  const handleToggle = useCallback(
-    async (day, mealType) => {
-      const prevSchedule = schedule;
-      const newSchedule = {
-        ...schedule,
-        [day]: (schedule[day] ?? 0) ^ mealType,
-      };
-      setSchedule(newSchedule);
-
-      // Also update in members for consistency
-      setMembers((prev) => ({
-        ...prev,
-        [user.memberId]: {
-          ...prev[user.memberId],
-          schedule: newSchedule,
-        },
-      }));
-
-      try {
-        const period = `${year}-${week}`;
-        await api.createSchedule(groupId, {
-          period,
-          schedule: newSchedule,
-        });
-      } catch {
-        setSchedule(prevSchedule);
-        setMembers((prev) => ({
-          ...prev,
-          [user.memberId]: {
-            ...prev[user.memberId],
-            schedule: prevSchedule,
-          },
-        }));
-        setSaveError('Failed to save schedule');
-      }
-    },
-    [schedule, groupId, year, week, user.memberId]
-  );
+  }, [schedule, groupId, year, week, user.memberId, toast]);
 
   const dates = getWeekDates(year, week);
 
-  const handleDayClick = useCallback(
-    (day, dayIndex) => {
-      navigate(`/groups/${groupId}/${groupName}/day/${day}`, {
-        state: {
-          year,
-          week,
-          dayIndex,
-          initialComments: comments?.[day] ?? null,
-          allComments: comments ?? {},
-        },
-      });
-    },
-    [navigate, groupId, groupName, year, week, comments]
-  );
-
-  // Get all comments for a given day from all members
-  const getCommentsForDay = (dayKey) => {
-    if (!members) return [];
-    return Object.entries(members)
-      .filter(([, member]) => {
-        const dayComments = member.comments?.[dayKey];
-        return dayComments?.lunch || dayComments?.dinner;
-      })
-      .map(([, member]) => ({
-        memberName: member.memberName,
-        lunch: member.comments?.[dayKey]?.lunch || '',
-        dinner: member.comments?.[dayKey]?.dinner || '',
-      }))
-      .sort((a, b) => a.memberName.localeCompare(b.memberName));
-  };
+  const handleSaved = useCallback((week7) => {
+    setComments(week7);
+    setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], comments: week7 } }));
+  }, [user.memberId]);
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'var(--vh-with-nav)', // Account for bottom navigation
-        mx: -2,
-      }}
-    >
-      <AppBar position="static" sx={{ width: '100%' }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={() => navigate('/')}
-            sx={{
-              '&:hover': {
-                backgroundColor: (theme) =>
-                  alpha(theme.palette.common.white, 0.1),
-              },
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography
-            variant="h6"
-            component="h1"
-            sx={{
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-            }}
-          >
-            {decodeURIComponent(groupName)}
-          </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <IconButton
-            edge="end"
-            color="inherit"
-            onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)}
-            sx={{
-              '&:hover': {
-                backgroundColor: (theme) =>
-                  alpha(theme.palette.common.white, 0.1),
-              },
-            }}
-          >
-            <TuneIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      {/* Controls section */}
-      <Box
-        sx={{
-          py: 2.5,
-          px: 2,
-          backgroundColor: 'background.default',
-        }}
-      >
-        <WeekNavigator year={year} week={week} onChange={handleWeekChange} />
-
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <ToggleButtonGroup
-            value={view}
-            exclusive
-            onChange={handleViewChange}
-            size="small"
-            sx={{ gap: 1 }}
-          >
-            <ToggleButton value="personal">
-              <PersonIcon sx={{ fontSize: 18, mr: 0.75 }} />
-              My Schedule
-            </ToggleButton>
-            <ToggleButton value="everyone">
-              <GroupsIcon sx={{ fontSize: 18, mr: 0.75 }} />
-              Everyone
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-      </Box>
-
-      {/* Content area */}
-      <Box
-        sx={{
-          flex: 1,
-          overflow: 'hidden',
-          backgroundColor: 'background.default',
-        }}
-      >
-        <PullToRefresh
-          onRefresh={handleRefresh}
-          pullingContent=""
-          style={{ height: '100%' }}
-        >
-          <Box
-            sx={{
-              px: 2,
-              pt: 1,
-              pb: 3,
-              height: '100%',
-              overflow: 'auto',
-            }}
-          >
-            {loading ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  py: 8,
-                  gap: 2,
-                }}
-              >
-                <CircularProgress size={40} />
-                <Typography variant="body2" color="text.secondary">
-                  Loading schedule...
-                </Typography>
-              </Box>
-            ) : error ? (
-              <Alert
-                severity="error"
-                sx={{ animation: 'fadeIn 0.3s ease-out forwards' }}
-              >
-                {error}
-              </Alert>
-            ) : view === 'personal' && schedule ? (
-              <Paper
-                elevation={2}
-                sx={{
-                  overflow: 'hidden',
-                  animation: 'scaleIn 0.3s ease-out forwards',
-                }}
-              >
-                <PersonalScheduleView
-                  schedule={schedule}
-                  dates={dates}
-                  onToggle={handleToggle}
-                  year={year}
-                  week={week}
-                  comments={comments}
-                  onDayClick={handleDayClick}
-                />
-              </Paper>
-            ) : view === 'everyone' && members ? (
-              <MembersScheduleView
-                members={members}
-                dates={dates}
-                year={year}
-                week={week}
-                todayRef={todayCardRef}
-                onCommentsClick={(dayIndex) => setCommentsSheetDay(dayIndex)}
-              />
-            ) : null}
-          </Box>
-        </PullToRefresh>
-      </Box>
-
-      <Snackbar
-        open={!!saveError}
-        autoHideDuration={4000}
-        onClose={() => setSaveError(null)}
-        message={saveError}
+    <div className="min-h-dvh flex flex-col">
+      <TopBar
+        title={decodeURIComponent(groupName)}
+        left={<IconButton name="back" label="Back" onClick={() => navigate('/')} className="ml-0" />}
+        right={<IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />}
       />
+      <div className="px-5 pt-4">
+        <div className="flex gap-1.5 bg-chalk/[0.06] border border-line p-1.5 rounded-[14px] mb-[18px]">
+          {[['personal', 'My week'], ['everyone', 'Everyone']].map(([v, label]) => (
+            <button key={v} onClick={() => setView(v)}
+              className={`flex-1 border-0 cursor-pointer font-body font-semibold text-[12.5px] py-2.5 rounded-[10px] ${view === v ? 'bg-chalk text-slate-0' : 'bg-transparent text-chalk-dim'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <WeekNavigator year={year} week={week} onChange={(y, w) => { setYear(y); setWeek(w); }} />
+      </div>
 
-      <CommentsDrawer
-        open={commentsSheetDay !== null}
-        onClose={() => setCommentsSheetDay(null)}
-        dayLabel={commentsSheetDay !== null ? DAY_LABELS[commentsSheetDay] : ''}
+      <PullToRefresh onRefresh={() => loadData(false)} pullingContent="">
+        <div className="px-5 pt-2 pb-6">
+          {loading ? <Spinner label="Loading schedule…" />
+            : error ? <div className="text-red text-sm py-4">{error}</div>
+            : view === 'personal' && schedule ? (
+              <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle}
+                year={year} week={week} comments={comments}
+                onDayClick={(day, dayIndex) => setEditor({ day, dayIndex })} />
+            ) : view === 'everyone' && members ? (
+              <MembersScheduleView members={members} dates={dates} year={year} week={week} />
+            ) : null}
+        </div>
+      </PullToRefresh>
+
+      <CommentEditorSheet
+        open={editor !== null}
+        onClose={() => setEditor(null)}
+        day={editor?.day}
+        dayIndex={editor?.dayIndex}
         year={year}
         week={week}
-        dayIndex={commentsSheetDay}
-        comments={
-          commentsSheetDay !== null ? getCommentsForDay(DAYS[commentsSheetDay]) : []
-        }
+        groupId={groupId}
+        allComments={comments ?? {}}
+        readOnly={editor ? isPastDay(editor.dayIndex, year, week) : false}
+        onSaved={handleSaved}
       />
-    </Box>
+    </div>
   );
 };
 

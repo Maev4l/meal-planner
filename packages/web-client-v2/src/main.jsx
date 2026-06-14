@@ -1,12 +1,20 @@
-import { StrictMode, useMemo } from 'react';
+import '@fontsource/caveat/400.css';
+import '@fontsource/caveat/600.css';
+import '@fontsource/caveat/700.css';
+import '@fontsource/archivo/400.css';
+import '@fontsource/archivo/500.css';
+import '@fontsource/archivo/600.css';
+import '@fontsource/archivo/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/700.css';
+import './index.css';
+
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Amplify } from 'aws-amplify';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { createAppTheme } from './theme';
 import { config } from './config';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -28,22 +36,14 @@ Amplify.configure({
   },
 });
 
-const Root = () => {
-  // Detect OS dark mode preference and update theme automatically when it changes
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-  const theme = useMemo(() => createAppTheme(prefersDarkMode), [prefersDarkMode]);
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
-  );
-};
+// ThemeProvider/CssBaseline removed — Tailwind + Ardoise tokens handle styling
+const Root = () => (
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>
+);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -20,41 +21,25 @@ const getGitCommitHash = () => {
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.ico', 'logo1024.svg'],
+      includeAssets: ['favicon.svg', 'favicon-32.png', 'favicon-48.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Meal Planner',
         short_name: 'MealPlanner',
         description: 'Plan your meals with your group',
-        theme_color: '#1976d2',
-        background_color: '#ffffff',
+        // Ardoise design palette: slate dark background, deep forest green theme
+        theme_color: '#171b18',
+        background_color: '#0d100e',
         display: 'standalone',
         scope: '/',
         start_url: '/',
-        // PNG icons required for Android/iOS PWA install prompts (SVG not supported)
+        // PNG icons for Android/iOS PWA install prompts (SVG not supported)
         icons: [
-          {
-            src: 'logo144.png',
-            sizes: '144x144',
-            type: 'image/png',
-          },
-          {
-            src: 'logo192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'logo512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: 'logo512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
+          { src: 'app-icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'app-icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'app-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
@@ -82,16 +67,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Split vendors into separate chunks to reduce main bundle size.
-        // React and MUI core must stay together to avoid circular dependencies
-        // that cause "Cannot read properties of undefined (reading 'createContext')" at runtime.
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             if (id.includes('aws-amplify')) {
               return 'aws-vendor';
-            }
-            // MUI icons are large and safe to split
-            if (id.includes('@mui/icons-material')) {
-              return 'mui-icons';
             }
             // React Router is independent
             if (id.includes('react-router')) {

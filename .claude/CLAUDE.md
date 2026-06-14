@@ -5,7 +5,7 @@ People belongs to groups and they can apply for lunches or dinners on a weekly b
 In addition, for each meal, they can attach a comment.
 
 ## Design
-- The UI is a React based application, based on MUI (Material UI): @ui.md.
+- The UI is a React-based PWA styled with Tailwind CSS v4 (dark "Ardoise" chalkboard theme; no MUI): @ui.md.
 - The backend is AWS Lambda written in Golang: @backend.md.
 - Infrastructure is managed with Terraform: @../packages/infrastructure
 - Everything is deployed on AWS.

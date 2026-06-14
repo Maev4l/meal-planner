@@ -1,24 +1,12 @@
-// Warm Bistro themed sign up page with elegant animations
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-  CircularProgress,
-  IconButton,
-  InputAdornment,
-  alpha,
-} from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useAuth } from '../contexts/AuthContext';
+import Icon from '../components/Icon';
+import Field from '../components/ui/Field';
+import Button from '../components/ui/Button';
+import Spinner from '../components/ui/Spinner';
 
-// Password validation - returns error message or null if valid
+// Password must meet Cognito's default policy: length, case, digit, symbol
 const validatePassword = (pw) => {
   if (pw.length < 8) return 'Must be at least 8 characters';
   if (!/[a-z]/.test(pw)) return 'Must include a lowercase letter';
@@ -33,8 +21,6 @@ const SignUpPage = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -49,366 +35,60 @@ const SignUpPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
-
     setError(null);
     setIsSubmitting(true);
-    try {
-      await signUp(email, password, name);
-      setSuccess(true);
-    } catch (err) {
-      if (err.name === 'UsernameExistsException') {
-        setError('An account with this email already exists');
-      } else if (err.name === 'InvalidParameterException') {
-        setError(err.message || 'Invalid input');
-      } else {
-        setError(err.message || 'Sign up failed');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { await signUp(email, password, name); setSuccess(true); }
+    catch (err) {
+      if (err.name === 'UsernameExistsException') setError('An account with this email already exists');
+      else setError(err.message || 'Sign up failed');
+    } finally { setIsSubmitting(false); }
   };
 
-  // Success state - show pending approval message
+  // Show pending-approval confirmation after successful registration
   if (success) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: 'var(--vh-full)',
-          position: 'relative',
-          overflow: 'hidden',
-          mx: -2,
-          px: 2,
-        }}
-      >
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: 420,
-            position: 'relative',
-            zIndex: 1,
-            animation: 'fadeInUp 0.6s ease-out forwards',
-          }}
-        >
-          <Box
-            sx={{
-              backgroundColor: 'background.paper',
-              borderRadius: 4,
-              p: 4,
-              boxShadow: (theme) =>
-                `0 20px 60px ${alpha(theme.palette.charcoal.main, 0.1)}`,
-              border: (theme) =>
-                `1px solid ${alpha(theme.palette.charcoal.main, 0.06)}`,
-              textAlign: 'center',
-            }}
-          >
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: (theme) =>
-                  `linear-gradient(135deg, ${theme.palette.sage.main} 0%, ${theme.palette.sage.dark} 100%)`,
-                mb: 3,
-              }}
-            >
-              <CheckCircleOutlineIcon sx={{ fontSize: 32, color: '#FFF8F0' }} />
-            </Box>
-            <Typography
-              variant="h5"
-              sx={{
-                fontFamily: '"Playfair Display", Georgia, serif',
-                fontWeight: 600,
-                color: 'text.primary',
-                mb: 1,
-              }}
-            >
-              Account Created
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mb: 3 }}
-            >
-              Your registration is pending approval. An administrator will review your request.
-            </Typography>
-            <Button
-              component={Link}
-              to="/login"
-              variant="outlined"
-              fullWidth
-              sx={{ py: 1.5 }}
-            >
-              Back to Sign In
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+      <div className="min-h-dvh flex flex-col items-center justify-center text-center px-8">
+        <div className="w-[84px] h-[84px] rounded-full border-2 border-sage grid place-items-center mb-6 text-sage font-body font-extrabold text-[44px]">✓</div>
+        <h1 className="font-hand font-bold text-[52px] leading-none m-0">Account<br />created</h1>
+        <p className="text-chalk-dim text-sm leading-relaxed max-w-[250px] my-3 mb-7">
+          Your registration is pending approval. An administrator will review your request.
+        </p>
+        <Link to="/login" className="w-full max-w-[240px]"><Button variant="ghost">Back to sign in</Button></Link>
+      </div>
     );
   }
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: 'var(--vh-full)',
-        position: 'relative',
-        overflow: 'hidden',
-        mx: -2,
-        px: 2,
-      }}
-    >
-      {/* Decorative background elements */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '-10%',
-          right: '-10%',
-          width: '50%',
-          height: '60%',
-          background: (theme) =>
-            `radial-gradient(circle, ${alpha(theme.palette.burgundy.main, 0.08)} 0%, transparent 70%)`,
-          borderRadius: '50%',
-          filter: 'blur(40px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '-15%',
-          left: '-10%',
-          width: '60%',
-          height: '50%',
-          background: (theme) =>
-            `radial-gradient(circle, ${alpha(theme.palette.amber.main, 0.1)} 0%, transparent 70%)`,
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          pointerEvents: 'none',
-        }}
-      />
+    <div className="min-h-dvh flex flex-col justify-start pt-12 pb-8 px-8">
+      <div className="w-[62px] h-[62px] rounded-full border-2 border-dashed border-coral grid place-items-center mb-4 text-mustard">
+        <Icon name="meal" className="w-[64%] h-[64%]" />
+      </div>
+      <h1 className="font-hand font-bold text-[46px] leading-[0.86] m-0 mb-5">Create<br />account</h1>
 
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 420,
-          position: 'relative',
-          zIndex: 1,
-          animation: 'fadeInUp 0.6s ease-out forwards',
-        }}
-      >
-        {/* Logo and brand */}
-        <Box
-          sx={{
-            textAlign: 'center',
-            mb: 3,
-          }}
-        >
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              background: (theme) =>
-                `linear-gradient(135deg, ${theme.palette.burgundy.main} 0%, ${theme.palette.burgundy.dark} 100%)`,
-              boxShadow: (theme) =>
-                `0 8px 32px ${alpha(theme.palette.burgundy.main, 0.35)}`,
-              mb: 2,
-            }}
-          >
-            <RestaurantIcon sx={{ fontSize: 32, color: '#FFF8F0' }} />
-          </Box>
+      {error && <div className="mb-3 text-red text-sm">{error}</div>}
 
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: '"Playfair Display", Georgia, serif',
-              fontWeight: 600,
-              color: 'text.primary',
-              letterSpacing: '-0.02em',
-              mb: 0.5,
-            }}
-          >
-            Create Account
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Sign up to plan your meals together
-          </Typography>
-        </Box>
+      <form onSubmit={handleSubmit}>
+        <Field label="Email" type="email" value={email} autoComplete="email" autoCapitalize="none" autoFocus
+               disabled={isSubmitting} onChange={(e) => setEmail(e.target.value)} />
+        <Field label="Name" value={name} maxLength={20} count={`${name.length} / 20`} autoCapitalize="words"
+               disabled={isSubmitting} onChange={(e) => setName(e.target.value)} />
+        <Field label="Password" type="password" value={password} autoComplete="new-password" autoCapitalize="none"
+               disabled={isSubmitting} onChange={(e) => setPassword(e.target.value)}
+               help={password.length > 0 ? (passwordError ? `✕ ${passwordError}` : '✓ strong — meets all requirements') : undefined}
+               helpTone={passwordError ? 'bad' : 'ok'} />
+        <Field label="Confirm password" type="password" value={confirmPassword} autoComplete="new-password" autoCapitalize="none"
+               disabled={isSubmitting} onChange={(e) => setConfirmPassword(e.target.value)}
+               help={confirmPassword.length > 0 ? (passwordsMatch ? '✓ passwords match' : '✕ passwords do not match') : undefined}
+               helpTone={passwordsMatch ? 'ok' : 'bad'} />
+        <Button type="submit" className="mt-2.5" disabled={isSubmitting || !canSubmit}>
+          {isSubmitting ? <Spinner /> : 'Create account'}
+        </Button>
+      </form>
 
-        {/* Sign up card */}
-        <Box
-          sx={{
-            backgroundColor: 'background.paper',
-            borderRadius: 4,
-            p: 4,
-            boxShadow: (theme) =>
-              `0 20px 60px ${alpha(theme.palette.charcoal.main, 0.1)}`,
-            border: (theme) =>
-              `1px solid ${alpha(theme.palette.charcoal.main, 0.06)}`,
-          }}
-        >
-          {error && (
-            <Alert
-              severity="error"
-              sx={{
-                mb: 3,
-                animation: 'scaleIn 0.3s ease-out forwards',
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              margin="normal"
-              required
-              autoComplete="email"
-              autoCapitalize="none"
-              autoFocus
-              disabled={isSubmitting}
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              fullWidth
-              label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              margin="normal"
-              required
-              autoCapitalize="words"
-              disabled={isSubmitting}
-              helperText={`${name.length}/20`}
-              inputProps={{ maxLength: 20 }}
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              required
-              autoComplete="new-password"
-              autoCapitalize="none"
-              disabled={isSubmitting}
-              error={password.length > 0 && !!passwordError}
-              helperText={password.length > 0 ? (passwordError || 'Password meets requirements') : ' '}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        size="small"
-                        sx={{ color: 'text.secondary' }}
-                      >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              fullWidth
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              margin="normal"
-              required
-              autoComplete="new-password"
-              autoCapitalize="none"
-              disabled={isSubmitting}
-              error={confirmPassword.length > 0 && !passwordsMatch}
-              helperText={confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match' : ' '}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        edge="end"
-                        size="small"
-                        sx={{ color: 'text.secondary' }}
-                      >
-                        {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              sx={{
-                mt: 3,
-                py: 1.75,
-                fontSize: '1rem',
-              }}
-              disabled={isSubmitting || !canSubmit}
-            >
-              {isSubmitting ? (
-                <CircularProgress size={24} sx={{ color: 'inherit' }} />
-              ) : (
-                'Create Account'
-              )}
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Link to sign in */}
-        <Typography
-          variant="body2"
-          sx={{
-            display: 'block',
-            textAlign: 'center',
-            mt: 3,
-            color: 'text.secondary',
-          }}
-        >
-          Already have an account?{' '}
-          <Typography
-            component={Link}
-            to="/login"
-            variant="body2"
-            sx={{
-              color: 'primary.main',
-              textDecoration: 'none',
-              fontWeight: 500,
-              '&:hover': {
-                textDecoration: 'underline',
-              },
-            }}
-          >
-            Sign in
-          </Typography>
-        </Typography>
-      </Box>
-    </Box>
+      <div className="text-center mt-4 text-[12.5px] text-chalk-dim">
+        Already have an account? <Link to="/login" className="text-coral font-semibold no-underline">Sign in</Link>
+      </div>
+    </div>
   );
 };
 
