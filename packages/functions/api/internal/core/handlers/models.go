@@ -146,3 +146,28 @@ type GroupScheduleResponse struct {
 type GetSchedulesResponse struct {
 	Schedules []*GroupScheduleResponse `json:"schedules"`
 }
+
+type RenameGroupRequest struct {
+	Name string `json:"name"`
+}
+
+type CreateInviteResponse struct {
+	Code      string `json:"code"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type InviteResponse struct {
+	GroupName string `json:"groupName"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type InviteListItem struct {
+	Code      string `json:"code"`
+	ExpiresAt string `json:"expiresAt"`
+}
+
+type RedeemInviteResponse struct {
+	GroupId       string `json:"groupId"`
+	GroupName     string `json:"groupName"`
+	AlreadyMember bool   `json:"alreadyMember"`
+}

@@ -14,8 +14,11 @@ import AccountPage from './pages/AccountPage';
 import AboutPage from './pages/AboutPage';
 import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
+import GroupSettingsPage from './pages/GroupSettingsPage';
+import InvitePage from './pages/InvitePage';
 import UpdatePrompt from './components/UpdatePrompt';
 import SplashScreen from './components/SplashScreen';
+import PendingInviteHandler from './components/PendingInviteHandler';
 
 const MIN_SPLASH_DURATION = 2000;
 
@@ -47,15 +50,18 @@ const App = () => {
       <ChalkSprite />
       <div className="mx-auto w-full max-w-md min-h-dvh pb-[90px]">
         <SchedulesProvider>
+          <PendingInviteHandler />
           <Routes>
             <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignUpPage /></PublicRoute>} />
             <Route path="/" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
             <Route path="/groups/:groupId/:groupName" element={<ProtectedRoute><GroupSchedulePage /></ProtectedRoute>} />
             <Route path="/groups/:groupId/:groupName/default" element={<ProtectedRoute><DefaultSchedulePage /></ProtectedRoute>} />
+            <Route path="/groups/:groupId/settings" element={<ProtectedRoute><GroupSettingsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/settings/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/settings/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
+            <Route path="/invite/:code" element={<InvitePage />} />
           </Routes>
         </SchedulesProvider>
       </div>

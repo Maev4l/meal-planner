@@ -106,6 +106,8 @@ Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 
 ## API Endpoints
 
+All group-management endpoints below are **implemented** (shipped with the group-management feature).
+
 ### Groups
 
 | Method | Path | Auth | Description |
@@ -119,6 +121,7 @@ Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `POST` | `/api/groups/{groupId}/invites` | GroupAdmin | Create invite, returns code |
+| `GET` | `/api/groups/{groupId}/invites` | GroupAdmin | List active invites for the group |
 | `GET` | `/api/invites/{code}` | Authenticated | Get invite details (group name, validity) |
 | `POST` | `/api/invites/{code}/redeem` | Authenticated | Join the group |
 | `DELETE` | `/api/groups/{groupId}/invites/{code}` | GroupAdmin | Revoke an invite |
@@ -127,8 +130,7 @@ Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `DELETE` | `/api/groups/{groupId}/members/{memberId}` | GroupAdmin | Remove member (delete all their group data) |
-| `DELETE` | `/api/groups/{groupId}/members/me` | Member | Leave group (self-remove) |
+| `DELETE` | `/api/groups/{groupId}/members/{memberId}` | Member/GroupAdmin | Remove member — self-id => leave (sole admin blocked); other id => kick (admin only) |
 
 **Note:** Admin cannot leave/be kicked if they are the only admin.
 
@@ -170,31 +172,42 @@ Existing endpoints unchanged.
 
 **Implementation:**
 ```
-Query: PK = member#<memberId>
-FilterExpression: contains(SK, "group#<groupId>")
+Query: PK = member#<memberId>   (KeyConditionExpression on PK only)
 ```
-Then BatchWriteItem to delete all matching items.
+Then keep only items whose SK contains `group#<groupId>`, filtered **in code** — NOT via a DynamoDB FilterExpression. SK is the table's sort key, and DynamoDB rejects primary-key attributes in a FilterExpression (`ValidationException: Filter Expression can only contain non-primary key attributes`). BatchWriteItem to delete the matching items.
 
 ## Invite Flow
 
 ### Create Invite
 1. Validate requester is GroupAdmin
-2. Generate unique code (e.g., 8-char alphanumeric)
+2. Generate crypto-strong 32-char code via `helper.NewInviteCode()` (UUID-derived, normalized uppercase)
 3. Save Invite record with TTL = 7 days
 4. Return code (frontend builds shareable link)
 
 ### Redeem Invite
 1. Lookup invite by code
-2. Validate not expired
-3. Check user not already member of group
-4. Create Member record (Role = Member)
+2. Validate not expired (checked in `domain.Invite.IsExpired` — DynamoDB TTL is lazy; code-level check is the source of truth)
+3. If requester is already a member, return `alreadyMember=true` (idempotent — no error)
+4. Create Member record via conditional `PutItem` (`CreateMemberIfNotExists`) — atomic, never downgrades an existing admin
 5. Create default schedule
-6. (Optional) Delete invite after redemption or keep for reuse
 
 ### Invite URL Format
 ```
 https://meal-planner.isnan.eu/invite/{code}
 ```
+
+### Implementation Notes
+
+- **Invite codes** are crypto-strong 32-char strings (UUID-derived, uppercase hex via `helper.NewInviteCode()`).
+- **Invites are reusable** — multiple members can redeem the same code until it expires (7-day TTL) or is explicitly revoked.
+- **Expiry is enforced in code** (`domain.Invite.IsExpired`) on every GetInvite / RedeemInvite / ListInvites call. DynamoDB TTL is opportunistic cleanup only, NOT relied on for correctness.
+- **Redeem is idempotent**: if the caller is already a member, the handler returns `alreadyMember=true` (HTTP 200) instead of an error.
+- **Conditional write on redeem**: `CreateMemberIfNotExists` uses a DynamoDB condition expression to prevent overwriting an existing member record (TOCTOU-safe, admin-role preserved).
+- **Revoke authorization**: the handler cross-checks the invite's stored `GroupId` against the URL `{groupId}` parameter to prevent IDOR (path/stored mismatch → 403).
+- **Rename (PUT /api/groups/{groupId})**: updates only the Group record. Denormalized `GroupName` on member/schedule records is intentionally left stale (read-time join not required by current access patterns).
+- **LeaveGroup**: the sole admin cannot leave (`ErrSoleAdmin` → 403); they must delete the group instead.
+- **HTTP status codes**: these endpoints return proper codes (200/201/204/403/404/409). Older handlers returned 500 for all errors — this behavior is unchanged for those.
+- **Rate limiting** on invite lookup/redeem is deferred (accepted risk: 128-bit code space + approved-only access makes brute-force impractical).
 
 ## CLI Operations (unchanged)
 

@@ -140,3 +140,19 @@ func (m *MemberSchedule) IsDefault() bool {
 func (s *MemberSchedule) GetId() string {
 	return helper.NewScheduleId(s.Year, s.WeekNumber)
 }
+
+type Invite struct {
+	Code      string
+	GroupId   string
+	GroupName string
+	CreatedBy string
+	CreatedAt *time.Time
+	ExpiresAt *time.Time
+}
+
+// IsExpired reports whether the invite is past its TTL. DynamoDB TTL deletion
+// is lazy (can lag hours), so callers MUST check this in code and never rely
+// on the row having been physically removed.
+func (i *Invite) IsExpired(now time.Time) bool {
+	return i.ExpiresAt != nil && now.After(*i.ExpiresAt)
+}

@@ -42,7 +42,7 @@ const SettingsPage = () => {
     e.stopPropagation();
     if (user?.email) {
       navigator.clipboard.writeText(user.email);
-      toast('Email copied');
+      toast('Email copied', 'success');
     }
   };
 

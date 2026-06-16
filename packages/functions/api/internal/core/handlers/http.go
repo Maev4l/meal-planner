@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -303,7 +305,7 @@ func (hdl *HTTPHandler) CreateGroup(c *gin.Context) {
 		return
 	}
 
-	group, err := hdl.svc.CreateGroup(info.userId, info.userName, request.Name)
+	group, err := hdl.svc.CreateGroup(info.userId, info.name, request.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Failed to create group.",
@@ -430,6 +432,13 @@ func (hdl *HTTPHandler) GetSchedules(c *gin.Context) {
 	for _, s := range schedulesByGroup {
 		response.Schedules = append(response.Schedules, s)
 	}
+
+	// Go map iteration order is randomized, so the group order would otherwise
+	// vary per request. Sort alphabetically (case-insensitive) for a stable,
+	// user-friendly list.
+	sort.Slice(response.Schedules, func(i, j int) bool {
+		return strings.ToLower(response.Schedules[i].GroupName) < strings.ToLower(response.Schedules[j].GroupName)
+	})
 
 	c.JSON(http.StatusOK, response)
 }

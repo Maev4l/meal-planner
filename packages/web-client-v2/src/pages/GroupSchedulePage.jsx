@@ -68,7 +68,7 @@ const GroupSchedulePage = () => {
     } catch {
       setSchedule(prev);
       setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
-      toast?.('Failed to save schedule');
+      toast?.('Failed to save schedule', 'error');
     }
   }, [schedule, groupId, year, week, user.memberId, toast]);
 

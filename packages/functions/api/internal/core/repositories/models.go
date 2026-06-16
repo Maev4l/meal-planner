@@ -193,3 +193,21 @@ func createScheduleSecondary1PK(groupId string) string {
 func createScheduleSecondary1SK(scheduleId string) string {
 	return fmt.Sprintf("schedule#%s", scheduleId)
 }
+
+type Invite struct {
+	PK        string     `dynamodbav:"PK"`     // invite#<code>
+	SK        string     `dynamodbav:"SK"`     // invite#<code>
+	GSI1PK    string     `dynamodbav:"GSI1PK"` // group#<groupId>
+	GSI1SK    string     `dynamodbav:"GSI1SK"` // invite#<code>
+	Code      string     `dynamodbav:"Code"`
+	GroupId   string     `dynamodbav:"GroupId"`
+	GroupName string     `dynamodbav:"GroupName"`
+	CreatedBy string     `dynamodbav:"CreatedBy"`
+	CreatedAt *time.Time `dynamodbav:"CreatedAt"`
+	ExpiresAt *time.Time `dynamodbav:"ExpiresAt,unixtime"`
+}
+
+func createInvitePK(code string) string { return fmt.Sprintf("invite#%s", code) }
+func createInviteSK(code string) string { return fmt.Sprintf("invite#%s", code) }
+func createInviteSecondary1PK(groupId string) string { return fmt.Sprintf("group#%s", groupId) }
+func createInviteSecondary1SK(code string) string { return fmt.Sprintf("invite#%s", code) }

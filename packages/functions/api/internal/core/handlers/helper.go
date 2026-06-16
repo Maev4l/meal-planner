@@ -1,17 +1,20 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog/log"
+	"isnan.eu/meal-planner/functions/api/internal/core/domain"
 )
 
 type tokenInfo struct {
 	userId   string
-	userName string
+	userName string // cognito:username (login id / email)
+	name     string // display name (Cognito 'name' attribute); falls back to userName
 	approved bool
 }
 
@@ -32,6 +35,18 @@ func parseAuthHeader(raw string) *tokenInfo {
 		info.userName = fmt.Sprintf("%v", username)
 	}
 
+	// Display name from the 'name' claim (Cognito name attribute). Used when
+	// recording a member's name (create group / redeem invite); falls back to
+	// the login username if absent — mirrors the web client's
+	// `payload.name || payload['cognito:username']`.
+	name, exists := token.Get("name")
+	if exists {
+		info.name = fmt.Sprintf("%v", name)
+	}
+	if info.name == "" {
+		info.name = info.userName
+	}
+
 	// Check if user is approved
 	approved, exists := token.Get("custom:Approved")
 	if exists {
@@ -39,6 +54,20 @@ func parseAuthHeader(raw string) *tokenInfo {
 	}
 
 	return &info
+}
+
+// abortWithServiceError maps service sentinel errors to HTTP status codes.
+func abortWithServiceError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, domain.ErrForbidden):
+		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden."})
+	case errors.Is(err, domain.ErrNotFound), errors.Is(err, domain.ErrExpired):
+		c.JSON(http.StatusNotFound, gin.H{"message": "Not found."})
+	case errors.Is(err, domain.ErrConflict), errors.Is(err, domain.ErrSoleAdmin):
+		c.JSON(http.StatusConflict, gin.H{"message": err.Error()})
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal error."})
+	}
 }
 
 // RequireApproved is a middleware that rejects requests from unapproved users

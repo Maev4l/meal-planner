@@ -11,7 +11,7 @@ const UpdatePrompt = () => {
   return (
     <div
       onClick={applyUpdate}
-      className="fixed left-4 right-4 bottom-[90px] z-40 flex items-center gap-3 px-4 py-3.5 rounded-[16px] cursor-pointer text-chalk border-[1.5px] border-coral bg-gradient-to-br from-[#2c352d] to-[#222823] shadow-[0_18px_44px_-12px_rgba(0,0,0,0.75)] animate-[rise_0.45s_ease-out] active:scale-[0.98] max-w-md mx-auto"
+      className="fixed left-4 right-4 bottom-[96px] z-40 flex items-center gap-3 px-4 py-3.5 rounded-[16px] cursor-pointer text-chalk border-[1.5px] border-coral bg-gradient-to-br from-slate-2 to-slate-1 shadow-[0_18px_44px_-12px_rgba(0,0,0,0.75)] animate-[rise_0.45s_ease-out] active:scale-[0.98] max-w-md mx-auto"
     >
       <span className="w-10 h-10 rounded-[12px] grid place-items-center bg-coral/15 text-coral flex-none">
         <Icon name="refresh" className="w-5 h-5" />

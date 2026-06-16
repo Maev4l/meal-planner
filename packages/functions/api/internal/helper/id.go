@@ -12,6 +12,14 @@ func NewId() string {
 	return Normalize(id)
 }
 
+// NewInviteCode returns a crypto-strong, ~128-bit invite code.
+// We reuse google/uuid (crypto-strong) and normalize like our other ids
+// (uppercase, no dashes). Invite links are shared by copy/Web Share, never
+// typed, so length is not a UX concern; entropy defeats enumeration.
+func NewInviteCode() string {
+	return Normalize(uuid.NewString())
+}
+
 func Normalize(val string) string {
 	return strings.ToUpper(strings.Replace(val, "-", "", -1))
 }

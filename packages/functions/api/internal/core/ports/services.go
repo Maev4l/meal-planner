@@ -15,4 +15,13 @@ type PlannerService interface {
 	GetData(memberId string, period string) ([]*domain.MemberDefaultSchedule, []*domain.MemberSchedule, []*domain.MemberComments, []*domain.Notice, error)
 	CreateNotice(memberId string, groupId string, year int, week int, content string) (*time.Time, error)
 	DeleteNotice(memberId string, groupId string, period string) error
+	CreateInvite(requesterId string, groupId string) (*domain.Invite, error)
+	ListInvites(requesterId string, groupId string) ([]*domain.Invite, error)
+	GetInvite(code string) (*domain.Invite, error)
+	RedeemInvite(requesterId string, requesterName string, code string) (*domain.Group, bool, error)
+	RevokeInvite(requesterId string, groupId string, code string) error
+	RenameGroup(requesterId string, groupId string, name string) (*domain.Group, error)
+	KickMember(requesterId string, groupId string, targetMemberId string) error
+	LeaveGroup(requesterId string, groupId string) error
+	DeleteGroup(requesterId string, groupId string) error
 }

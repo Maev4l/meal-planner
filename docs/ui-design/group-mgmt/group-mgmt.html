@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Meal Planner — Group Management (Ardoise)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Caveat:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+<style>
+  /* ============ ARDOISE — chalkboard café (group management) ============ */
+  :root{
+    --slate-0:#171b18; --slate-1:#1f2421; --slate-2:#262c28;
+    --chalk:#f1ead9; --chalk-dim:rgba(241,234,217,.56); --chalk-faint:rgba(241,234,217,.26);
+    --coral:#e9806a; --mustard:#e7c24d; --sage:#9cc08a; --red:#df6253;
+    --line:rgba(241,234,217,.18);
+    --hand:'Caveat', cursive; --body:'Archivo', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:var(--body); background:#0d100e; color:var(--chalk); padding:40px 0 80px;
+    background-image:radial-gradient(circle at 30% 0%, #16201a 0%, #0d100e 60%);
+  }
+  /* page chrome */
+  .pagehead{max-width:1240px;margin:0 auto 30px;padding:0 28px}
+  .pagehead h1{font-family:var(--hand);font-weight:700;font-size:54px;line-height:.9;margin:0;color:var(--chalk)}
+  .pagehead h1 small{display:block;font-family:var(--body);font-weight:600;letter-spacing:.32em;text-transform:uppercase;font-size:12px;color:var(--coral);margin-bottom:6px}
+  .pagehead p{margin:8px 0 0;max-width:640px;color:var(--chalk-dim);font-size:13.5px;line-height:1.6}
+
+  .section{max-width:1240px;margin:46px auto 4px;padding:0 28px}
+  .section h2{font-family:var(--hand);font-weight:700;font-size:36px;line-height:.9;margin:0}
+  .section h2 small{display:block;font-family:var(--body);font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:11px;color:var(--mustard);margin-bottom:6px}
+  .section p{margin:6px 0 0;color:var(--chalk-dim);font-size:13px;max-width:620px;line-height:1.55}
+  .section .ln{height:0;border-bottom:1.5px dashed var(--chalk-faint);margin-top:12px}
+
+  .stage{display:flex;gap:30px;padding:18px 28px 0;overflow-x:auto;max-width:1240px;margin:0 auto;scrollbar-width:thin}
+  .col{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .col .tag{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--chalk-faint);text-align:center;max-width:332px}
+
+  /* phone */
+  .phone{
+    width:332px;height:720px;border-radius:46px;position:relative;overflow:hidden;
+    background:linear-gradient(170deg,var(--slate-1),var(--slate-0));
+    box-shadow:0 2px 0 rgba(255,255,255,.04) inset, 0 40px 80px -30px rgba(0,0,0,.8), 0 0 0 9px #050605, 0 0 0 11px #1b1f1c;
+  }
+  .phone::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+  .screen::-webkit-scrollbar{display:none}
+  .pad{padding:0 22px 26px}
+
+  /* topbar */
+  .bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:54px 22px 14px;background:linear-gradient(var(--slate-1) 72%,transparent)}
+  .bar .ttl{font-family:var(--hand);font-weight:700;font-size:30px;line-height:1}
+  .bar .sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--chalk-dim);margin-top:2px}
+  .iconbtn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--chalk-dim);background:none;cursor:pointer;flex:0 0 auto}
+  .iconbtn:hover{color:var(--chalk);border-color:var(--chalk-dim)}
+  .iconbtn.r{margin-left:auto}
+  .icn{width:54%;height:54%;display:block}
+
+  /* buttons */
+  .btn{width:100%;border:none;cursor:pointer;font-family:var(--body);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:13px;padding:15px;border-radius:14px;margin-top:10px;background:var(--coral);color:#221311;display:flex;align-items:center;justify-content:center;gap:9px}
+  .btn:hover{filter:brightness(1.06)}
+  .btn svg{width:17px;height:17px}
+  .btn.ghost{background:transparent;color:var(--chalk-dim);border:1.5px solid var(--line)}
+  .btn.ghost:hover{color:var(--chalk)}
+  .btn.danger{background:transparent;border:1.5px solid var(--red);color:var(--red)}
+  .btn.danger:hover{background:rgba(223,98,83,.12)}
+  .btn.disabled{opacity:.4;pointer-events:none}
+
+  /* fields */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--chalk-dim);margin-bottom:7px}
+  .field .ip{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--line);color:var(--chalk);font-family:var(--body);font-size:15px;padding:8px 2px;outline:none}
+  .field .ip:focus{border-color:var(--coral)}
+  .seclabel{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--chalk-faint);margin:22px 0 11px}
+  .seclabel.danger{color:var(--red)}
+
+  /* === GROUPS list with ⋮ === */
+  .gcard{position:relative;display:flex;align-items:center;gap:16px;padding:18px 0;cursor:pointer;border-bottom:1.5px dashed var(--chalk-faint)}
+  .gcard:hover .gname{color:var(--mustard)}
+  .gcard.active{background:rgba(241,234,217,.04);border-radius:12px;margin:0 -8px;padding:18px 8px}
+  .gmark{flex:0 0 auto;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-family:var(--hand);font-weight:700;font-size:30px;color:var(--slate-0);transform:rotate(-3deg)}
+  .gmark.big{width:64px;height:64px;font-size:36px;border-radius:18px}
+  .gname{font-family:var(--hand);font-weight:700;font-size:27px;line-height:1;transition:color .2s}
+  .gmeta{font-size:12px;color:var(--chalk-dim);margin-top:3px;display:flex;align-items:center;gap:8px}
+  .stack{display:flex}
+  .stack .av{width:24px;height:24px;border-radius:50%;border:2px solid var(--slate-1);display:grid;place-items:center;font-size:9.5px;font-weight:700;color:#1b1f1c;margin-left:-7px}
+  .stack .av:first-child{margin-left:0}
+  .gmenu{margin-left:auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--chalk-faint);background:none;border:none;cursor:pointer;flex:0 0 auto}
+  .gmenu:hover{color:var(--chalk);background:rgba(241,234,217,.07)}
+  .gmenu svg{width:18px;height:18px}
+
+  /* popover menu */
+  .scrim{position:absolute;inset:0;background:rgba(8,10,9,.5);z-index:14}
+  .popover{position:absolute;z-index:20;width:188px;background:var(--slate-2);border:1px solid var(--line);border-radius:15px;padding:6px;
+    box-shadow:0 22px 50px -14px rgba(0,0,0,.8);animation:rise .16s ease-out}
+  .popover button{display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;background:none;border:none;color:var(--chalk);font-family:var(--body);font-size:13.5px;border-radius:10px;text-align:left;cursor:pointer}
+  .popover button:hover{background:rgba(241,234,217,.08)}
+  .popover button svg{width:16px;height:16px;color:var(--chalk-dim)}
+  .popover button.danger{color:var(--red)} .popover button.danger svg{color:var(--red)}
+  .popover .sep{height:1px;background:var(--line);margin:4px 8px}
+
+  /* === SETTINGS PAGE === */
+  .idblock{display:flex;align-items:center;gap:15px;padding:6px 0 4px}
+  .idmeta{flex:1;min-width:0}
+  .idname{font-family:var(--hand);font-weight:700;font-size:30px;line-height:1}
+  .idsub{font-size:12px;color:var(--chalk-dim);margin-top:4px}
+  .mrow{display:flex;align-items:center;gap:13px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .mrow:last-child{border-bottom:none}
+  .mav{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#1b1f1c;flex:0 0 auto}
+  .mname{flex:1;min-width:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rolebadge{display:inline-flex;align-items:center;gap:5px;font-family:var(--body);font-weight:700;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mustard);background:rgba(231,194,77,.14);border:1px solid rgba(231,194,77,.4);padding:2px 8px 2px 6px;border-radius:999px}
+  .rolebadge svg{width:11px;height:11px}
+  .youtag{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--chalk-faint)}
+  .trashbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--chalk-faint);background:none;border:1px solid transparent;cursor:pointer;flex:0 0 auto}
+  .trashbtn:hover{color:var(--red);border-color:rgba(223,98,83,.4);background:rgba(223,98,83,.08)}
+  .trashbtn svg{width:17px;height:17px}
+  /* per-invite-row action button (share / copy) — neutral hover, sized like trashbtn */
+  .actbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--chalk-faint);background:none;border:1px solid transparent;cursor:pointer;flex:0 0 auto}
+  .actbtn:hover{color:var(--chalk);border-color:var(--line);background:rgba(241,234,217,.07)}
+  .actbtn svg{width:16px;height:16px}
+
+  /* invites */
+  .invrow{display:flex;align-items:center;gap:8px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:rgba(241,234,217,.04);margin-bottom:9px}
+  .invcode{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.06em;color:var(--chalk)}
+  .invexp{font-size:11px;color:var(--chalk-dim);margin-left:auto;white-space:nowrap}
+  .invacts{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+  .emptyline{color:var(--chalk-faint);font-style:italic;font-family:var(--hand);font-size:18px;padding:2px 2px 6px}
+
+  /* danger zone */
+  .dangercard{border:1.5px dashed rgba(223,98,83,.5);border-radius:16px;padding:15px 16px;background:rgba(223,98,83,.05)}
+  .dangercard p{margin:0 0 4px;font-size:12.5px;color:var(--chalk-dim);line-height:1.5}
+
+  /* === BOTTOM SHEET === */
+  .sheet-scrim{position:absolute;inset:0;background:rgba(8,10,9,.62);z-index:14;animation:fadeIn .2s ease-out}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:16;background:linear-gradient(180deg,var(--slate-2),var(--slate-1));
+    border-top:1px solid var(--line);border-radius:26px 26px 0 0;padding:10px 22px calc(24px + env(safe-area-inset-bottom));
+    box-shadow:0 -22px 50px -18px rgba(0,0,0,.7);animation:rise .26s ease-out}
+  .grab{width:42px;height:5px;border-radius:3px;background:var(--chalk-faint);margin:2px auto 16px}
+  .sheet-h{font-family:var(--hand);font-weight:700;font-size:30px;line-height:1;margin:0 0 6px}
+  .sheet-sub{font-size:13px;color:var(--chalk-dim);line-height:1.55;margin:0 0 16px}
+  .sheet-ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;margin-bottom:14px}
+  .sheet-ic.danger{background:rgba(223,98,83,.14);color:var(--red)}
+  .sheet-ic svg{width:26px;height:26px}
+  /* action sheet rows */
+  .actsheet-h{font-family:var(--hand);font-weight:700;font-size:26px;line-height:1;margin:0 0 8px;padding-bottom:13px;border-bottom:1.5px dashed var(--chalk-faint)}
+  .actrow{display:flex;align-items:center;gap:14px;width:100%;padding:16px 6px;background:none;border:none;color:var(--chalk);font-family:var(--body);font-size:15px;font-weight:600;text-align:left;cursor:pointer;border-radius:12px}
+  .actrow:hover{background:rgba(241,234,217,.06)}
+  .actrow svg{width:20px;height:20px;color:var(--chalk-dim)}
+  .actrow.danger{color:var(--red)} .actrow.danger svg{color:var(--red)}
+  .actrow.danger{border-top:1.5px dashed var(--chalk-faint);margin-top:4px;padding-top:18px}
+
+  /* create preview */
+  .createprev{display:flex;justify-content:center;margin:6px 0 18px}
+  .createprev .gmark{width:74px;height:74px;font-size:40px;border-radius:20px}
+
+  /* link pill */
+  .linkpill{display:flex;align-items:center;gap:11px;padding:13px 15px;border:1.5px dashed var(--chalk-faint);border-radius:14px;background:rgba(241,234,217,.04);margin-bottom:4px}
+  .linkpill svg{width:18px;height:18px;color:var(--coral);flex:0 0 auto}
+  .linktext{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .expnote{font-size:11.5px;color:var(--chalk-dim);margin:9px 2px 4px;display:flex;align-items:center;gap:7px}
+
+  /* toast */
+  .toast{position:absolute;left:50%;transform:translateX(-50%);bottom:30px;z-index:30;background:var(--slate-2);border:1px solid var(--line);
+    color:var(--chalk);font-size:13px;font-weight:600;padding:11px 18px;border-radius:999px;box-shadow:0 16px 40px -12px rgba(0,0,0,.7);display:flex;align-items:center;gap:9px}
+  .toast svg{width:15px;height:15px;color:var(--sage)}
+
+  /* bottom nav */
+  .nav{position:absolute;bottom:0;left:0;right:0;height:74px;display:flex;background:rgba(23,27,24,.92);border-top:1px solid var(--line);backdrop-filter:blur(8px);z-index:8}
+  .nav button{flex:1;border:none;background:none;cursor:pointer;color:var(--chalk-faint);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+  .nav button.on{color:var(--chalk)}
+  .nav .ic{font-size:20px}
+
+  /* invite landing */
+  .land{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px;position:relative}
+  .land .crest{width:96px;height:96px;border-radius:50%;border:2px dashed var(--coral);display:grid;place-items:center;margin-bottom:24px}
+  .land .crest.ok{border-color:var(--sage);border-style:solid}
+  .land .crest.bad{border-color:var(--red);border-style:solid}
+  .land .crest .gmark{width:74px;height:74px;font-size:40px;border-radius:20px;transform:rotate(-4deg)}
+  .land .crest svg{width:48%;height:48%}
+  .land .kick{font-family:var(--body);font-weight:600;letter-spacing:.28em;text-transform:uppercase;font-size:11px;color:var(--coral);margin-bottom:10px}
+  .land h2{font-family:var(--hand);font-weight:700;font-size:46px;line-height:.9;margin:0 0 6px}
+  .land h2 .gn{color:var(--mustard)}
+  .land p{color:var(--chalk-dim);font-size:13.5px;line-height:1.55;max-width:250px;margin:6px 0 26px}
+  .land .acts{width:100%;max-width:250px}
+  .land .footnote{position:absolute;bottom:30px;left:0;right:0;font-size:12.5px;color:var(--chalk-dim)}
+  .land .footnote a{color:var(--coral);text-decoration:none;font-weight:600}
+
+  /* empty first-run */
+  .emptywrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:44px 8px}
+  .emptyring{width:108px;height:108px;border-radius:50%;border:2px dashed var(--chalk-faint);display:grid;place-items:center;margin-bottom:22px;color:var(--chalk-faint)}
+  .emptyring svg{width:46%;height:46%}
+  .emptywrap h3{font-family:var(--hand);font-weight:700;font-size:33px;margin:0 0 8px;color:var(--chalk)}
+  .emptywrap p{color:var(--chalk-dim);font-size:13.5px;line-height:1.55;max-width:235px;margin:0 0 20px}
+
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+  <!-- hand-drawn chalk icon set (currentColor strokes, roughened via SVG filter) -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+    <filter id="chalk" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <symbol id="ic-meal" viewBox="4 4 40 40"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="24" cy="24" r="8"/><path d="M24 24 L24 19"/><path d="M24 24 L29 24"/><circle cx="24" cy="24" r="0.9" fill="currentColor" stroke="none"/>
+      <path d="M8 8 L8 12.5 Q8 14.8 10 15.5"/><path d="M10 8 L10 15.5"/><path d="M12 8 L12 12.5 Q12 14.8 10 15.5"/><path d="M10 15.5 L10 40"/>
+      <path d="M40 8 L40 40"/><path d="M40 8 C 35.5 12.5, 35.5 19.5, 40 23"/></g></symbol>
+    <symbol id="ic-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="12" cy="12" r="3.3"/><path d="M12 2.6v3.1 M12 18.3v3.1 M2.6 12h3.1 M18.3 12h3.1 M5.2 5.2l2.2 2.2 M16.6 16.6l2.2 2.2 M18.8 5.2l-2.2 2.2 M7.4 16.6l-2.2 2.2"/></g></symbol>
+    <symbol id="ic-dots" viewBox="0 0 24 24"><g fill="currentColor" stroke="currentColor" stroke-width="0.6" filter="url(#chalk)">
+      <circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></g></symbol>
+    <symbol id="ic-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" filter="url(#chalk)">
+      <path d="M12 5 V19 M5 12 H19"/></g></symbol>
+    <symbol id="ic-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M4.5 7 H19.5 M9 7 V5.6 a1.5 1.5 0 0 1 1.5 -1.5 h3 A1.5 1.5 0 0 1 15 5.6 V7 M6.5 7 l1 12.4 a1.5 1.5 0 0 0 1.5 1.4 h6 a1.5 1.5 0 0 0 1.5 -1.4 L18 7 M10 11 v6 M14 11 v6"/></g></symbol>
+    <symbol id="ic-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.1 10.9 15.9 7.1 M8.1 13.1 15.9 16.9"/></g></symbol>
+    <symbol id="ic-crown" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M4 18 H20 M5 17 L3.4 8 L8.5 11.7 L12 5 L15.5 11.7 L20.6 8 L19 17 Z"/></g></symbol>
+    <symbol id="ic-pencil" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M4 20 L4.8 16 L15.5 5.3 a1.8 1.8 0 0 1 2.5 0 l0.7 0.7 a1.8 1.8 0 0 1 0 2.5 L8 19.2 L4 20 Z M14 7 l3 3"/></g></symbol>
+    <symbol id="ic-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M10 14 a4 4 0 0 0 6 0.5 l2.5 -2.5 a4 4 0 0 0 -5.7 -5.7 L11 8 M14 10 a4 4 0 0 0 -6 -0.5 L5.5 12 a4 4 0 0 0 5.7 5.7 L13 16"/></g></symbol>
+    <symbol id="ic-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15 V5.5 a1.5 1.5 0 0 1 1.5 -1.5 H15"/></g></symbol>
+    <symbol id="ic-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M14 5 H6 a1.2 1.2 0 0 0 -1.2 1.2 V17.8 A1.2 1.2 0 0 0 6 19 H14"/><path d="M17 8 l4 4 -4 4 M21 12 H10"/></g></symbol>
+    <symbol id="ic-back" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M14 6 l-6 6 6 6 M8 12 H20"/></g></symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <path d="M5 13 l4 4 10 -11"/></g></symbol>
+    <symbol id="ic-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#chalk)">
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 7 V12 L15.5 14"/></g></symbol>
+  </defs></svg>
+
+  <div class=”pagehead”>
+    <h1><small>Ardoise · feature</small>Group management</h1>
+    <p>Create &amp; name a group, invite people with a reusable 7-day link (share / copy / revoke), manage members (kick / leave), and delete a group — all on the chalkboard. One role-adaptive Group&nbsp;Settings page: admins get the full panel, members get the trimmed read-only view with “Leave”. Tapping the per-row <b>gear</b> button navigates directly to Group Settings (screen 2) — no intermediate action sheet.</p>
+  </div>
+
+  <!-- ============================================================= -->
+  <div class=”section”>
+    <h2><small>Entry points</small>Find a group &amp; start one</h2>
+    <p>The Groups list gets a <b>＋</b> in the bar and a per-row <b>gear</b> button that goes straight to settings. The dead-end empty state becomes the first-run launchpad. Creating a group lands you straight in its <b>Settings</b> page (Invites section) — an empty group is useless alone, so you can create &amp; share a link inline right away.</p>
+    <div class=”ln”></div>
+  </div>
+
+  <div class="stage">
+    <!-- GROUPS LIST -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div style="flex:1"><div class="ttl">Your groups</div><div class="sub">3 groups</div></div>
+          <button class="iconbtn r" aria-label="New group"><svg class="icn"><use href="#ic-plus"/></svg></button></div>
+        <div class="pad">
+          <div class="gcard"><div class="gmark" style="background:var(--coral)">FT</div><div style="flex:1"><div class="gname">Family Table</div><div class="gmeta">5 members <span class="stack"><span class="av" style="background:var(--mustard)">CA</span><span class="av" style="background:var(--sage)">JO</span><span class="av" style="background:var(--coral)">TH</span></span></div></div><button class="gmenu" aria-label="Family Table settings"><svg><use href="#ic-gear"/></svg></button></div>
+          <div class="gcard"><div class="gmark" style="background:var(--mustard)">3B</div><div style="flex:1"><div class="gname">Flat 3B</div><div class="gmeta">4 members <span class="stack"><span class="av" style="background:var(--sage)">LI</span><span class="av" style="background:var(--coral)">MA</span><span class="av" style="background:var(--mustard)">SO</span></span></div></div><button class="gmenu" aria-label="Flat 3B settings"><svg><use href="#ic-gear"/></svg></button></div>
+          <div class="gcard"><div class="gmark" style="background:var(--sage)">TC</div><div style="flex:1"><div class="gname">Trail Crew</div><div class="gmeta">8 members <span class="stack"><span class="av" style="background:var(--coral)">EL</span><span class="av" style="background:var(--mustard)">NA</span><span class="av" style="background:var(--sage)">PA</span></span></div></div><button class="gmenu" aria-label="Trail Crew settings"><svg><use href="#ic-gear"/></svg></button></div>
+        </div>
+        <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">Groups list · ＋ new · gear per row</div>
+    </div>
+
+    <!-- GROUPS LIST (gear → settings directly) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div style="flex:1"><div class="ttl">Your groups</div><div class="sub">3 groups</div></div>
+          <button class="iconbtn r" aria-label="New group"><svg class="icn"><use href="#ic-plus"/></svg></button></div>
+        <div class="pad">
+          <div class="gcard"><div class="gmark" style="background:var(--coral)">FT</div><div style="flex:1"><div class="gname">Family Table</div><div class="gmeta">5 members</div></div><button class="gmenu" aria-label="Family Table settings"><svg><use href="#ic-gear"/></svg></button></div>
+          <div class="gcard"><div class="gmark" style="background:var(--mustard)">3B</div><div style="flex:1"><div class="gname">Flat 3B</div><div class="gmeta">4 members</div></div><button class="gmenu" aria-label="Flat 3B settings"><svg><use href="#ic-gear"/></svg></button></div>
+          <div class="gcard"><div class="gmark" style="background:var(--sage)">TC</div><div style="flex:1"><div class="gname">Trail Crew</div><div class="gmeta">8 members</div></div><button class="gmenu" aria-label="Trail Crew settings"><svg><use href="#ic-gear"/></svg></button></div>
+        </div>
+        <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">Row gear → group settings (direct)</div>
+    </div>
+
+    <!-- FIRST RUN -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div style="flex:1"><div class="ttl">Your groups</div><div class="sub">0 groups</div></div>
+          <button class="iconbtn r" aria-label="New group"><svg class="icn"><use href="#ic-plus"/></svg></button></div>
+        <div class="pad">
+          <div class="emptywrap">
+            <div class="emptyring"><svg><use href="#ic-meal"/></svg></div>
+            <h3>No groups yet</h3>
+            <p>Start a group for your household, or join one with an invite link to begin planning meals together.</p>
+            <button class="btn" style="max-width:230px"><svg><use href="#ic-plus"/></svg>New group</button>
+            <button class="btn ghost" style="max-width:230px;margin-top:12px">I have an invite</button>
+          </div>
+        </div>
+        <div class="nav"><button class="on"><span class="ic">▦</span>Groups</button><button><span class="ic">◔</span>Settings</button></div>
+      </div></div>
+      <div class="tag">First run · the launchpad fix</div>
+    </div>
+
+    <!-- CREATE GROUP SHEET -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><div style="flex:1"><div class="ttl">Your groups</div><div class="sub">3 groups</div></div>
+          <button class="iconbtn r"><svg class="icn"><use href="#ic-plus"/></svg></button></div>
+        <div class="pad" style="opacity:.5">
+          <div class="gcard"><div class="gmark" style="background:var(--coral)">FT</div><div style="flex:1"><div class="gname">Family Table</div><div class="gmeta">5 members</div></div></div>
+          <div class="gcard"><div class="gmark" style="background:var(--mustard)">3B</div><div style="flex:1"><div class="gname">Flat 3B</div><div class="gmeta">4 members</div></div></div>
+        </div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-h">New group</div>
+          <div class="createprev"><div class="gmark" style="background:var(--sage)">WC</div></div>
+          <div class="field"><label>Group name</label><input class="ip" value="Weekend Crew"></div>
+          <button class="btn"><svg><use href="#ic-check"/></svg>Create group</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+      </div></div>
+      <div class="tag">Create group · live initials preview</div>
+    </div>
+
+    <!-- AFTER CREATE → GROUP SETTINGS (invites section) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" aria-label="Back"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Weekend Crew</div><div class="sub">Group settings</div></div></div>
+        <div class="pad">
+          <div class="idblock">
+            <div class="gmark big" style="background:var(--sage)">WC</div>
+            <div class="idmeta"><div class="idname">Weekend Crew</div><div class="idsub">1 member · just now</div></div>
+            <button class="iconbtn" aria-label="Rename group"><svg class="icn"><use href="#ic-pencil"/></svg></button>
+          </div>
+          <div class="seclabel">Members · 1</div>
+          <div class="mrow"><span class="mav" style="background:var(--sage)">CA</span><div class="mname">Camille <span class="rolebadge"><svg><use href="#ic-crown"/></svg>Admin</span> <span class="youtag">· You</span></div></div>
+          <div class="seclabel">Invite people</div>
+          <button class="btn"><svg><use href="#ic-share"/></svg>Create invite link</button>
+          <div style="margin-top:14px"><div class="emptyline">No active invite links — create one to add people.</div></div>
+        </div>
+      </div></div>
+      <div class="tag">After create → group settings</div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <div class="section">
+    <h2><small>Admin</small>Group Settings — the admin panel</h2>
+    <p>Reached by tapping the per-row <b>gear</b> button on the Groups list (directly — no action sheet). Four sections: identity (+ rename), members (+ kick), invites (create inline — each row carries its own Share / Copy / Revoke), and a danger zone. Destructive acts get sheets: a simple confirm for kick/revoke, type-to-confirm for delete.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- SETTINGS ADMIN -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn" aria-label="Back"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad">
+          <div class="idblock">
+            <div class="gmark big" style="background:var(--coral)">FT</div>
+            <div class="idmeta"><div class="idname">Family Table</div><div class="idsub">5 members · since Mar 2026</div></div>
+            <button class="iconbtn" aria-label="Rename group"><svg class="icn"><use href="#ic-pencil"/></svg></button>
+          </div>
+
+          <div class="seclabel">Members · 5</div>
+          <div class="mrow"><span class="mav" style="background:var(--coral)">CA</span><div class="mname">Camille <span class="rolebadge"><svg><use href="#ic-crown"/></svg>Admin</span> <span class="youtag">· You</span></div></div>
+          <div class="mrow"><span class="mav" style="background:var(--mustard)">JO</span><div class="mname">Jonas</div><button class="trashbtn" aria-label="Remove Jonas"><svg><use href="#ic-trash"/></svg></button></div>
+          <div class="mrow"><span class="mav" style="background:var(--sage)">TH</span><div class="mname">Théo</div><button class="trashbtn" aria-label="Remove Théo"><svg><use href="#ic-trash"/></svg></button></div>
+          <div class="mrow"><span class="mav" style="background:#cbb9e8">EL</span><div class="mname">Elodie</div><button class="trashbtn" aria-label="Remove Elodie"><svg><use href="#ic-trash"/></svg></button></div>
+          <div class="mrow"><span class="mav" style="background:var(--mustard)">NA</span><div class="mname">Naïm</div><button class="trashbtn" aria-label="Remove Naïm"><svg><use href="#ic-trash"/></svg></button></div>
+
+          <div class="seclabel">Invite people</div>
+          <button class="btn"><svg><use href="#ic-share"/></svg>Create invite link</button>
+          <div style="margin-top:14px">
+            <div class="invrow"><svg style="width:16px;height:16px;color:var(--coral)"><use href="#ic-link"/></svg><span class="invcode">AB12CD34</span><span class="invexp">expires in 6d</span><div class="invacts"><button class="actbtn" aria-label="Share invite link"><svg><use href="#ic-share"/></svg></button><button class="actbtn" aria-label="Copy invite link"><svg><use href="#ic-copy"/></svg></button><button class="trashbtn" aria-label="Revoke invite"><svg><use href="#ic-trash"/></svg></button></div></div>
+            <div class="invrow"><svg style="width:16px;height:16px;color:var(--coral)"><use href="#ic-link"/></svg><span class="invcode">9XQ4KT2P</span><span class="invexp">expires in 2d</span><div class="invacts"><button class="actbtn" aria-label="Share invite link"><svg><use href="#ic-share"/></svg></button><button class="actbtn" aria-label="Copy invite link"><svg><use href="#ic-copy"/></svg></button><button class="trashbtn" aria-label="Revoke invite"><svg><use href="#ic-trash"/></svg></button></div></div>
+          </div>
+
+          <div class="seclabel danger">Danger zone</div>
+          <div class="dangercard">
+            <p>Deletes the group and all schedules, notes &amp; invites for everyone. This can’t be undone.</p>
+            <button class="btn danger"><svg><use href="#ic-trash"/></svg>Delete group</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="tag">Settings · admin (full panel)</div>
+    </div>
+
+    <!-- INVITES SECTION (inline create + per-row Share/Copy/Revoke, copied toast) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad">
+          <div class="seclabel">Invite people</div>
+          <button class="btn"><svg><use href="#ic-share"/></svg>Create invite link</button>
+          <div style="margin-top:14px">
+            <div class="invrow"><svg style="width:16px;height:16px;color:var(--coral)"><use href="#ic-link"/></svg><span class="invcode">AB12CD34</span><span class="invexp">expires in 6d</span><div class="invacts"><button class="actbtn" aria-label="Share invite link"><svg><use href="#ic-share"/></svg></button><button class="actbtn" aria-label="Copy invite link"><svg><use href="#ic-copy"/></svg></button><button class="trashbtn" aria-label="Revoke invite"><svg><use href="#ic-trash"/></svg></button></div></div>
+          </div>
+        </div>
+        <div class="toast"><svg><use href="#ic-check"/></svg>Invite link copied</div>
+      </div></div>
+      <div class="tag">Invites · per-row Share / Copy / Revoke · toast on copy</div>
+    </div>
+
+    <!-- KICK CONFIRM -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad" style="opacity:.5">
+          <div class="seclabel">Members · 5</div>
+          <div class="mrow"><span class="mav" style="background:var(--sage)">TH</span><div class="mname">Théo</div></div>
+        </div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-ic danger"><svg><use href="#ic-trash"/></svg></div>
+          <div class="sheet-h">Remove Théo?</div>
+          <p class="sheet-sub">This deletes all of Théo’s schedules and notes in Family&nbsp;Table. They can be re-invited later.</p>
+          <button class="btn danger">Remove</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+      </div></div>
+      <div class="tag">Kick member · simple confirm</div>
+    </div>
+
+    <!-- DELETE GROUP (type to confirm) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad" style="opacity:.5"><div class="seclabel danger">Danger zone</div><div class="dangercard"><p>Deletes the group for everyone.</p></div></div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-h" style="color:var(--red)">Delete Family Table</div>
+          <p class="sheet-sub">Permanently deletes the group and all schedules, notes &amp; invites for <b>5 members</b>. This cannot be undone.</p>
+          <div class="field"><label>Type the group name to confirm</label><input class="ip" placeholder="Family Table"></div>
+          <button class="btn danger disabled"><svg><use href="#ic-trash"/></svg>Delete forever</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+      </div></div>
+      <div class="tag">Delete group · type-to-confirm (locked)</div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <div class="section">
+    <h2><small>Member</small>Group Settings — the trimmed view &amp; leaving</h2>
+    <p>The same page, role-gated: a member sees identity and the roster read-only (no rename, no kick), and the danger zone offers <b>Leave group</b> instead of Delete. The sole admin never sees Leave — the constraint is structural, not a disabled button.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- SETTINGS MEMBER -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Flat 3B</div><div class="sub">Group settings</div></div></div>
+        <div class="pad">
+          <div class="idblock">
+            <div class="gmark big" style="background:var(--mustard)">3B</div>
+            <div class="idmeta"><div class="idname">Flat 3B</div><div class="idsub">4 members · since Apr 2026</div></div>
+          </div>
+          <div class="seclabel">Members · 4</div>
+          <div class="mrow"><span class="mav" style="background:var(--sage)">LI</span><div class="mname">Lina <span class="rolebadge"><svg><use href="#ic-crown"/></svg>Admin</span></div></div>
+          <div class="mrow"><span class="mav" style="background:var(--coral)">MA</span><div class="mname">Marco <span class="youtag">· You</span></div></div>
+          <div class="mrow"><span class="mav" style="background:var(--mustard)">SO</span><div class="mname">Sofia</div></div>
+          <div class="mrow"><span class="mav" style="background:#cbb9e8">PA</span><div class="mname">Paul</div></div>
+          <div class="seclabel danger">Danger zone</div>
+          <div class="dangercard">
+            <p>Leaving removes your schedules &amp; notes from Flat 3B. You can rejoin with an invite link.</p>
+            <button class="btn danger"><svg><use href="#ic-logout"/></svg>Leave group</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="tag">Settings · member (read-only + Leave)</div>
+    </div>
+
+    <!-- LEAVE CONFIRM -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Flat 3B</div><div class="sub">Group settings</div></div></div>
+        <div class="pad" style="opacity:.5"><div class="seclabel danger">Danger zone</div><div class="dangercard"><p>Leaving removes your data.</p></div></div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-ic danger"><svg><use href="#ic-logout"/></svg></div>
+          <div class="sheet-h">Leave Flat 3B?</div>
+          <p class="sheet-sub">Your schedules and notes for this group will be removed. You can rejoin later with an invite link.</p>
+          <button class="btn danger">Leave group</button>
+          <button class="btn ghost">Stay</button>
+        </div>
+      </div></div>
+      <div class="tag">Leave group · member self-removal</div>
+    </div>
+
+    <!-- RENAME SHEET -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad" style="opacity:.5"><div class="idblock"><div class="gmark big" style="background:var(--coral)">FT</div><div class="idmeta"><div class="idname">Family Table</div></div></div></div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-h">Rename group</div>
+          <div class="createprev"><div class="gmark" style="background:var(--coral)">FT</div></div>
+          <div class="field"><label>Group name</label><input class="ip" value="Family Table"></div>
+          <button class="btn"><svg><use href="#ic-check"/></svg>Save</button>
+          <button class="btn ghost">Cancel</button>
+        </div>
+      </div></div>
+      <div class="tag">Rename group · admin</div>
+    </div>
+
+    <!-- REVOKE CONFIRM -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="bar"><button class="iconbtn"><svg class="icn"><use href="#ic-back"/></svg></button><div style="flex:1"><div class="ttl">Family Table</div><div class="sub">Group settings</div></div></div>
+        <div class="pad" style="opacity:.5"><div class="seclabel">Invite people</div><div class="invrow"><svg style="width:16px;height:16px;color:var(--coral)"><use href="#ic-link"/></svg><span class="invcode">AB12CD34</span><span class="invexp">expires in 6d</span></div></div>
+        <div class="sheet-scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sheet-ic danger"><svg><use href="#ic-trash"/></svg></div>
+          <div class="sheet-h">Revoke this invite?</div>
+          <p class="sheet-sub">The link <b style="font-family:'JetBrains Mono',monospace;font-weight:500">…/invite/AB12CD34</b> stops working immediately. People who already joined stay in the group.</p>
+          <button class="btn danger">Revoke link</button>
+          <button class="btn ghost">Keep it</button>
+        </div>
+      </div></div>
+      <div class="tag">Revoke invite · simple confirm</div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <div class="section">
+    <h2><small>Recipient</small>The invite landing — /invite/:code</h2>
+    <p>A public page that works logged-out and logged-in. Anonymous visitors see the group name from the link’s <code>?g=</code> hint (cosmetic only) and get <b>Sign in</b> + <b>Create account</b>; the code is stashed and redeemed automatically after login. Logged-in visitors confirm and join. Expired/invalid codes get a clear dead-end with a way out.</p>
+    <div class="ln"></div>
+  </div>
+
+  <div class="stage">
+    <!-- ANON, NAMED -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="land">
+          <div class="crest"><div class="gmark" style="background:var(--coral)">FT</div></div>
+          <div class="kick">You’ve been invited</div>
+          <h2>Join<br><span class="gn">Family Table</span></h2>
+          <p>Sign in or create an account to start planning meals with the group.</p>
+          <div class="acts">
+            <button class="btn">Sign in to join</button>
+            <button class="btn ghost">Create account</button>
+          </div>
+          <div class="footnote">Invite from a friend? <a>Learn more</a></div>
+        </div>
+      </div></div>
+      <div class="tag">Anonymous · name from ?g= hint</div>
+    </div>
+
+    <!-- LOGGED-IN CONFIRM -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="land">
+          <div class="crest"><div class="gmark" style="background:var(--coral)">FT</div></div>
+          <div class="kick">Invitation</div>
+          <h2>Join<br><span class="gn">Family Table</span>?</h2>
+          <p>You’ll join as a member and can set your meals straight away.</p>
+          <div class="acts">
+            <button class="btn"><svg><use href="#ic-check"/></svg>Join group</button>
+            <button class="btn ghost">Not now</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="tag">Logged in · confirm (server name)</div>
+    </div>
+
+    <!-- ALREADY A MEMBER -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="land">
+          <div class="crest ok"><svg style="color:var(--sage)"><use href="#ic-check"/></svg></div>
+          <h2>You’re already<br>in <span class="gn">Family Table</span></h2>
+          <p>No need to join twice — jump straight to the week.</p>
+          <div class="acts"><button class="btn">Open group</button></div>
+        </div>
+      </div></div>
+      <div class="tag">Already a member · idempotent</div>
+    </div>
+
+    <!-- EXPIRED / INVALID -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="land">
+          <div class="crest bad"><svg style="color:var(--red)"><use href="#ic-clock"/></svg></div>
+          <h2>Invite<br>expired</h2>
+          <p>This invite link has expired or was revoked. Ask the group admin for a fresh one.</p>
+          <div class="acts"><button class="btn ghost">Back to your groups</button></div>
+        </div>
+      </div></div>
+      <div class="tag">Expired / invalid / revoked</div>
+    </div>
+
+    <!-- ANON, GENERIC (no ?g=) -->
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="land">
+          <div class="crest"><svg style="color:var(--mustard)"><use href="#ic-meal"/></svg></div>
+          <div class="kick">You’ve been invited</div>
+          <h2>Join a group<br>on Meal&nbsp;Planner</h2>
+          <p>Sign in or create an account to see the group and start planning meals together.</p>
+          <div class="acts">
+            <button class="btn">Sign in to join</button>
+            <button class="btn ghost">Create account</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="tag">Anonymous · generic (no ?g= hint)</div>
+    </div>
+  </div>
+
+</body>
+</html>

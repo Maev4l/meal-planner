@@ -40,7 +40,7 @@ const DefaultSchedulePage = () => {
       fetchSchedules(true);
     } catch {
       setSchedule(prev);
-      toast?.('Failed to save');
+      toast?.('Failed to save', 'error');
     }
   }, [schedule, groupId, fetchSchedules, toast]);
 

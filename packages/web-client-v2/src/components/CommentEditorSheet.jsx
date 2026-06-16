@@ -40,9 +40,9 @@ const CommentEditorSheet = ({ open, onClose, day, dayIndex, year, week, groupId,
       await api.createComments(groupId, { year, weekNumber: week, ...week7 });
       initial.current = { lunch, dinner };
       onSaved?.(week7);
-      toast?.('Saved');
+      toast?.('Saved', 'success');
     } catch {
-      toast?.('Failed to save note');
+      toast?.('Failed to save note', 'error');
     }
   }, [readOnly, lunch, dinner, day, allComments, groupId, year, week, onSaved, toast]);
 

@@ -35,6 +35,198 @@ paths:
         '401':
           description: Unauthorized
 
+  /api/groups/{groupId}:
+    put:
+      summary: Rename a group
+      description: Update the name of an existing group. Only the GroupAdmin may call this endpoint.
+      operationId: updateGroup
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Group renamed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin
+        '404':
+          description: Group not found
+        '409':
+          description: Conflict — new name is blank or otherwise invalid
+    delete:
+      summary: Delete a group
+      description: Delete a group and all its associated data (members, schedules, comments, notices, invites). Only the GroupAdmin may call this endpoint.
+      operationId: deleteGroup
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      responses:
+        '204':
+          description: Group deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin
+        '404':
+          description: Group not found
+
+  /api/groups/{groupId}/invites:
+    post:
+      summary: Create an invite
+      description: Generate a reusable invite link for the group. Only the GroupAdmin may call this endpoint. The invite expires after 7 days.
+      operationId: createInvite
+      tags:
+        - Invites
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      responses:
+        '201':
+          description: Invite created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin
+        '404':
+          description: Group not found
+    get:
+      summary: List active invites
+      description: List all active (non-expired) invites for the group. Only the GroupAdmin may call this endpoint.
+      operationId: listInvites
+      tags:
+        - Invites
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+      responses:
+        '200':
+          description: Invites listed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListInvitesResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin
+
+  /api/groups/{groupId}/invites/{code}:
+    delete:
+      summary: Revoke an invite
+      description: Revoke (delete) a specific invite by code. Authorization is verified against the invite's stored group — only the GroupAdmin of that group may call this endpoint.
+      operationId: deleteInvite
+      tags:
+        - Invites
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The invite code to revoke
+      responses:
+        '204':
+          description: Invite revoked successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin for the group this invite belongs to
+        '404':
+          description: Invite not found
+
+  /api/invites/{code}:
+    get:
+      summary: Get invite details
+      description: Retrieve details about an invite (group name and expiry). Returns 404 for missing, expired, or revoked invites — these cases are intentionally indistinguishable to the caller.
+      operationId: getInvite
+      tags:
+        - Invites
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The invite code
+      responses:
+        '200':
+          description: Invite details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteDetailsResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invite not found, expired, or revoked
+
+  /api/invites/{code}/redeem:
+    post:
+      summary: Redeem an invite
+      description: "Redeem an invite code to join the associated group as a regular member. This operation is idempotent — calling it when already a member returns a 200 with alreadyMember=true rather than an error."
+      operationId: redeemInvite
+      tags:
+        - Invites
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The invite code to redeem
+      responses:
+        '200':
+          description: Invite redeemed (or caller was already a member)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedeemInviteResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invite not found, expired, or revoked
+
   /api/groups/{groupId}/members:
     post:
       summary: Add a member to a group
@@ -68,6 +260,49 @@ paths:
           description: Unauthorized
         '404':
           description: Group not found
+
+  /api/groups/{groupId}/members/{memberId}:
+    delete:
+      summary: Remove a member from a group
+      description: >
+        Remove a member from a group. Behavior depends on whether the caller is
+        removing themselves or another member:
+
+        - **Voluntary leave** (memberId == caller's own id): any authenticated
+          member may call this. The sole GroupAdmin cannot leave — this returns 409.
+
+        - **Kick** (memberId != caller's own id): only the GroupAdmin may call
+          this. A non-admin caller receives 403.
+
+        All group data for the removed member (schedules, comments, notices) is
+        deleted along with the membership record.
+      operationId: removeMember
+      tags:
+        - Members
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the group
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the member to remove (use the caller's own ID to leave voluntarily)
+      responses:
+        '204':
+          description: Member removed successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Caller is not the GroupAdmin (when removing another member)
+        '404':
+          description: Group or member not found
+        '409':
+          description: Conflict — the sole GroupAdmin cannot leave the group
 
   /api/groups/{groupId}/schedules:
     post:
@@ -246,6 +481,73 @@ components:
           type: string
           format: date-time
           description: Timestamp when the group was created
+
+    UpdateGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: New name for the group (must not be blank)
+
+    GroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the group
+        name:
+          type: string
+          description: Name of the group
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the group was created
+
+    InviteResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Unique invite code (alphanumeric, 8 characters)
+        expiresAt:
+          type: string
+          format: date-time
+          description: Timestamp when the invite expires (7 days from creation)
+
+    ListInvitesResponse:
+      type: object
+      properties:
+        invites:
+          type: array
+          items:
+            $ref: '#/components/schemas/InviteResponse'
+          description: List of active (non-expired) invites for the group
+
+    InviteDetailsResponse:
+      type: object
+      properties:
+        groupName:
+          type: string
+          description: Name of the group the invite grants access to
+        expiresAt:
+          type: string
+          format: date-time
+          description: Timestamp when the invite expires
+
+    RedeemInviteResponse:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: Unique identifier of the group the caller joined
+        groupName:
+          type: string
+          description: Name of the group the caller joined
+        alreadyMember:
+          type: boolean
+          description: True if the caller was already a member of the group before redemption
 
     CreateMemberRequest:
       type: object
@@ -536,6 +838,8 @@ components:
 tags:
   - name: Groups
     description: Group management
+  - name: Invites
+    description: Group invite management
   - name: Members
     description: Group member management
   - name: Schedules
