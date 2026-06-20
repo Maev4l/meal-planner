@@ -13,7 +13,7 @@ func main() {
 	handler := cognito.NewHandler()
 
 	// Configure meal-planner-specific notification
-	handler.GetNotification = func(ctx context.Context, event *cognito.PreSignUpEvent) (*cognito.NotificationPayload, bool) {
+	handler.GetNotification = func(ctx context.Context, event *cognito.PreSignUpEvent, _ *cognito.AppConfig) (*cognito.NotificationPayload, bool) {
 		return &cognito.NotificationPayload{
 			Source:            "meal-planner-onboard-users",
 			SourceDescription: "Meal Planner user sign up (pre)",
