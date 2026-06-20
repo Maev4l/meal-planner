@@ -19,7 +19,7 @@
 
 ### Key Files
 
-- `src/contexts/AuthContext.jsx` — auth state, signIn, signInWithGoogle, signUp, signOut
+- `src/contexts/AuthContext.jsx` — auth state, signIn, signInWithGoogle, signUp, signOut, `refreshSession()` (forces a Cognito token refresh so a freshly-flipped approval claim is picked up — used after invite auto-approval)
 - `src/pages/LoginPage.jsx` — login form + Google button
 - `src/pages/SignUpPage.jsx` — registration form (pending approval)
 - `src/config.js` — Cognito + OAuth configuration
@@ -79,7 +79,7 @@
   - **All members**: identity block (avatar, name, member count); roster of members with Admin/You badges
   - **Admin only**: rename (pencil), members section with per-row kick (trash), invites section (create invite inline; each active-invite row carries Share / Copy / Revoke icon buttons), danger zone (type-to-confirm delete)
   - **Non-admin**: danger zone shows "Leave group" only
-- `InvitePage.jsx` — public invite landing (`/invite/:code`); outside both route guards; branches on auth state: `anon` (sign in / create account) → `confirm` (join) → `awaiting` (unapproved account) → `already` / `expired` / `error`; stores code to `localStorage` via `pendingInvite.js` to survive the login/approval gap
+- `InvitePage.jsx` — public invite landing (`/invite/:code`); outside both route guards; branches on auth state: `anon` (sign in / create account) → `confirm` (join) → `already` / `expired` / `error`; stores code to `localStorage` via `pendingInvite.js` to survive the login gap. An invited user is auto-approved by the API on redeem, so there is no "awaiting approval" state; `join()` calls `refreshSession()` after a successful redeem (so the flipped approval claim takes effect) before loading the schedule / navigating
 
 ## Components
 
@@ -181,6 +181,5 @@ When a user clicks an invite link while not logged in:
 ### InvitePage
 - Public route outside both `ProtectedRoute` and `PublicRoute` guards — `InvitePage` handles its own auth branching
 - Anonymous: shows group name (from `?g=` hint) + "Sign in to join" / "Create account"; stores invite code via `pendingInvite.js`
-- Authenticated + approved: confirm screen → join → navigates to the group schedule
-- Authenticated + unapproved: "Awaiting approval" state; code stays in localStorage until approval completes
+- Authenticated (approved or unapproved): confirm screen → join → navigates to the group schedule. The API auto-approves an unapproved invitee on redeem, so there is no "awaiting approval" wait; `join()` calls `refreshSession()` right after the successful redeem so the freshly-flipped approval claim is picked up before navigating
 - Expired / revoked: terminal expired state; clears localStorage

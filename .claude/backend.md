@@ -33,6 +33,7 @@ so the stable-named PWA app shell never reinstalls a phantom service worker:
 - Google OAuth identity provider
 - Lambda triggers: `user-management` (pre_sign_up, post_confirmation)
 - Token TTLs: access/ID = 60 min, refresh = 1 year (absolute expiry; re-login required yearly or on explicit sign-out, password change, or admin disable)
+- The API Lambda role has `cognito-idp:AdminUpdateUserAttributes` (scoped to the pool, used for invite auto-approval) and `sns:Publish` (alerting topic); the function receives the topic via the `SNS_TOPIC_ARN` env var.
 
 ### SSM Parameters (secrets)
 
@@ -122,9 +123,11 @@ All group-management endpoints below are **implemented** (shipped with the group
 |--------|------|------|-------------|
 | `POST` | `/api/groups/{groupId}/invites` | GroupAdmin | Create invite, returns code |
 | `GET` | `/api/groups/{groupId}/invites` | GroupAdmin | List active invites for the group |
-| `GET` | `/api/invites/{code}` | Authenticated | Get invite details (group name, validity) |
-| `POST` | `/api/invites/{code}/redeem` | Authenticated | Join the group |
+| `GET` | `/api/invites/{code}` | Authenticated (not approval-gated) | Get invite details (group name, validity) |
+| `POST` | `/api/invites/{code}/redeem` | Authenticated (not approval-gated) | Join the group (auto-approves an unapproved caller) |
 | `DELETE` | `/api/groups/{groupId}/invites/{code}` | GroupAdmin | Revoke an invite |
+
+**Auth gates:** the two redeem-side routes (`GET /api/invites/{code}`, `POST /api/invites/{code}/redeem`) sit behind a pass-through `RequireAuthenticated` middleware so an unapproved-but-authenticated user can follow an invite link. All other `/api` routes — including invite create/list/revoke — stay behind `RequireApproved`. Authentication itself is enforced for every `/api` route by the API Gateway JWT authorizer.
 
 ### Members
 
@@ -190,6 +193,7 @@ Then keep only items whose SK contains `group#<groupId>`, filtered **in code** �
 3. If requester is already a member, return `alreadyMember=true` (idempotent — no error)
 4. Create Member record via conditional `PutItem` (`CreateMemberIfNotExists`) — atomic, never downgrades an existing admin
 5. Create default schedule
+6. Auto-approve: if the caller's token claim `custom:Approved` is false, flip it to `"true"` via `idp.ApproveUser(cognitoUsername)` (`cognito-idp:AdminUpdateUserAttributes`), then publish a 2nd "auto-approved via invite to &lt;group&gt;" Slack alert to the `alerting-events` SNS topic (shared `notifications.Message` contract). Already-approved callers are not re-approved and produce no alert.
 
 ### Invite URL Format
 ```
@@ -204,6 +208,7 @@ https://meal-planner.isnan.eu/invite/{code}
 - **Redeem is idempotent**: if the caller is already a member, the handler returns `alreadyMember=true` (HTTP 200) instead of an error.
 - **Conditional write on redeem**: `CreateMemberIfNotExists` uses a DynamoDB condition expression to prevent overwriting an existing member record (TOCTOU-safe, admin-role preserved).
 - **Revoke authorization**: the handler cross-checks the invite's stored `GroupId` against the URL `{groupId}` parameter to prevent IDOR (path/stored mismatch → 403).
+- **Auto-approval on redeem**: redeeming a valid invite auto-approves an unapproved caller, gated on the token's `custom:Approved` claim — `AdminUpdateUserAttributes` sets `custom:Approved="true"`, then a 2nd "auto-approved via invite" Slack alert is published to `alerting-events` via the shared `notifications.Message` contract. **Approval failure is surfaced** to the client (the idempotent redeem can be retried); **alert failure is best-effort** (logged, non-fatal). Uninvited self-registrants remain `custom:Approved=false`, blocked by `RequireApproved`, and still get the existing signup Slack alert.
 - **Rename (PUT /api/groups/{groupId})**: updates only the Group record. Denormalized `GroupName` on member/schedule records is intentionally left stale (read-time join not required by current access patterns).
 - **LeaveGroup**: the sole admin cannot leave (`ErrSoleAdmin` → 403); they must delete the group instead.
 - **HTTP status codes**: these endpoints return proper codes (200/201/204/403/404/409). Older handlers returned 500 for all errors — this behavior is unchanged for those.
