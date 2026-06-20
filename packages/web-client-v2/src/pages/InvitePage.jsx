@@ -9,12 +9,12 @@ import Spinner from '../components/ui/Spinner';
 import Icon from '../components/Icon';
 import { colorForName, initialsOf } from '../constants/colors';
 
-// States: loading | anon | confirm | awaiting | joining | already | expired | error
+// States: loading | anon | confirm | joining | already | expired | error
 const InvitePage = () => {
   const { code } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, refreshSession } = useAuth();
   const { fetchSchedules } = useSchedules();
 
   // ?g= is a cosmetic hint only; render as plain (auto-escaped) text.
@@ -31,7 +31,6 @@ const InvitePage = () => {
       setGroupName(inv.groupName);
       setState('confirm');
     } catch (e) {
-      if (e instanceof ApiError && e.status === 403) { setState('awaiting'); return; }   // not approved yet
       if (e instanceof ApiError && e.status === 404) { clearPendingInvite(); setState('expired'); return; }
       setState('error');
     }
@@ -51,12 +50,12 @@ const InvitePage = () => {
     setState('joining');
     try {
       const res = await api.redeemInvite(code);
+      await refreshSession();      // new idToken carries approved:true
       clearPendingInvite();
       await fetchSchedules(true);
       if (res.alreadyMember) { setGroupName(res.groupName); setState('already'); return; }
       navigate(`/groups/${res.groupId}/${encodeURIComponent(res.groupName)}`);
     } catch (e) {
-      if (e instanceof ApiError && e.status === 403) { setState('awaiting'); return; }
       if (e instanceof ApiError && e.status === 404) { clearPendingInvite(); setState('expired'); return; }
       setState('error');
     }
@@ -99,13 +98,6 @@ const InvitePage = () => {
   </>);
 
   if (state === 'joining') return wrap(<Spinner label="Joining…" />);
-
-  if (state === 'awaiting') return wrap(<>
-    <Crest tone="border-2 border-dashed border-mustard"><Icon name="clock" className="w-[46%] h-[46%] text-mustard" /></Crest>
-    <h2 className="font-hand font-bold text-[40px] leading-[0.9] m-0 mb-2">Awaiting<br />approval</h2>
-    <p className="text-chalk-dim text-[13.5px] leading-relaxed max-w-[250px] m-0 mb-6">Your account is pending approval. You&apos;ll join {groupName || 'the group'} automatically once an administrator approves you.</p>
-    <div className="w-full max-w-[250px]"><Button variant="ghost" onClick={() => navigate('/')}>Back to your groups</Button></div>
-  </>);
 
   if (state === 'already') return wrap(<>
     <Crest tone="border-2 border-sage"><Icon name="check" className="w-[46%] h-[46%] text-sage" /></Crest>

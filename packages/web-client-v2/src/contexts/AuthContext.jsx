@@ -76,6 +76,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // After the API flips custom:Approved server-side, the in-hand idToken still
+  // says approved=false. Force a refresh so the new claim takes effect before
+  // any approval-gated request runs. custom:Approved is in the pool's
+  // read_attributes, so the refreshed token carries it.
+  const refreshSession = useCallback(async () => {
+    await fetchAuthSession({ forceRefresh: true });
+    await checkAuth();
+  }, [checkAuth]);
+
   useEffect(() => {
     // Check for OAuth callback errors (e.g., account linking)
     const oauthResult = checkOAuthError();
@@ -180,7 +189,8 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signOut,
     getToken,
-  }), [user, isLoading, error, oauthMessage, clearOauthMessage, signIn, signInWithGoogle, signUp, signOut, getToken]);
+    refreshSession,
+  }), [user, isLoading, error, oauthMessage, clearOauthMessage, signIn, signInWithGoogle, signUp, signOut, getToken, refreshSession]);
 
   return (
     <AuthContext.Provider value={value}>
