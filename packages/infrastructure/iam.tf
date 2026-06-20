@@ -35,8 +35,14 @@ data "aws_iam_policy_document" "api" {
 
   statement {
     effect    = "Allow"
-    actions   = ["cognito-idp:AdminGetUser"]
+    actions   = ["cognito-idp:AdminGetUser", "cognito-idp:AdminUpdateUserAttributes"]
     resources = [aws_cognito_user_pool.meal_planner.arn]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["sns:Publish"]
+    resources = [data.aws_sns_topic.alerting.arn]
   }
 }
 

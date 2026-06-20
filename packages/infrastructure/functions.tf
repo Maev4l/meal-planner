@@ -36,6 +36,7 @@ module "api" {
     DYNAMODB_TABLE_NAME = aws_dynamodb_table.meal_planner.name
     REGION              = var.region
     USER_POOL_ID        = aws_cognito_user_pool.meal_planner.id
+    SNS_TOPIC_ARN       = data.aws_sns_topic.alerting.arn
 
     # AWS Lambda Web Adapter forwards events to this port on 127.0.0.1.
     # Must match the port the Gin server binds to in api/cmd/api/main.go.
