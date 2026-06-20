@@ -111,7 +111,7 @@ func TestRedeemInvite_NewMemberJoins(t *testing.T) {
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
 	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
-	group, already, err := svc.RedeemInvite("BOB", "Bob", "C1")
+	group, already, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false)
 	if err != nil || group.Id != "G1" || already {
 		t.Fatalf("expected join (already=false), got group=%+v already=%v err=%v", group, already, err)
 	}
@@ -129,14 +129,14 @@ func TestRedeemInvite_ExpiredRejected(t *testing.T) {
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &past})
 	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
-	if _, _, err := svc.RedeemInvite("BOB", "Bob", "C1"); err != domain.ErrNotFound {
+	if _, _, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
 
 func TestRedeemInvite_UnknownIsNotFound(t *testing.T) {
 	svc := New(newFakeRepo(), &fakeIdP{}, &fakeNotifier{})
-	if _, _, err := svc.RedeemInvite("BOB", "Bob", "NOPE"); err != domain.ErrNotFound {
+	if _, _, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "NOPE", false); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound for unknown code, got %v", err)
 	}
 }
@@ -149,13 +149,79 @@ func TestRedeemInvite_AdminRedeemingOwnLinkKeepsAdmin(t *testing.T) {
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
 	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
-	group, already, err := svc.RedeemInvite("ADMIN", "Admin", "C1")
+	group, already, err := svc.RedeemInvite("ADMIN", "Admin", "admin-user", "C1", false)
 	if err != nil || !already || group.Id != "G1" {
 		t.Fatalf("expected idempotent already=true, got group=%+v already=%v err=%v", group, already, err)
 	}
 	m, _ := repo.GetMember("G1", "ADMIN")
 	if m == nil || m.Role != roles.GroupAdmin {
 		t.Fatalf("ADMIN must remain admin, got %+v", m)
+	}
+}
+
+func TestRedeemInvite_UnapprovedIsApprovedAndAlerted(t *testing.T) {
+	repo := newFakeRepo()
+	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
+	now := time.Now().UTC()
+	exp := now.Add(time.Hour)
+	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
+	idp := &fakeIdP{}
+	notif := &fakeNotifier{}
+	svc := New(repo, idp, notif)
+
+	group, already, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false)
+	if err != nil || already {
+		t.Fatalf("expected fresh join, got already=%v err=%v", already, err)
+	}
+	if group.Id != "G1" {
+		t.Fatalf("bad group: %+v", group)
+	}
+	if len(idp.approved) != 1 || idp.approved[0] != "bob-user" {
+		t.Fatalf("expected ApproveUser('bob-user'), got %v", idp.approved)
+	}
+	if len(notif.sent) != 1 {
+		t.Fatalf("expected one alert, got %v", notif.sent)
+	}
+}
+
+func TestRedeemInvite_AlreadyApprovedNoApproveNoAlert(t *testing.T) {
+	repo := newFakeRepo()
+	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
+	now := time.Now().UTC()
+	exp := now.Add(time.Hour)
+	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
+	idp := &fakeIdP{}
+	notif := &fakeNotifier{}
+	svc := New(repo, idp, notif)
+
+	if _, _, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", true); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(idp.approved) != 0 {
+		t.Fatalf("approved caller must not be re-approved, got %v", idp.approved)
+	}
+	if len(notif.sent) != 0 {
+		t.Fatalf("approved caller must not alert, got %v", notif.sent)
+	}
+}
+
+func TestRedeemInvite_AlreadyMemberUnapprovedStillApproved(t *testing.T) {
+	repo := newFakeRepo()
+	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
+	repo.SaveMember(&domain.Member{Id: "BOB", Name: "Bob", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
+	now := time.Now().UTC()
+	exp := now.Add(time.Hour)
+	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
+	idp := &fakeIdP{}
+	notif := &fakeNotifier{}
+	svc := New(repo, idp, notif)
+
+	_, already, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false)
+	if err != nil || !already {
+		t.Fatalf("expected already=true, got already=%v err=%v", already, err)
+	}
+	if len(idp.approved) != 1 {
+		t.Fatalf("unapproved existing member must still be approved, got %v", idp.approved)
 	}
 }
 

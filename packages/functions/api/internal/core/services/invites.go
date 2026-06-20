@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -113,7 +114,7 @@ func (s *service) RevokeInvite(requesterId, groupId, code string) error {
 // performs ZERO writes (so an existing admin redeeming their own link is never
 // downgraded). The membership write is conditional, so concurrent/double
 // redeems cannot create duplicate or partial state.
-func (s *service) RedeemInvite(requesterId, requesterName, code string) (*domain.Group, bool, error) {
+func (s *service) RedeemInvite(requesterId, requesterName, requesterUsername, code string, approved bool) (*domain.Group, bool, error) {
 	// Capture once so expiry check and CreatedAt timestamps are consistent.
 	now := time.Now().UTC()
 
@@ -135,37 +136,56 @@ func (s *service) RedeemInvite(requesterId, requesterName, code string) (*domain
 		return nil, false, domain.ErrNotFound
 	}
 
-	// Idempotent no-op for existing members (never rewrite the record).
+	// Ensure membership (idempotent; never rewrites an existing record, so an
+	// admin redeeming their own link is never downgraded).
 	existing, err := s.repo.GetMember(group.Id, requesterId)
 	if err != nil {
 		return nil, false, err
 	}
-	if existing != nil {
-		return group, true, nil
+	alreadyMember := existing != nil
+	if !alreadyMember {
+		member := &domain.Member{
+			Id: requesterId, Name: requesterName, CreatedAt: &now,
+			Role: roles.Member, GroupId: group.Id, GroupName: group.Name,
+		}
+		created, err := s.repo.CreateMemberIfNotExists(member)
+		if err != nil {
+			return nil, false, err
+		}
+		if created {
+			schedule := &domain.MemberDefaultSchedule{
+				ScheduleBase: domain.ScheduleBase{
+					MemberId: member.Id, MemberName: member.Name,
+					GroupId: group.Id, GroupName: group.Name, CreatedAt: &now,
+				},
+				WeeklySchedule: domain.SystemDefaultWeeklySchedule,
+			}
+			if err := s.repo.SaveMemberDefaultSchedule(group, member, schedule); err != nil {
+				return nil, false, err
+			}
+		} else {
+			// Raced with another redeem; treat as already a member.
+			alreadyMember = true
+		}
 	}
 
-	member := &domain.Member{
-		Id: requesterId, Name: requesterName, CreatedAt: &now,
-		Role: roles.Member, GroupId: group.Id, GroupName: group.Name,
-	}
-	created, err := s.repo.CreateMemberIfNotExists(member)
-	if err != nil {
-		return nil, false, err
-	}
-	if !created {
-		// Raced with another redeem; treat as already a member.
-		return group, true, nil
+	// Auto-approval: a server-validated redeem IS the authorization. Gate on the
+	// caller's token-approval state so we flip + alert only on a genuine gate-skip
+	// (false->true); an already-approved member joining another group makes no noise.
+	if !approved {
+		// Membership is already persisted, so on failure the client can safely
+		// retry the (idempotent) redeem — surface the error.
+		if err := s.idp.ApproveUser(requesterUsername); err != nil {
+			return nil, false, err
+		}
+		// Best-effort: a missed Slack ping must never fail the join.
+		if err := s.notifier.Notify(
+			"Meal Planner — invite auto-approval",
+			fmt.Sprintf("%s auto-approved via invite to %s", requesterName, group.Name),
+		); err != nil {
+			log.Warn().Msgf("Failed to publish auto-approval alert for '%s': %s", requesterName, err.Error())
+		}
 	}
 
-	schedule := &domain.MemberDefaultSchedule{
-		ScheduleBase: domain.ScheduleBase{
-			MemberId: member.Id, MemberName: member.Name,
-			GroupId: group.Id, GroupName: group.Name, CreatedAt: &now,
-		},
-		WeeklySchedule: domain.SystemDefaultWeeklySchedule,
-	}
-	if err := s.repo.SaveMemberDefaultSchedule(group, member, schedule); err != nil {
-		return nil, false, err
-	}
-	return group, false, nil
+	return group, alreadyMember, nil
 }

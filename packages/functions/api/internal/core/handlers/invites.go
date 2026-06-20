@@ -58,7 +58,7 @@ func (hdl *HTTPHandler) GetInvite(c *gin.Context) {
 func (hdl *HTTPHandler) RedeemInvite(c *gin.Context) {
 	info := parseAuthHeader(c.Request.Header.Get("Authorization"))
 	code := c.Param("code")
-	group, already, err := hdl.svc.RedeemInvite(info.userId, info.name, code)
+	group, already, err := hdl.svc.RedeemInvite(info.userId, info.name, info.userName, code, info.approved)
 	if err != nil {
 		abortWithServiceError(c, err)
 		return

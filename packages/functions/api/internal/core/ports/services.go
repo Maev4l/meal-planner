@@ -18,7 +18,7 @@ type PlannerService interface {
 	CreateInvite(requesterId string, groupId string) (*domain.Invite, error)
 	ListInvites(requesterId string, groupId string) ([]*domain.Invite, error)
 	GetInvite(code string) (*domain.Invite, error)
-	RedeemInvite(requesterId string, requesterName string, code string) (*domain.Group, bool, error)
+	RedeemInvite(requesterId string, requesterName string, requesterUsername string, code string, approved bool) (*domain.Group, bool, error)
 	RevokeInvite(requesterId string, groupId string, code string) error
 	RenameGroup(requesterId string, groupId string, name string) (*domain.Group, error)
 	KickMember(requesterId string, groupId string, targetMemberId string) error
