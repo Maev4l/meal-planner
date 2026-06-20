@@ -11,7 +11,7 @@ import (
 func TestCreateInvite_AdminSucceeds(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	inv, err := svc.CreateInvite("ADMIN", "G1")
 	if err != nil {
@@ -32,7 +32,7 @@ func TestCreateInvite_NonAdminForbidden(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	_, err := svc.CreateInvite("BOB", "G1")
 	if err != domain.ErrForbidden {
@@ -43,7 +43,7 @@ func TestCreateInvite_NonAdminForbidden(t *testing.T) {
 func TestCreateInvite_NotAMemberForbidden(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	_, err := svc.CreateInvite("STRANGER", "G1")
 	if err != domain.ErrForbidden {
@@ -56,7 +56,7 @@ func TestGetInvite_ValidReturnsIt(t *testing.T) {
 	now := time.Now().UTC()
 	exp := now.Add(time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	inv, err := svc.GetInvite("C1")
 	if err != nil || inv == nil || inv.GroupName != "Family" {
@@ -69,7 +69,7 @@ func TestGetInvite_ExpiredIsNotFound(t *testing.T) {
 	now := time.Now().UTC()
 	past := now.Add(-time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &past})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	_, err := svc.GetInvite("C1")
 	if err != domain.ErrNotFound {
@@ -78,7 +78,7 @@ func TestGetInvite_ExpiredIsNotFound(t *testing.T) {
 }
 
 func TestGetInvite_UnknownIsNotFound(t *testing.T) {
-	svc := New(newFakeRepo(), &fakeIdP{})
+	svc := New(newFakeRepo(), &fakeIdP{}, &fakeNotifier{})
 	if _, err := svc.GetInvite("NOPE"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
@@ -92,7 +92,7 @@ func TestListInvites_AdminFiltersExpired(t *testing.T) {
 	past := now.Add(-time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "LIVE", GroupId: "G1", ExpiresAt: &future})
 	repo.SaveInvite(&domain.Invite{Code: "DEAD", GroupId: "G1", ExpiresAt: &past})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	list, err := svc.ListInvites("ADMIN", "G1")
 	if err != nil {
@@ -109,7 +109,7 @@ func TestRedeemInvite_NewMemberJoins(t *testing.T) {
 	now := time.Now().UTC()
 	exp := now.Add(time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	group, already, err := svc.RedeemInvite("BOB", "Bob", "C1")
 	if err != nil || group.Id != "G1" || already {
@@ -127,7 +127,7 @@ func TestRedeemInvite_ExpiredRejected(t *testing.T) {
 	now := time.Now().UTC()
 	past := now.Add(-time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &past})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if _, _, err := svc.RedeemInvite("BOB", "Bob", "C1"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
@@ -135,7 +135,7 @@ func TestRedeemInvite_ExpiredRejected(t *testing.T) {
 }
 
 func TestRedeemInvite_UnknownIsNotFound(t *testing.T) {
-	svc := New(newFakeRepo(), &fakeIdP{})
+	svc := New(newFakeRepo(), &fakeIdP{}, &fakeNotifier{})
 	if _, _, err := svc.RedeemInvite("BOB", "Bob", "NOPE"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound for unknown code, got %v", err)
 	}
@@ -147,7 +147,7 @@ func TestRedeemInvite_AdminRedeemingOwnLinkKeepsAdmin(t *testing.T) {
 	now := time.Now().UTC()
 	exp := now.Add(time.Hour)
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	group, already, err := svc.RedeemInvite("ADMIN", "Admin", "C1")
 	if err != nil || !already || group.Id != "G1" {
@@ -163,7 +163,7 @@ func TestRevokeInvite_AdminDeletes(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.RevokeInvite("ADMIN", "G1", "C1"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -178,7 +178,7 @@ func TestRevokeInvite_CrossGroupRejected(t *testing.T) {
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")   // requester admins G1
 	seedGroupWithAdmin(repo, "G2", "Other", "OTHERADM")
 	repo.SaveInvite(&domain.Invite{Code: "C2", GroupId: "G2", GroupName: "Other"}) // belongs to G2
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	// Admin of G1 passes their own group in the path but a G2 code: must be rejected.
 	if err := svc.RevokeInvite("ADMIN", "G1", "C2"); err != domain.ErrForbidden {

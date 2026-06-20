@@ -10,7 +10,7 @@ import (
 func TestRenameGroup_AdminSucceeds(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Old", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	g, err := svc.RenameGroup("ADMIN", "G1", "New Name")
 	if err != nil || g.Name != "New Name" {
@@ -25,7 +25,7 @@ func TestRenameGroup_NonAdminForbidden(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Old", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Old"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if _, err := svc.RenameGroup("BOB", "G1", "Hax"); err != domain.ErrForbidden {
 		t.Fatalf("expected ErrForbidden, got %v", err)
@@ -35,7 +35,7 @@ func TestRenameGroup_NonAdminForbidden(t *testing.T) {
 func TestRenameGroup_EmptyNameConflict(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Old", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if _, err := svc.RenameGroup("ADMIN", "G1", "   "); err != domain.ErrConflict {
 		t.Fatalf("expected ErrConflict for blank name, got %v", err)
@@ -46,7 +46,7 @@ func TestKickMember_AdminRemovesMember(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.KickMember("ADMIN", "G1", "BOB"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -61,7 +61,7 @@ func TestKickMember_NonAdminForbidden(t *testing.T) {
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
 	repo.SaveMember(&domain.Member{Id: "EVE", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.KickMember("BOB", "G1", "EVE"); err != domain.ErrForbidden {
 		t.Fatalf("expected ErrForbidden, got %v", err)
@@ -71,7 +71,7 @@ func TestKickMember_NonAdminForbidden(t *testing.T) {
 func TestKickMember_CannotKickSelf(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.KickMember("ADMIN", "G1", "ADMIN"); err != domain.ErrConflict {
 		t.Fatalf("expected ErrConflict kicking self, got %v", err)
@@ -81,7 +81,7 @@ func TestKickMember_CannotKickSelf(t *testing.T) {
 func TestKickMember_TargetNotMember(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.KickMember("ADMIN", "G1", "GHOST"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
@@ -92,7 +92,7 @@ func TestLeaveGroup_MemberLeaves(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.LeaveGroup("BOB", "G1"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -106,7 +106,7 @@ func TestLeaveGroup_SoleAdminCannotLeave(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.LeaveGroup("ADMIN", "G1"); err != domain.ErrSoleAdmin {
 		t.Fatalf("expected ErrSoleAdmin, got %v", err)
@@ -119,7 +119,7 @@ func TestLeaveGroup_SoleAdminCannotLeave(t *testing.T) {
 func TestLeaveGroup_NotAMember(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.LeaveGroup("STRANGER", "G1"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
@@ -130,7 +130,7 @@ func TestDeleteGroup_AdminCascades(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.DeleteGroup("ADMIN", "G1"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -147,7 +147,7 @@ func TestDeleteGroup_NonAdminForbidden(t *testing.T) {
 	repo := newFakeRepo()
 	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
 	repo.SaveMember(&domain.Member{Id: "BOB", Role: roles.Member, GroupId: "G1", GroupName: "Family"})
-	svc := New(repo, &fakeIdP{})
+	svc := New(repo, &fakeIdP{}, &fakeNotifier{})
 
 	if err := svc.DeleteGroup("BOB", "G1"); err != domain.ErrForbidden {
 		t.Fatalf("expected ErrForbidden, got %v", err)

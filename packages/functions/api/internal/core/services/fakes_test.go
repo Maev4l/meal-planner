@@ -113,6 +113,14 @@ func (f *fakeIdP) ApproveUser(username string) error {
 	return nil
 }
 
+// fakeNotifier satisfies ports.Notifier.
+type fakeNotifier struct{ sent []string }
+
+func (f *fakeNotifier) Notify(sourceDescription, content string) error {
+	f.sent = append(f.sent, content)
+	return nil
+}
+
 // --- test helpers ---
 
 func ptr(t time.Time) *time.Time { return &t }

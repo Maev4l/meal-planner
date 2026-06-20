@@ -119,13 +119,15 @@ func (s *service) validateGroupOperation(groupId string, memberId string) (*doma
 }
 
 type service struct {
-	repo ports.PlannerRepository
-	idp  ports.PlannerIdP
+	repo     ports.PlannerRepository
+	idp      ports.PlannerIdP
+	notifier ports.Notifier
 }
 
-func New(repo ports.PlannerRepository, idp ports.PlannerIdP) *service {
+func New(repo ports.PlannerRepository, idp ports.PlannerIdP, notifier ports.Notifier) *service {
 	return &service{
-		repo: repo,
-		idp:  idp,
+		repo:     repo,
+		idp:      idp,
+		notifier: notifier,
 	}
 }

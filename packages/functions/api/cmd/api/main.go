@@ -18,7 +18,8 @@ func main() {
 
 	r := repositories.NewDynamoDB()
 	c := repositories.NewCognito()
-	s := services.New(r, c)
+	n := repositories.NewNotifier()
+	s := services.New(r, c, n)
 	h := handlers.NewHTTPHandler(s)
 
 	// RequireApproved sits on the /api group, not router-global. This keeps
