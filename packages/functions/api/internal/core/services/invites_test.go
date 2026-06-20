@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -222,6 +223,52 @@ func TestRedeemInvite_AlreadyMemberUnapprovedStillApproved(t *testing.T) {
 	}
 	if len(idp.approved) != 1 {
 		t.Fatalf("unapproved existing member must still be approved, got %v", idp.approved)
+	}
+}
+
+func TestRedeemInvite_ApproveUserErrorSurfaces(t *testing.T) {
+	repo := newFakeRepo()
+	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
+	now := time.Now().UTC()
+	exp := now.Add(time.Hour)
+	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
+	idp := &fakeIdP{approveErr: errors.New("cognito down")}
+	notif := &fakeNotifier{}
+	svc := New(repo, idp, notif)
+
+	_, _, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false)
+	if err == nil {
+		t.Fatalf("expected ApproveUser error to surface, got nil")
+	}
+	// Membership must already be persisted so a retry is safe/idempotent.
+	if m, _ := repo.GetMember("G1", "BOB"); m == nil {
+		t.Fatalf("member should have been created before the approval failure")
+	}
+	// Alert must NOT be sent when approval failed.
+	if len(notif.sent) != 0 {
+		t.Fatalf("no alert expected on approval failure, got %v", notif.sent)
+	}
+}
+
+func TestRedeemInvite_NotifyErrorIsNonFatal(t *testing.T) {
+	repo := newFakeRepo()
+	seedGroupWithAdmin(repo, "G1", "Family", "ADMIN")
+	now := time.Now().UTC()
+	exp := now.Add(time.Hour)
+	repo.SaveInvite(&domain.Invite{Code: "C1", GroupId: "G1", GroupName: "Family", CreatedAt: &now, ExpiresAt: &exp})
+	idp := &fakeIdP{}
+	notif := &fakeNotifier{notifyErr: errors.New("sns down")}
+	svc := New(repo, idp, notif)
+
+	group, _, err := svc.RedeemInvite("BOB", "Bob", "bob-user", "C1", false)
+	if err != nil {
+		t.Fatalf("Notify failure must not fail the join, got err=%v", err)
+	}
+	if group == nil || group.Id != "G1" {
+		t.Fatalf("expected successful join despite alert failure, got %+v", group)
+	}
+	if len(idp.approved) != 1 {
+		t.Fatalf("user should still be approved despite alert failure, got %v", idp.approved)
 	}
 }
 

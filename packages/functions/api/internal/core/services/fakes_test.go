@@ -103,22 +103,26 @@ func (f *fakeRepo) DeleteNotice(*domain.Group, *domain.Member, int, int) error  
 
 // fakeIdP satisfies ports.PlannerIdP.
 type fakeIdP struct {
-	users    map[string]*domain.User
-	approved []string // usernames passed to ApproveUser
+	users      map[string]*domain.User
+	approved   []string // usernames passed to ApproveUser
+	approveErr error    // if set, ApproveUser returns it (after recording the call)
 }
 
 func (f *fakeIdP) GetUser(name string) (*domain.User, error) { return f.users[name], nil }
 func (f *fakeIdP) ApproveUser(username string) error {
 	f.approved = append(f.approved, username)
-	return nil
+	return f.approveErr
 }
 
 // fakeNotifier satisfies ports.Notifier.
-type fakeNotifier struct{ sent []string }
+type fakeNotifier struct {
+	sent      []string
+	notifyErr error // if set, Notify returns it (after recording the call)
+}
 
 func (f *fakeNotifier) Notify(sourceDescription, content string) error {
 	f.sent = append(f.sent, content)
-	return nil
+	return f.notifyErr
 }
 
 // --- test helpers ---

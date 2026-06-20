@@ -181,7 +181,7 @@ func (s *service) RedeemInvite(requesterId, requesterName, requesterUsername, co
 		// Best-effort: a missed Slack ping must never fail the join.
 		if err := s.notifier.Notify(
 			"Meal Planner — invite auto-approval",
-			fmt.Sprintf("%s auto-approved via invite to %s", requesterName, group.Name),
+			fmt.Sprintf("%s (%s) auto-approved via invite to %s", requesterName, requesterUsername, group.Name),
 		); err != nil {
 			log.Warn().Msgf("Failed to publish auto-approval alert for '%s': %s", requesterName, err.Error())
 		}
