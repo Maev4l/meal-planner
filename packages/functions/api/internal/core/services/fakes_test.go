@@ -102,9 +102,16 @@ func (f *fakeRepo) SaveNotice(*domain.Group, *domain.Member, *domain.Notice) err
 func (f *fakeRepo) DeleteNotice(*domain.Group, *domain.Member, int, int) error     { return nil }
 
 // fakeIdP satisfies ports.PlannerIdP.
-type fakeIdP struct{ users map[string]*domain.User }
+type fakeIdP struct {
+	users    map[string]*domain.User
+	approved []string // usernames passed to ApproveUser
+}
 
 func (f *fakeIdP) GetUser(name string) (*domain.User, error) { return f.users[name], nil }
+func (f *fakeIdP) ApproveUser(username string) error {
+	f.approved = append(f.approved, username)
+	return nil
+}
 
 // --- test helpers ---
 

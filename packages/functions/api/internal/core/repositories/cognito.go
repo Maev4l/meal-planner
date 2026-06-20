@@ -60,3 +60,21 @@ func (i *idp) GetUser(username string) (*domain.User, error) {
 		CreatedAt: resp.UserCreateDate,
 	}, nil
 }
+
+// ApproveUser flips custom:Approved to "true". Called only from the invite-redeem
+// path, so possessing a valid invite is what grants approval. Idempotent: setting
+// "true" on an already-approved user is a harmless no-op.
+func (i *idp) ApproveUser(username string) error {
+	_, err := i.client.AdminUpdateUserAttributes(context.TODO(), &cognitoidentityprovider.AdminUpdateUserAttributesInput{
+		UserPoolId: aws.String(userPoolId),
+		Username:   aws.String(username),
+		UserAttributes: []types.AttributeType{
+			{Name: aws.String("custom:Approved"), Value: aws.String("true")},
+		},
+	})
+	if err != nil {
+		log.Error().Msgf("Failed to approve user '%s': %s", username, err.Error())
+		return err
+	}
+	return nil
+}
