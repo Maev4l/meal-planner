@@ -47,13 +47,17 @@ func main() {
 	api.GET("/groups/:groupId/invites", h.ListInvites)
 	api.DELETE("/groups/:groupId/invites/:code", h.RevokeInvite)
 
-	// Invite redemption (no groupId in path — user arrives via link)
-	api.GET("/invites/:code", h.GetInvite)
-	api.POST("/invites/:code/redeem", h.RedeemInvite)
-
 	// Member management: single route dispatches to LeaveGroup or KickMember
 	// based on whether the caller's token id matches the path :memberId.
 	api.DELETE("/groups/:groupId/members/:memberId", h.RemoveMember)
+
+	// Invite lookup + redemption: authenticated but NOT approval-gated, so an
+	// invited newcomer can redeem and be auto-approved on the spot. (API Gateway's
+	// JWT authorizer still enforces authentication for every /api route.)
+	authed := router.Group("/api")
+	authed.Use(handlers.RequireAuthenticated())
+	authed.GET("/invites/:code", h.GetInvite)
+	authed.POST("/invites/:code/redeem", h.RedeemInvite)
 
 	// PORT is injected by the LWA layer in AWS; defaults to 8080 for local runs.
 	port := os.Getenv("PORT")

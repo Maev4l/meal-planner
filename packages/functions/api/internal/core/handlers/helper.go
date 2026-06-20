@@ -87,3 +87,14 @@ func RequireApproved() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// RequireAuthenticated allows any caller through WITHOUT the approval check.
+// Used only by the invite lookup/redeem endpoints so an unapproved invitee can
+// redeem (and thereby earn approval). Authentication itself is still enforced at
+// the edge by the API Gateway JWT authorizer — a tokenless request never reaches
+// the Lambda. This is intentionally a pass-through that documents that intent.
+func RequireAuthenticated() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}
