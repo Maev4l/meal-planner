@@ -18,6 +18,7 @@ type User struct {
 	ID        string // custom:Id attribute (app user ID)
 	Username  string // raw Cognito username (e.g. "google_<sub>" for federated); used for admin operations
 	Name      string // human-readable: name attribute, else email, else username
+	Email     string // email attribute (may be empty)
 	Approved  bool
 	CreatedAt time.Time
 }
@@ -70,6 +71,7 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 				ID:        id,
 				Username:  username,
 				Name:      display,
+				Email:     email,
 				Approved:  approved,
 				CreatedAt: aws.ToTime(u.UserCreateDate),
 			})

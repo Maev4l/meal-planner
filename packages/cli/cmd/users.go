@@ -52,7 +52,13 @@ var usersListCmd = &cobra.Command{
 			if u.Approved {
 				approved = "yes"
 			}
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, u.Name, approved, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
+			// Append the email in parentheses, unless the name already IS the
+			// email (the fallback case) — avoids "john@x.com (john@x.com)".
+			name := u.Name
+			if u.Email != "" && u.Email != u.Name {
+				name = fmt.Sprintf("%s (%s)", u.Name, u.Email)
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", u.ID, name, approved, u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"))
 		}
 		w.Flush()
 
