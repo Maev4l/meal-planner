@@ -274,9 +274,9 @@ var usersDeleteCmd = &cobra.Command{
 			fmt.Println("DynamoDB items deleted.")
 		}
 
-		// Delete Cognito user
+		// Delete Cognito user (operations use the raw username, not the display name)
 		fmt.Printf("Deleting Cognito user %s...\n", user.Name)
-		if err := cognitoClient.DeleteUser(ctx, user.Name); err != nil {
+		if err := cognitoClient.DeleteUser(ctx, user.Username); err != nil {
 			return fmt.Errorf("deleting Cognito user: %w", err)
 		}
 		fmt.Println("Cognito user deleted.")
@@ -312,7 +312,7 @@ var usersApproveCmd = &cobra.Command{
 			return fmt.Errorf("unknown user: %s", userID)
 		}
 
-		if err := client.SetApproval(ctx, user.Name, true); err != nil {
+		if err := client.SetApproval(ctx, user.Username, true); err != nil {
 			return fmt.Errorf("approving user: %w", err)
 		}
 
@@ -347,7 +347,7 @@ var usersUnapproveCmd = &cobra.Command{
 			return fmt.Errorf("unknown user: %s", userID)
 		}
 
-		if err := client.SetApproval(ctx, user.Name, false); err != nil {
+		if err := client.SetApproval(ctx, user.Username, false); err != nil {
 			return fmt.Errorf("unapproving user: %w", err)
 		}
 

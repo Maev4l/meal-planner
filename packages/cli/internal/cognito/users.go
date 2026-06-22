@@ -16,7 +16,8 @@ import (
 
 type User struct {
 	ID        string // custom:Id attribute (app user ID)
-	Name      string
+	Username  string // raw Cognito username (e.g. "google_<sub>" for federated); used for admin operations
+	Name      string // human-readable: name attribute, else email, else username
 	Approved  bool
 	CreatedAt time.Time
 }
@@ -54,10 +55,21 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 		}
 
 		for _, u := range resp.Users {
-			id, approved := parseUserAttributes(u.Attributes)
+			id, name, email, approved := parseUserAttributes(u.Attributes)
+			username := aws.ToString(u.Username)
+			// Prefer a human-readable label. Federated (Google) users have a
+			// username like "google_<sub>", so fall back name -> email -> username.
+			display := name
+			if display == "" {
+				display = email
+			}
+			if display == "" {
+				display = username
+			}
 			users = append(users, User{
 				ID:        id,
-				Name:      aws.ToString(u.Username),
+				Username:  username,
+				Name:      display,
 				Approved:  approved,
 				CreatedAt: aws.ToTime(u.UserCreateDate),
 			})
@@ -72,14 +84,18 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 	return users, nil
 }
 
-// parseUserAttributes extracts custom:Id and custom:Approved from Cognito attributes.
-func parseUserAttributes(attributes []types.AttributeType) (id string, approved bool) {
+// parseUserAttributes extracts custom:Id, name, email and custom:Approved from
+// Cognito attributes.
+func parseUserAttributes(attributes []types.AttributeType) (id, name, email string, approved bool) {
 	for _, att := range attributes {
-		name := aws.ToString(att.Name)
 		value := aws.ToString(att.Value)
-		switch name {
+		switch aws.ToString(att.Name) {
 		case "custom:Id":
 			id = value
+		case "name":
+			name = value
+		case "email":
+			email = value
 		case "custom:Approved":
 			approved = value == "true"
 		}
