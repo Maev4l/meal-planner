@@ -52,6 +52,17 @@ resource "aws_cloudfront_origin_access_control" "webclient" {
   signing_protocol                  = "sigv4"
 }
 
+# SPA deep-link routing: rewrites extensionless paths (e.g. /invite/<code>) to
+# /index.html so cold-loaded client-side routes resolve. Associated only with the
+# default (S3) behavior below. See spa-router.js for the full rationale.
+resource "aws_cloudfront_function" "spa_router" {
+  name    = "meal-planner-spa-router"
+  runtime = "cloudfront-js-2.0"
+  comment = "Serve index.html for extensionless SPA routes"
+  publish = true
+  code    = file("${path.module}/spa-router.js")
+}
+
 resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   default_root_object = "index.html"
@@ -89,6 +100,13 @@ resource "aws_cloudfront_distribution" "main" {
     compress                   = true
     cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.webclient_no_cache.id
+
+    # Rewrite extensionless deep links (e.g. /invite/<code>) to /index.html so
+    # cold-loaded SPA routes resolve. Only on the default (S3) behavior.
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.spa_router.arn
+    }
   }
 
   # Service worker - no caching (must always fetch fresh for PWA updates).
@@ -131,13 +149,11 @@ resource "aws_cloudfront_distribution" "main" {
     response_headers_policy_id = aws_cloudfront_response_headers_policy.webclient_immutable.id
   }
 
-  # SPA fallback: return index.html for 404 only
-  # Note: Do NOT add 403 here - it would mask API Gateway auth errors
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
+  # No custom_error_response: SPA routing is handled by the spa_router function
+  # (viewer-request) on the default behavior. A distribution-wide error mapping
+  # would also rewrite API Gateway responses — e.g. a 404 from an expired/unknown
+  # invite (GET /api/invites/{code}) would become 200 index.html and break the
+  # frontend's ApiError(404) handling — so we deliberately omit it.
 
   restrictions {
     geo_restriction {
