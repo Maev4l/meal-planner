@@ -4,7 +4,7 @@
 
 **Goal:** Deliver every CloudFront request's client IP + metadata for `meal-planner.isnan.eu` to a dedicated S3 bucket as Parquet, retained 90 days, with zero application changes.
 
-**Architecture:** CloudFront standard logging v2 routes access logs through the CloudWatch Logs Delivery API (registered in `us-east-1`) to a new dedicated S3 bucket in `eu-central-1`. Three delivery resources (source → delivery → destination) wire the existing `aws_cloudfront_distribution.main` to the bucket. Logs land flat under `raw/app/` as Parquet; an S3 lifecycle rule expires them after 90 days. All work is Terraform in `packages/infrastructure`.
+**Architecture:** CloudFront standard logging v2 routes access logs through the CloudWatch Logs Delivery API (registered in `us-east-1`) to a new dedicated S3 bucket in `eu-central-1`. Three delivery resources (source → delivery → destination) wire the existing `aws_cloudfront_distribution.main` to the bucket. Logs land under `raw/app/` as Parquet, Hive-partitioned by date (`year=YYYY/month=MM/day=DD/`); an S3 lifecycle rule expires them after 90 days. All work is Terraform in `packages/infrastructure`.
 
 **Tech Stack:** Terraform `>= 1.10.0`, AWS provider `~> 6.0` (locked 6.44.0), resources: `aws_s3_bucket*`, `aws_cloudwatch_log_delivery_source`, `aws_cloudwatch_log_delivery_destination`, `aws_cloudwatch_log_delivery`.
 
@@ -15,7 +15,7 @@
 - All commands run from repo root using `terraform -chdir=packages/infrastructure ...` (never `cd`).
 - Bucket name: `meal-planner-cloudfront-logs-<account-id>` (account-id **suffix**), built as `"meal-planner-cloudfront-logs-${local.account_id}"`. `local.account_id` already exists in `iam.tf`.
 - Buckets get `force_destroy = true` (repo convention).
-- S3 prefix is flat `raw/app/` — no date/Hive partitioning, no `s3_delivery_configuration` block.
+- S3 base prefix is `raw/app` (set via the destination ARN), with Hive date partitions appended by `s3_delivery_configuration.suffix_path = "{yyyy}/{MM}/{dd}"` and `enable_hive_compatible_path = true` (flag MUST be true — AWS auto-expands the placeholders into `year=/month=/day=`; a literal `year={yyyy}` is rejected with the flag off). Objects land at `raw/app/year=YYYY/month=MM/day=DD/`. The delivery `depends_on` the bucket policy.
 - The 3 delivery resources MUST use `provider = aws.us_east_1` (alias already declared in `main.tf`).
 - Record fields — exact 14-field set, names verbatim (validated at apply time):
   `date, time, c-ip, c-country, asn, cs-method, cs-protocol, cs(Host), cs-uri-stem, cs-uri-query, sc-status, x-edge-result-type, x-edge-location, cs(User-Agent)`
@@ -213,9 +213,13 @@ resource "aws_cloudwatch_log_delivery_destination" "cloudfront_s3" {
   name          = "meal-planner-cloudfront-s3"
   output_format = "parquet"
 
+  # output_format is creation-only; changing the destination ARN requires deleting the
+  # referencing delivery first (AWS rejects in-place updates while a delivery references
+  # it). Not a concern for a fresh create — noted for future edits.
   delivery_destination_configuration {
     # The /raw/app prefix in the ARN suppresses CloudFront's default
-    # AWSLogs/aws-account-id=<id>/CloudFront/ path; logs land flat under raw/app/.
+    # AWSLogs/aws-account-id=<id>/CloudFront/ path; logs land under raw/app/. The "app"
+    # segment namespaces this distribution so other sources can use sibling prefixes later.
     destination_resource_arn = "${aws_s3_bucket.cloudfront_logs.arn}/raw/app"
   }
 }
@@ -224,9 +228,6 @@ resource "aws_cloudwatch_log_delivery" "cloudfront" {
   provider                 = aws.us_east_1
   delivery_source_name     = aws_cloudwatch_log_delivery_source.cloudfront.name
   delivery_destination_arn = aws_cloudwatch_log_delivery_destination.cloudfront_s3.arn
-
-  # WHY no s3_delivery_configuration block: omitting it gives flat delivery under the
-  # raw/app/ prefix with no Hive partitioning and no suffix_path — the layout stays flat.
 
   # Exact field names are validated at apply time. date/time (no single "timestamp"
   # field); cs(Host)/cs(User-Agent) use the W3C parenthesized form; rest are
@@ -247,6 +248,20 @@ resource "aws_cloudwatch_log_delivery" "cloudfront" {
     "x-edge-location",
     "cs(User-Agent)",
   ]
+
+  # Hive-style date partitioning UNDER the raw/app prefix => objects land at
+  # raw/app/year=YYYY/month=MM/day=DD/. enable_hive_compatible_path MUST be true: only
+  # then does AWS allow the key=value layout, and it auto-expands the bare {yyyy}/{MM}/{dd}
+  # placeholders into year=/month=/day= (writing "year={yyyy}" literally is rejected with
+  # "Provided suffixPath is invalid" while the flag is off).
+  s3_delivery_configuration {
+    suffix_path                 = "{yyyy}/{MM}/{dd}"
+    enable_hive_compatible_path = true
+  }
+
+  # CreateDelivery validates write access against the bucket policy, so the policy
+  # (Task 1) must already exist or delivery creation fails.
+  depends_on = [aws_s3_bucket_policy.cloudfront_logs]
 }
 ```
 
@@ -263,7 +278,7 @@ Expected: `Success! The configuration is valid.`
 - [ ] **Step 4: Plan and review the delivery resources**
 
 Run: `terraform -chdir=packages/infrastructure plan`
-Expected: plan now adds **3 more resources** (total 8 new with Task 1) — `aws_cloudwatch_log_delivery_source.cloudfront`, `aws_cloudwatch_log_delivery_destination.cloudfront_s3`, `aws_cloudwatch_log_delivery.cloudfront`, all in the us-east-1 provider. Confirm `destination_resource_arn` ends with `/raw/app` and `record_fields` lists exactly the 14 fields above.
+Expected: plan now adds **3 more resources** (total 8 new with Task 1) — `aws_cloudwatch_log_delivery_source.cloudfront`, `aws_cloudwatch_log_delivery_destination.cloudfront_s3`, `aws_cloudwatch_log_delivery.cloudfront`, all in the us-east-1 provider. Confirm `destination_resource_arn` ends with `/raw/app`, the `s3_delivery_configuration` shows `suffix_path = "{yyyy}/{MM}/{dd}"` + `enable_hive_compatible_path = true`, and `record_fields` lists exactly the 14 fields above.
 
 - [ ] **Step 5: Commit**
 
@@ -316,14 +331,20 @@ dedicated S3 bucket as Parquet, retained 90 days. Observe-only — no WAF, no qu
 
 - **Bucket:** `meal-planner-cloudfront-logs-<account-id>` (eu-central-1, dedicated,
   `force_destroy = true`, SSE-S3, all public access blocked).
-- **Layout:** flat under `raw/app/` (no date/Hive partitioning). `<auto>.parquet` leaf
-  names are vended by AWS and not controllable.
+- **Layout:** Hive date partitions under `raw/app/` — objects land at
+  `raw/app/year=YYYY/month=MM/day=DD/<auto>.parquet`. The base `raw/app` prefix comes from
+  the destination ARN; the partitions come from `s3_delivery_configuration`
+  (`suffix_path = "{yyyy}/{MM}/{dd}"`, `enable_hive_compatible_path = true` — the flag MUST
+  be true; AWS auto-expands the bare placeholders into `year=/month=/day=`, and a literal
+  `year={yyyy}` is rejected while the flag is off). `<auto>.parquet` leaf names are vended
+  by AWS and not controllable.
 - **Retention:** whole-bucket S3 lifecycle rule, `expiration = 90 days`.
 - **Delivery wiring** (`logs.tf`): `aws_cloudwatch_log_delivery_source` (ACCESS_LOGS on
   `aws_cloudfront_distribution.main`) -> `aws_cloudwatch_log_delivery` ->
   `aws_cloudwatch_log_delivery_destination` (S3, parquet). All three use
   `provider = aws.us_east_1` — the CloudFront Logs Delivery API must be called in
-  us-east-1 even though the bucket is in eu-central-1.
+  us-east-1 even though the bucket is in eu-central-1. The delivery `depends_on` the bucket
+  policy (CreateDelivery validates write access at creation).
 - **Fields (14):** `date, time, c-ip, c-country, asn, cs-method, cs-protocol, cs(Host),
   cs-uri-stem, cs-uri-query, sc-status, x-edge-result-type, x-edge-location,
   cs(User-Agent)`. `c-country`/`asn` come free with v2 (no IP lookup).
@@ -375,7 +396,7 @@ Expected: prints HTTP status codes (e.g. `200`).
 Delivery latency is minutes, not real-time. Wait ~15 minutes, then:
 
 Run: `aws s3 ls s3://meal-planner-cloudfront-logs-$(aws sts get-caller-identity --query Account --output text)/raw/app/ --recursive`
-Expected: one or more `*.parquet` objects listed. If empty after ~15 min, the bucket policy conditions / `Resource` are the first suspect (silent AccessDenied) — re-check Task 1 Step 1.
+Expected: one or more `*.parquet` objects under `raw/app/year=YYYY/month=MM/day=DD/` partition folders. If empty after ~15 min, the bucket policy conditions / `Resource` are the first suspect (silent AccessDenied) — re-check Task 1 Step 1.
 
 - [ ] **Step 4: Spot-check a file has a populated client IP**
 
