@@ -163,7 +163,7 @@ resource "aws_cloudwatch_log_delivery" "cloudfront" {
     enable_hive_compatible_path = true
   }
 
-  # CreateDelivery validates write access against the bucket policy, so the policy
-  # (Task 1) must already exist or delivery creation fails.
+  # CreateDelivery validates write access against the bucket policy, so the
+  # bucket policy above must already exist or delivery creation fails.
   depends_on = [aws_s3_bucket_policy.cloudfront_logs]
 }
