@@ -25,6 +25,38 @@ so the stable-named PWA app shell never reinstalls a phantom service worker:
 - Deploy invalidates `/*` (`yarn frontend:invalidate`)
 - Client polls `registration.update()` hourly + on `visibilitychange` (`UpdatePrompt.jsx`)
 
+#### CloudFront access-log historization
+
+CloudFront standard logging **v2** delivers every request's client IP + metadata to a
+dedicated S3 bucket as Parquet, retained 90 days. Observe-only — no WAF, no query layer.
+
+- **Bucket:** `meal-planner-cloudfront-logs-<account-id>` (eu-central-1, dedicated,
+  `force_destroy = true`, SSE-S3, all public access blocked).
+- **Layout:** Hive date partitions under `raw/app/` — objects land at
+  `raw/app/year=YYYY/month=MM/day=DD/<auto>.parquet`. The base `raw/app` prefix comes from
+  the destination ARN; the partitions come from `s3_delivery_configuration`
+  (`suffix_path = "{yyyy}/{MM}/{dd}"`, `enable_hive_compatible_path = true` — the flag MUST
+  be true; AWS auto-expands the bare placeholders into `year=/month=/day=`, and a literal
+  `year={yyyy}` is rejected while the flag is off). `<auto>.parquet` leaf names are vended
+  by AWS and not controllable.
+- **Retention:** whole-bucket S3 lifecycle rule, `expiration = 90 days`.
+- **Delivery wiring** (`logs.tf`): `aws_cloudwatch_log_delivery_source` (ACCESS_LOGS on
+  `aws_cloudfront_distribution.main`) -> `aws_cloudwatch_log_delivery` ->
+  `aws_cloudwatch_log_delivery_destination` (S3, parquet). All three use
+  `provider = aws.us_east_1` — the CloudFront Logs Delivery API must be called in
+  us-east-1 even though the bucket is in eu-central-1. The delivery `depends_on` the bucket
+  policy (CreateDelivery validates write access at creation).
+- **Fields (14):** `date, time, c-ip, c-country, asn, cs-method, cs-protocol, cs(Host),
+  cs-uri-stem, cs-uri-query, sc-status, x-edge-result-type, x-edge-location,
+  cs(User-Agent)`. `c-country`/`asn` come free with v2 (no IP lookup).
+- **Silent-failure gotcha:** the bucket policy must grant `delivery.logs.amazonaws.com`
+  `s3:PutObject` with `aws:SourceAccount` / `aws:SourceArn` (`...:delivery-source:*`) /
+  `s3:x-amz-acl=bucket-owner-full-control` conditions over a whole-bucket `Resource`. If
+  any condition or the Resource path is wrong, delivery fails with AccessDenied and no
+  logs appear — nothing is surfaced on the distribution.
+
+Design: `docs/superpowers/specs/2026-06-27-cloudfront-access-log-historization-design.md`.
+
 ### Cognito Configuration
 
 - User Pool: `meal-planner`

@@ -29,3 +29,8 @@ output "dynamodb_table_name" {
   description = "DynamoDB table name (for CLI config)"
   value       = aws_dynamodb_table.meal_planner.name
 }
+
+output "cloudfront_logs_bucket" {
+  description = "S3 bucket name holding CloudFront access logs"
+  value       = aws_s3_bucket.cloudfront_logs.bucket
+}
