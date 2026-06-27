@@ -96,3 +96,74 @@ resource "aws_s3_bucket_policy" "cloudfront_logs" {
   bucket = aws_s3_bucket.cloudfront_logs.id
   policy = data.aws_iam_policy_document.cloudfront_logs.json
 }
+
+# --- Standard logging v2 delivery: CloudFront -> S3 (Parquet) ---
+# WHY us-east-1: the CloudWatch Logs Delivery API for CloudFront must be called in
+# us-east-1 even though the destination bucket is in eu-central-1 (cross-region delivery
+# is allowed). The aws.us_east_1 alias already exists in main.tf (used for the ACM cert).
+# NOTE: these are named aws_cloudwatch_log_delivery_* but nothing is stored in CloudWatch —
+# "log delivery" is the generic subsystem CloudFront's docs call "standard logging v2";
+# logs land as Parquet in S3.
+
+resource "aws_cloudwatch_log_delivery_source" "cloudfront" {
+  provider     = aws.us_east_1
+  name         = "meal-planner-cloudfront"
+  log_type     = "ACCESS_LOGS"
+  resource_arn = aws_cloudfront_distribution.main.arn
+}
+
+resource "aws_cloudwatch_log_delivery_destination" "cloudfront_s3" {
+  provider      = aws.us_east_1
+  name          = "meal-planner-cloudfront-s3"
+  output_format = "parquet"
+
+  # output_format is creation-only; changing the destination ARN requires deleting the
+  # referencing delivery first (AWS rejects in-place updates while a delivery references
+  # it). Not a concern for a fresh create — noted for future edits.
+  delivery_destination_configuration {
+    # The /raw/app prefix in the ARN suppresses CloudFront's default
+    # AWSLogs/aws-account-id=<id>/CloudFront/ path; logs land under raw/app/. The "app"
+    # segment namespaces this distribution so other sources can use sibling prefixes later.
+    destination_resource_arn = "${aws_s3_bucket.cloudfront_logs.arn}/raw/app"
+  }
+}
+
+resource "aws_cloudwatch_log_delivery" "cloudfront" {
+  provider                 = aws.us_east_1
+  delivery_source_name     = aws_cloudwatch_log_delivery_source.cloudfront.name
+  delivery_destination_arn = aws_cloudwatch_log_delivery_destination.cloudfront_s3.arn
+
+  # Exact field names are validated at apply time. date/time (no single "timestamp"
+  # field); cs(Host)/cs(User-Agent) use the W3C parenthesized form; rest are
+  # hyphenated lowercase. c-country + asn come free with v2 (no IP lookup needed).
+  record_fields = [
+    "date",
+    "time",
+    "c-ip",
+    "c-country",
+    "asn",
+    "cs-method",
+    "cs-protocol",
+    "cs(Host)",
+    "cs-uri-stem",
+    "cs-uri-query",
+    "sc-status",
+    "x-edge-result-type",
+    "x-edge-location",
+    "cs(User-Agent)",
+  ]
+
+  # Hive-style date partitioning UNDER the raw/app prefix => objects land at
+  # raw/app/year=YYYY/month=MM/day=DD/. enable_hive_compatible_path MUST be true: only
+  # then does AWS allow the key=value layout, and it auto-expands the bare {yyyy}/{MM}/{dd}
+  # placeholders into year=/month=/day= (writing "year={yyyy}" literally is rejected with
+  # "Provided suffixPath is invalid" while the flag is off).
+  s3_delivery_configuration {
+    suffix_path                 = "{yyyy}/{MM}/{dd}"
+    enable_hive_compatible_path = true
+  }
+
+  # CreateDelivery validates write access against the bucket policy, so the policy
+  # (Task 1) must already exist or delivery creation fails.
+  depends_on = [aws_s3_bucket_policy.cloudfront_logs]
+}
