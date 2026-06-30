@@ -19,6 +19,9 @@ func main() {
 			SourceDescription: "Meal Planner user sign up (pre)",
 			Target:            "slack",
 			Content:           fmt.Sprintf("Awaiting registration for %s", event.Email),
+			// Pin plain rendering: the email is literal text (may contain _ etc.)
+			// and the alerter now defaults to Markdown.
+			Format: "plain",
 		}, true
 	}
 
