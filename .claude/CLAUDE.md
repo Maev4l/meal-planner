@@ -11,8 +11,9 @@ In addition, for each meal, they can attach a comment.
 - Everything is deployed on AWS.
 - The project is a monorepo. It does NOT use yarn workspaces: each JS package
   manages its own `node_modules` / `yarn.lock`. Run package commands with
-  `yarn --cwd packages/<pkg> ...`; the root `package.json` holds only NPM scripts
-  and declares no dependencies.
+  `yarn --cwd packages/<pkg> ...`. Root-level orchestration lives in a `Makefile`
+  (targets mirror the old npm script names with `:` replaced by `-`, e.g.
+  `make frontend-serve`, `make backend-deploy`); there is no root `package.json`.
 
 ## Guidelines
 - Update the md files according to changes:
