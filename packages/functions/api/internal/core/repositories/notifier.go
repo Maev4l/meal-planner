@@ -37,9 +37,9 @@ func (n *notifier) Notify(sourceDescription, content string) error {
 		Source:            "meal-planner-api",
 		SourceDescription: sourceDescription,
 		Content:           content,
-		// Pin plain rendering: this content is literal text, and the alerter
-		// now defaults to Markdown.
-		Format: "plain",
+		// Markdown: the alerter's default. Callers author Markdown and must fence
+		// any user-controlled text (names, group names, emails).
+		Format: "markdown",
 	})
 	if err != nil {
 		return err

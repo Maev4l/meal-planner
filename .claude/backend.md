@@ -225,7 +225,7 @@ Then keep only items whose SK contains `group#<groupId>`, filtered **in code** �
 3. If requester is already a member, return `alreadyMember=true` (idempotent — no error)
 4. Create Member record via conditional `PutItem` (`CreateMemberIfNotExists`) — atomic, never downgrades an existing admin
 5. Create default schedule
-6. Auto-approve: if the caller's token claim `custom:Approved` is false, flip it to `"true"` via `idp.ApproveUser(cognitoUsername)` (`cognito-idp:AdminUpdateUserAttributes`), then publish a 2nd "auto-approved via invite to &lt;group&gt;" Slack alert to the `alerting-events` SNS topic (shared `notifications.Message` contract). Already-approved callers are not re-approved and produce no alert.
+6. Auto-approve: if the caller's token claim `custom:Approved` is false, flip it to `"true"` via `idp.ApproveUser(cognitoUsername)` (`cognito-idp:AdminUpdateUserAttributes`), then publish a 2nd Markdown "Meal Planner Invite Auto-Approval" Slack alert (user + group, user-controlled values fenced) to the `alerting-events` SNS topic (shared `notifications.Message` contract). Already-approved callers are not re-approved and produce no alert.
 
 ### Invite URL Format
 ```
