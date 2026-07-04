@@ -19,7 +19,7 @@
 
 ### Key Files
 
-- `src/contexts/AuthContext.jsx` — auth state, signIn, signInWithGoogle, signUp, signOut, `refreshSession()` (forces a Cognito token refresh so a freshly-flipped approval claim is picked up — used after invite auto-approval)
+- `src/contexts/AuthContext.jsx` — auth state, signIn, signInWithGoogle, signUp, signOut, `refreshSession()` (forces a Cognito token refresh so a freshly-flipped approval claim is picked up — used after invite auto-approval and by the pending-approval screen). `checkAuth` reads `custom:Approved` from the id token into `user.approved`; `isApproved` (approved only when the claim is exactly `"true"`, mirroring the backend `RequireApproved` gate) drives the `ProtectedRoute` approval gate — an authenticated-but-unapproved user is shown `PendingApprovalPage` instead of an approval-gated page
 - `src/pages/LoginPage.jsx` — login form + Google button
 - `src/pages/SignUpPage.jsx` — registration form (pending approval)
 - `src/config.js` — Cognito + OAuth configuration
@@ -64,6 +64,7 @@
 
 - `LoginPage.jsx` — login form + Google OAuth
 - `SignUpPage.jsx` — registration (pending approval)
+- `PendingApprovalPage.jsx` — shown by `ProtectedRoute` for an authenticated-but-unapproved user (e.g. a fresh Google signup, which creates a session immediately, before an admin clicks Approve). "Check again" calls `refreshSession()`; once the admin approves (`custom:Approved` → `"true"`) the refreshed claim lets the app render. Prevents the raw 403 an unapproved user used to hit on GroupsPage.
 - `GroupsPage.jsx` — lists user's groups; `＋` TopBar button + empty-state CTA to create a group; per-row gear button navigates directly to `GroupSettingsPage`; after creating a group, navigates to that group's `GroupSettingsPage` (Invites section) so the new admin can create + share an invite inline
 - `GroupSchedulePage.jsx` — weekly schedule with "My week" / "Everyone" toggle:
   - **My week** → `PersonalScheduleView`: one-tap `MealTile` grid + note trigger per day

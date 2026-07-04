@@ -65,6 +65,12 @@ export const AuthProvider = ({ children }) => {
           memberId,
           name: payload.name || payload['cognito:username'],
           email: payload.email || null,
+          // Mirror the backend RequireApproved gate (helper.go): approved only when
+          // the claim is exactly "true". Federated (Google) users have no
+          // custom:Approved attribute until an admin approves, so absent => not
+          // approved. Without this the app would route unapproved users to
+          // approval-gated pages and surface a raw 403.
+          approved: String(payload['custom:Approved']) === 'true',
         });
       } else {
         setUser(null);
@@ -181,6 +187,7 @@ export const AuthProvider = ({ children }) => {
     user,
     isLoading,
     isAuthenticated: !!user,
+    isApproved: !!user?.approved,
     error,
     oauthMessage,
     clearOauthMessage,

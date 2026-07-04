@@ -19,13 +19,18 @@ import InvitePage from './pages/InvitePage';
 import UpdatePrompt from './components/UpdatePrompt';
 import SplashScreen from './components/SplashScreen';
 import PendingInviteHandler from './components/PendingInviteHandler';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 
 const MIN_SPLASH_DURATION = 2000;
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isApproved, isLoading } = useAuth();
   if (isLoading) return null;
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Authenticated but not yet approved (e.g. fresh Google signup): show the
+  // pending screen instead of an approval-gated page that would 403.
+  if (!isApproved) return <PendingApprovalPage />;
+  return children;
 };
 
 const PublicRoute = ({ children }) => {
@@ -35,7 +40,7 @@ const PublicRoute = ({ children }) => {
 };
 
 const App = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isApproved, isLoading } = useAuth();
   const [minElapsed, setMinElapsed] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setMinElapsed(true), MIN_SPLASH_DURATION);
@@ -65,7 +70,7 @@ const App = () => {
           </Routes>
         </SchedulesProvider>
       </div>
-      {!isLoading && isAuthenticated && <BottomNav />}
+      {!isLoading && isAuthenticated && isApproved && <BottomNav />}
       <UpdatePrompt />
       </ToastProvider>
     </PWAProvider>
