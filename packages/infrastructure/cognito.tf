@@ -14,8 +14,8 @@ resource "aws_cognito_user_pool" "meal_planner" {
 
   # Lambda triggers for user management
   lambda_config {
-    pre_sign_up       = module.user_management.function_arn
-    post_confirmation = module.user_management.function_arn
+    pre_sign_up       = module.user_onboarding.function_arn
+    post_confirmation = module.user_onboarding.function_arn
   }
 
   account_recovery_setting {

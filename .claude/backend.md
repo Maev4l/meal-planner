@@ -63,9 +63,41 @@ Design: `docs/superpowers/specs/2026-06-27-cloudfront-access-log-historization-d
 - Auth domain: `meal-planner-auth.isnan.eu` (custom domain with wildcard cert)
 - Self-registration enabled (admin approval via `custom:Approved` attribute)
 - Google OAuth identity provider
-- Lambda triggers: `user-management` (pre_sign_up, post_confirmation)
+- Lambda triggers: `user-onboarding` (pre_sign_up, post_confirmation)
 - Token TTLs: access/ID = 60 min, refresh = 1 year (absolute expiry; re-login required yearly or on explicit sign-out, password change, or admin disable)
 - The API Lambda role has `cognito-idp:AdminUpdateUserAttributes` (scoped to the pool, used for invite auto-approval) and `sns:Publish` (alerting topic); the function receives the topic via the `SNS_TOPIC_ARN` env var.
+
+### Slack signup approval
+
+Self-registration raises a Slack "🔐 Access Request" alert (from the
+`user-onboarding` lambda) that now carries **Approve** and **Reject** buttons:
+
+- The alert's `notifications.Message` includes an `Interactive` block —
+  `callbackId` = the user's email, `payload` = the Cognito username, actions
+  `approve` / `reject`. `source` stays `meal-planner-onboard-users`.
+- The platform `alerter` **responder** handles the click (Slack signature +
+  operator allow-list), strips the buttons, and republishes the decision to the
+  **`alerting-responses`** SNS topic (with a `source` message attribute).
+- The new **`user-approval`** lambda subscribes to `alerting-responses`
+  (`filter_policy` on `source = ["meal-planner-onboard-users"]`) and applies the
+  decision: `approve` → `AdminUpdateUserAttributes custom:Approved=true`;
+  `reject` → checks the user's current approval state first; if already
+  approved (via CLI/invite/another admin) the delete is **skipped** and an
+  "ℹ️ Reject Ignored" alert is posted (avoids orphaning DynamoDB data);
+  otherwise `AdminDeleteUser` (a brand-new signup has no DynamoDB data). A
+  Cognito failure publishes a "⚠️ Signup Decision Failed" alert to
+  `alerting-events`; success is silent (the responder already confirmed the
+  click). Reject of an already-deleted user is treated as success.
+- **Prereq:** the platform `alerter` responder is deployed with the Slack
+  **Interactivity → Request URL** set to the CloudFront custom domain
+  `https://platform-slack-responder.isnan.eu/` (NOT the raw `*.lambda-url` URL), the
+  responder Function URL at **`AuthType NONE`** (CloudFront OAC cannot SigV4-sign a POST
+  body to a Lambda Function URL → every Slack POST 403s with `InvalidSignatureException`;
+  fixed in `platform/alerter`), and SSM signing-secret + operator allow-list populated.
+- **Known edge (accepted):** for email/password signups the alert fires at
+  `pre_sign_up` while `custom:Approved=false` is written at `post_confirmation`;
+  an approval clicked in the seconds before the user confirms their email would
+  be overwritten back to false. Realistically the admin approves later.
 
 ### SSM Parameters (secrets)
 

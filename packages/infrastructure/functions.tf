@@ -2,7 +2,8 @@
 
 locals {
   api_filename             = "../functions/api/dist/bootstrap.zip"
-  user_management_filename = "../functions/user-management/dist/bootstrap.zip"
+  user_onboarding_filename = "../functions/user-onboarding/dist/bootstrap.zip"
+  user_approval_filename   = "../functions/user-approval/dist/bootstrap.zip"
 
   # AWS Lambda Web Adapter (arm64) - publisher account 753240598075.
   # Bump intentionally; release notes:
@@ -12,7 +13,7 @@ locals {
 }
 
 module "api" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.7.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
 
   function_name = "meal-planner-api"
   architecture  = "arm64"
@@ -46,7 +47,7 @@ module "api" {
 }
 
 module "api_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.7.1"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.8.0"
 
   # api_name produces "meal-planner-api-http-api" — byte-identical to the v1.6.0
   # default (which was "${function_name}-http-api"). Keeping this value avoids
@@ -75,20 +76,20 @@ module "api_trigger" {
   }
 }
 
-module "user_management" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.7.1"
+module "user_onboarding" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
 
-  function_name = "meal-planner-user-management"
+  function_name = "meal-planner-user-onboarding"
   architecture  = "arm64"
   memory_size   = 128
 
-  additional_policy_arns = [aws_iam_policy.user_management.arn]
+  additional_policy_arns = [aws_iam_policy.user_onboarding.arn]
 
   zip = {
-    filename = local.user_management_filename
+    filename = local.user_onboarding_filename
     runtime  = "provided.al2023"
     handler  = "bootstrap"
-    hash     = filebase64sha256("../functions/user-management/bin/bootstrap")
+    hash     = filebase64sha256("../functions/user-onboarding/bin/bootstrap")
   }
 
   environment_variables = {
@@ -97,11 +98,46 @@ module "user_management" {
   }
 }
 
-module "user_management_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.7.1"
+module "user_onboarding_trigger" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.8.0"
 
-  function_name = module.user_management.function_name
-  function_arn  = module.user_management.function_arn
+  function_name = module.user_onboarding.function_name
+  function_arn  = module.user_onboarding.function_arn
 
   user_pool_id = aws_cognito_user_pool.meal_planner.id
+}
+
+module "user_approval" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
+
+  function_name = "meal-planner-user-approval"
+  architecture  = "arm64"
+  memory_size   = 128
+
+  additional_policy_arns = [aws_iam_policy.user_approval.arn]
+
+  zip = {
+    filename = local.user_approval_filename
+    runtime  = "provided.al2023"
+    handler  = "bootstrap"
+    hash     = filebase64sha256("../functions/user-approval/bin/bootstrap")
+  }
+
+  environment_variables = {
+    REGION        = var.region
+    USER_POOL_ID  = aws_cognito_user_pool.meal_planner.id
+    SNS_TOPIC_ARN = data.aws_sns_topic.alerting.arn
+  }
+}
+
+# Subscribes user-approval to the alerter's alerting-responses topic. The filter
+# policy matches the "source" message attribute the responder sets, so this
+# lambda only sees decisions originating from meal-planner signup alerts.
+module "user_approval_trigger" {
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-sns?ref=v1.8.0"
+
+  function_name = module.user_approval.function_name
+  function_arn  = module.user_approval.function_arn
+  topic_arn     = data.aws_sns_topic.alerting_responses.arn
+  filter_policy = jsonencode({ source = ["meal-planner-onboard-users"] })
 }

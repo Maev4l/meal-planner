@@ -5,7 +5,7 @@ data "aws_region" "current" {}
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  region     = data.aws_region.current.id
+  region     = data.aws_region.current.region
 }
 
 # API Lambda Policy
@@ -52,9 +52,9 @@ resource "aws_iam_policy" "api" {
 }
 
 #
-# User Management Policy (role managed by lambda-function module)
+# User Onboarding Policy (role managed by lambda-function module)
 #
-data "aws_iam_policy_document" "user_management" {
+data "aws_iam_policy_document" "user_onboarding" {
   statement {
     effect    = "Allow"
     actions   = ["sns:Publish"]
@@ -73,7 +73,29 @@ data "aws_iam_policy_document" "user_management" {
   }
 }
 
-resource "aws_iam_policy" "user_management" {
-  name   = "meal-planner-user-management"
-  policy = data.aws_iam_policy_document.user_management.json
+resource "aws_iam_policy" "user_onboarding" {
+  name   = "meal-planner-user-onboarding"
+  policy = data.aws_iam_policy_document.user_onboarding.json
+}
+
+#
+# User Approval Policy (applies Slack approve/reject decisions)
+#
+data "aws_iam_policy_document" "user_approval" {
+  statement {
+    effect    = "Allow"
+    actions   = ["cognito-idp:AdminGetUser", "cognito-idp:AdminUpdateUserAttributes", "cognito-idp:AdminDeleteUser"]
+    resources = [aws_cognito_user_pool.meal_planner.arn]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["sns:Publish"]
+    resources = [data.aws_sns_topic.alerting.arn]
+  }
+}
+
+resource "aws_iam_policy" "user_approval" {
+  name   = "meal-planner-user-approval"
+  policy = data.aws_iam_policy_document.user_approval.json
 }

@@ -22,7 +22,7 @@ output "webclient_bucket" {
 
 output "region" {
   description = "AWS region"
-  value       = data.aws_region.current.id
+  value       = data.aws_region.current.region
 }
 
 output "dynamodb_table_name" {
