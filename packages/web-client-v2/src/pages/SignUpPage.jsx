@@ -24,7 +24,7 @@ const SignUpPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp } = useAuth();
 
   const passwordError = password.length > 0 ? validatePassword(password) : null;
   const passwordValid = password.length > 0 && !passwordError;
@@ -42,15 +42,6 @@ const SignUpPage = () => {
       if (err.name === 'UsernameExistsException') setError('An account with this email already exists');
       else setError(err.message || 'Sign up failed');
     } finally { setIsSubmitting(false); }
-  };
-
-  // Google is a federated flow: the same call signs in OR creates the account on
-  // first use, so "sign up with Google" and "sign in with Google" are identical.
-  // On failure the OAuth round-trip lands back on /login, which surfaces the
-  // message; a synchronous failure here is shown inline.
-  const handleGoogleSignIn = async () => {
-    setError(null);
-    try { await signInWithGoogle(); } catch (err) { setError(err.message || 'Google sign up failed'); }
   };
 
   // Show pending-approval confirmation after successful registration
@@ -90,16 +81,11 @@ const SignUpPage = () => {
                help={confirmPassword.length > 0 ? (passwordsMatch ? '✓ passwords match' : '✕ passwords do not match') : undefined}
                helpTone={passwordsMatch ? 'ok' : 'bad'} />
         <Button type="submit" className="mt-2.5" disabled={isSubmitting || !canSubmit}>
-          {isSubmitting ? <Spinner /> : 'Create account'}
+          {isSubmitting ? <Spinner inline /> : 'Create account'}
         </Button>
       </form>
 
-      <div className="flex items-center gap-3 text-chalk-faint text-[11px] tracking-[0.2em] uppercase my-4 before:flex-1 before:border-b before:border-dashed before:border-chalk-faint after:flex-1 after:border-b after:border-dashed after:border-chalk-faint">or</div>
-      <Button variant="ghost" onClick={handleGoogleSignIn} disabled={isSubmitting} className="flex items-center justify-center gap-2">
-        <Icon name="google" className="w-[18px] h-[18px]" />Continue with Google
-      </Button>
-
-      <div className="text-center mt-4 text-[12.5px] text-chalk-dim">
+      <div className="text-center mt-6 text-[12.5px] text-chalk-dim">
         Already have an account? <Link to="/login" className="text-coral font-semibold no-underline">Sign in</Link>
       </div>
     </div>

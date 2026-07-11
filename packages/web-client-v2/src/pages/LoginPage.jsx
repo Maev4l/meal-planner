@@ -48,6 +48,16 @@ const LoginPage = () => {
       {successMessage && <div className="mb-3 text-sage text-sm">{successMessage}</div>}
       {displayError && <div className="mb-3 text-red text-sm">{displayError}</div>}
 
+      {/* Google is a federated flow that both signs in AND registers on first
+          use. It lives ABOVE the email split so it reads as the universal entry
+          point — filing it beside "Sign in" would wrongly imply it's for
+          returning users only. */}
+      <Button variant="ghost" onClick={handleGoogleSignIn} disabled={isSubmitting} className="flex items-center justify-center gap-2">
+        <Icon name="google" className="w-[18px] h-[18px]" />Continue with Google
+      </Button>
+
+      <div className="flex items-center gap-3 text-chalk-faint text-[11px] tracking-[0.2em] uppercase my-5 before:flex-1 before:border-b before:border-dashed before:border-chalk-faint after:flex-1 after:border-b after:border-dashed after:border-chalk-faint">or with email</div>
+
       <form onSubmit={handleSubmit}>
         <Field label="Email" type="email" value={username} autoComplete="email" autoCapitalize="none"
                disabled={isSubmitting} onChange={(e) => setUsername(e.target.value)} />
@@ -61,18 +71,19 @@ const LoginPage = () => {
                  </button>
                } />
         <Button type="submit" className="mt-2.5" disabled={isSubmitting || !username || !password}>
-          {isSubmitting ? <Spinner /> : 'Sign in'}
+          {isSubmitting ? <Spinner inline /> : 'Sign in'}
         </Button>
       </form>
 
-      <div className="flex items-center gap-3 text-chalk-faint text-[11px] tracking-[0.2em] uppercase my-5 before:flex-1 before:border-b before:border-dashed before:border-chalk-faint after:flex-1 after:border-b after:border-dashed after:border-chalk-faint">or</div>
-      <Button variant="ghost" onClick={handleGoogleSignIn} disabled={isSubmitting} className="flex items-center justify-center gap-2">
-        <Icon name="google" className="w-[18px] h-[18px]" />Continue with Google
-      </Button>
-
-      <div className="text-center mt-7 text-[12.5px] text-chalk-dim">
-        New here? <Link to="/signup" className="text-coral font-semibold no-underline">Pull up a chair</Link>
-      </div>
+      {/* The two email-only states, both as first-class actions: Sign in
+          (returning) above, Create account (new) here. Coral text ties this to
+          the brand's "join" accent and separates it from the neutral Google
+          ghost at the top. */}
+      <Link to="/signup" className="block mt-3">
+        <Button variant="ghost" disabled={isSubmitting} className="text-coral! hover:brightness-110">
+          Create account
+        </Button>
+      </Link>
     </div>
   );
 };
