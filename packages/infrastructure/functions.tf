@@ -13,7 +13,7 @@ locals {
 }
 
 module "api" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.1"
 
   function_name = "meal-planner-api"
   architecture  = "arm64"
@@ -47,7 +47,7 @@ module "api" {
 }
 
 module "api_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-apigw?ref=v1.8.1"
 
   # api_name produces "meal-planner-api-http-api" — byte-identical to the v1.6.0
   # default (which was "${function_name}-http-api"). Keeping this value avoids
@@ -77,7 +77,7 @@ module "api_trigger" {
 }
 
 module "user_onboarding" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.1"
 
   function_name = "meal-planner-user-onboarding"
   architecture  = "arm64"
@@ -99,7 +99,7 @@ module "user_onboarding" {
 }
 
 module "user_onboarding_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-cognito?ref=v1.8.1"
 
   function_name = module.user_onboarding.function_name
   function_arn  = module.user_onboarding.function_arn
@@ -108,7 +108,7 @@ module "user_onboarding_trigger" {
 }
 
 module "user_approval" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-function?ref=v1.8.1"
 
   function_name = "meal-planner-user-approval"
   architecture  = "arm64"
@@ -134,7 +134,7 @@ module "user_approval" {
 # policy matches the "source" message attribute the responder sets, so this
 # lambda only sees decisions originating from meal-planner signup alerts.
 module "user_approval_trigger" {
-  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-sns?ref=v1.8.0"
+  source = "github.com/Maev4l/terraform-modules//modules/lambda-trigger-sns?ref=v1.8.1"
 
   function_name = module.user_approval.function_name
   function_arn  = module.user_approval.function_arn
