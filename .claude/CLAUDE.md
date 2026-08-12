@@ -5,6 +5,10 @@ People belongs to groups and they can apply for lunches or dinners on a weekly b
 In addition, for each meal, they can attach a comment.
 
 ## Design
+- Durable product truth (users, purpose, positioning, brand commitments): @../PRODUCT.md.
+- The visual design system — tokens, typography, components, named rules (the "Ardoise"
+  chalkboard world): @../DESIGN.md. Machine-readable extensions (tonal ramps, motion,
+  component snippets) live alongside it in `.impeccable/design.json`.
 - The UI is a React-based PWA styled with Tailwind CSS v4 (dark "Ardoise" chalkboard theme; no MUI): @ui.md.
 - The backend is AWS Lambda written in Golang: @backend.md.
 - Infrastructure is managed with Terraform: @../packages/infrastructure
@@ -20,3 +24,6 @@ In addition, for each meal, they can attach a comment.
   - @ui.md for frontend
   - @backend.md for API
   - @cli.md for CLI
+  - @../DESIGN.md when the visual system itself changes (tokens, typography, a new
+    primitive, a new rule) — keep `.impeccable/design.json` in sync with it
+  - @../PRODUCT.md only when durable product truth changes; never for visual decisions
