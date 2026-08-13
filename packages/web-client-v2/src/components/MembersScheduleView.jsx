@@ -114,8 +114,17 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
         ))}
       </div>
 
-      {/* Whose numbers are still assumptions. Without this the board reads as
-          seven settled days when it may be mostly guesswork. */}
+      {/* Selected day — names and notes behind the numbers above */}
+      <div className="flex items-baseline gap-2.5 mb-2">
+        <h2 className="font-hand font-bold text-[30px] leading-none m-0">{DAY_LABELS[sel]}</h2>
+        <span className="text-[10.5px] tracking-[0.2em] uppercase text-chalk-dim">{dates[sel]}</span>
+      </div>
+
+      {/* Whose numbers below are still assumptions. Scoped to the day on screen,
+          because that is the day being cooked — though the underlying flag is
+          week-level: the API stores one record per member per week, so touching
+          any day marks the whole week answered. Someone who has touched nothing
+          has answered for no day, which is what this says. */}
       {waitingOn.length > 0 && (
         <div className="flex items-start gap-2 mb-4 text-[12px] leading-snug text-chalk-dim">
           <Icon name="clock" className="w-3.5 h-3.5 mt-[1px] flex-none text-mustard" />
@@ -123,16 +132,10 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
             <b className="font-semibold text-chalk">
               {waitingOn.length <= 2 ? waitingOn.join(' and ') : `${waitingOn.slice(0, 2).join(', ')} +${waitingOn.length - 2}`}
             </b>{' '}
-            {waitingOn.length === 1 ? "hasn't" : "haven't"} answered for this week — the counts show their usual.
+            {waitingOn.length === 1 ? "hasn't" : "haven't"} answered for {DAY_LABELS[sel]} — these counts show their usual.
           </span>
         </div>
       )}
-
-      {/* Selected day — names and notes behind the numbers above */}
-      <div className="flex items-baseline gap-2.5 mb-4">
-        <h2 className="font-hand font-bold text-[30px] leading-none m-0">{DAY_LABELS[sel]}</h2>
-        <span className="text-[10.5px] tracking-[0.2em] uppercase text-chalk-dim">{dates[sel]}</span>
-      </div>
 
       <div className="flex flex-col gap-3.5">
         <MealBlock title="Lunch" tone="text-mustard" attendees={attendeesFor(dayKey, MEAL.LUNCH)} unconfirmed={unconfirmed} />

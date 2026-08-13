@@ -480,9 +480,11 @@ that selects the day detailed below.
 - Below the board, the selected day is named in Caveat 30px beside its full date in 10.5px/0.2em
   uppercase, then Lunch and Dinner attendee badges, then Notes — numbers first, names second, notes
   third, matching how the cook reads. Each meal heading carries its headcount in mono beside it.
-- When anyone has not answered for the week, a mustard-marked line under the board names them and
-  says the counts include their usual. Without it the board reads as seven settled days when it may
-  be mostly assumption.
+- When anyone has not answered, a mustard-marked line sits under the **selected day's heading** —
+  next to the counts it qualifies — naming them and saying those counts show their usual. The
+  sentence is scoped to the day on screen because that is the day being cooked, though the flag
+  behind it is week-level: the API stores one record per member per week, so touching any day marks
+  the whole week answered. Someone who has touched nothing has answered for no day.
 
 ### Member Badge & Avatar
 - **Avatar:** circle filled from a deterministic name→colour hash over the five-pigment palette,
