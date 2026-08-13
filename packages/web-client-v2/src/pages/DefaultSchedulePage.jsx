@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useSchedules } from '../contexts/SchedulesContext';
-import { api } from '../services/api';
+import { api, errorMessage } from '../services/api';
 import { DAYS, DAY_LABELS, MEAL } from '../constants/schedule';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
@@ -21,16 +21,26 @@ const DefaultSchedulePage = () => {
   const [schedule, setSchedule] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      const schedules = await fetchSchedules();
+  // One load path, callable again. Previously this was an async IIFE with no
+  // catch: fetchSchedules rethrows, so a failed load rejected unhandled, `error`
+  // stayed null and the page span forever — the retry never even appeared. And
+  // the retry that did exist only re-ran fetchSchedules without clearing `error`
+  // or re-deriving `schedule`, so pressing it changed nothing.
+  const load = useCallback(async (force = false) => {
+    setError(null);
+    try {
+      const schedules = await fetchSchedules(force);
       const group = schedules.find((g) => g.groupId === groupId);
       if (!group) return setError("This group isn't here any more.");
       const me = group.members[user.memberId];
       if (!me) return setError("You're no longer a member of this group.");
       setSchedule({ ...me.default });
-    })();
+    } catch (err) {
+      setError(errorMessage(err, { fallback: "Couldn't load the usual." }));
+    }
   }, [groupId, user.memberId, fetchSchedules]);
+
+  useEffect(() => { load(); }, [load]);
 
   const handleToggle = useCallback(async (day, meal) => {
     const prev = schedule;
@@ -39,9 +49,9 @@ const DefaultSchedulePage = () => {
     try {
       await api.createSchedule(groupId, { default: true, schedule: next });
       fetchSchedules(true);
-    } catch {
+    } catch (err) {
       setSchedule(prev);
-      toast?.('Failed to save', 'error');
+      toast?.(errorMessage(err, { fallback: "Couldn't save the usual." }), 'error');
     }
   }, [schedule, groupId, fetchSchedules, toast]);
 
@@ -51,7 +61,7 @@ const DefaultSchedulePage = () => {
         left={<IconButton name="back" label="Back" onClick={() => navigate(-1)} className="ml-0" />} />
       <div className="px-5 pt-4 pb-6">
         {loading || !schedule ? (
-          error ? <ErrorState message={error} onRetry={() => fetchSchedules(true)} /> : <Spinner label="Loading the usual…" />
+          error ? <ErrorState message={error} onRetry={() => load(true)} /> : <Spinner label="Loading the usual…" />
         ) : (
           <>
             <div className="text-center mb-4">
