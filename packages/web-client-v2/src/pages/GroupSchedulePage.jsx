@@ -127,7 +127,7 @@ const GroupSchedulePage = () => {
       <div className="px-5 pt-4">
         <div className="flex gap-1.5 bg-chalk/[0.06] border border-line p-1.5 rounded-[14px] mb-[18px]">
           {[['personal', 'My week'], ['everyone', 'Everyone']].map(([v, label]) => (
-            <button key={v} onClick={() => setView(v)}
+            <button key={v} onClick={() => setView(v)} aria-pressed={view === v}
               className={`flex-1 border-0 cursor-pointer font-body font-semibold text-[12.5px] py-2.5 rounded-[10px] ${view === v ? 'bg-chalk text-slate-0' : 'bg-transparent text-chalk-dim'}`}>
               {label}
             </button>

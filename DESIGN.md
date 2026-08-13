@@ -389,7 +389,8 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
 - **Style:** an uppercase 10.5px/0.24em chalk-dim label above a transparent input sitting on a
   1.5px hairline **underline**. Never a box, never a fill.
 - **Focus:** the underline turns coral **and thickens to 2px**, so focus is never signalled by
-  colour alone. Labels are associated with `useId()`; help text is wired via `aria-describedby`.
+  colour alone. Inputs opt out of the global focus ring for exactly this reason; every other
+  control takes it. Labels are associated with `useId()`; help text is wired via `aria-describedby`.
 - **Size:** 16px text, 8px vertical padding — the 16px is load-bearing on iOS.
 - **Help:** 11px line under the field, toned chalk-dim / sage / red.
 - **Textarea:** same idea with a *dashed* underline and an italic chalk-dim placeholder;
@@ -403,10 +404,19 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
   Two tabs, each a 20px chalk icon over a 10px/0.1em uppercase label; active is full chalk,
   inactive is chalk-dim. No indicator bar, no pill, no colour — presence *is* the indicator.
 
+### Focus
+Keyboard focus is chalk, never the platform default: `:focus-visible` draws a 2px coral outline at
+2px offset, defined once in `index.css`. Without it the UA ring — a platform blue — landed on
+controls in a system with no blue anywhere in its palette. Text inputs are the single exception:
+they carry `outline-none` and signal focus by thickening their underline to coral instead.
+
 ### Bottom Sheets
 - `slate-2`, 22px top corners, top hairline, 80vh max, scrim `black/55`.
 - Opens with a 0.16s `rise` (16px translate + fade); the scrim fades over the same 0.16s.
 - A dashed chalk-faint grab handle (40px wide) sits centred above the content.
+- **Opening focus goes to the panel, not the first control.** Focusing the first focusable put focus
+  on the *destructive* button in every confirm sheet — one Enter from removing a member. A sheet
+  whose job is text entry passes its input as `initialFocus`, so typing still starts immediately.
 - Titles are Caveat 30px. Sheets close on Escape and on scrim tap, and lock body scroll.
 
 **The sheet family.** Every modal in the product is this shell with different contents; there is

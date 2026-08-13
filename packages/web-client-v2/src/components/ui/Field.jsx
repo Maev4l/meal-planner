@@ -2,7 +2,8 @@ import { useId } from 'react';
 
 // Chalk text field: uppercase label, transparent input on a chalk underline.
 // `help` renders below; `helpTone`: 'dim' | 'ok' | 'bad'.
-const Field = ({ label, help, helpTone = 'dim', rightSlot, count, className = '', ...inputProps }) => {
+// `inputRef` exposes the input so a BottomSheet can hand it initial focus.
+const Field = ({ label, help, helpTone = 'dim', rightSlot, count, inputRef, className = '', ...inputProps }) => {
   const tone = { dim: 'text-chalk-dim', ok: 'text-sage', bad: 'text-red' }[helpTone];
   // The label was previously unassociated, so every field in the product announced
   // as "edit text, blank" to a screen reader. useId keeps the pairing unique even
@@ -20,6 +21,7 @@ const Field = ({ label, help, helpTone = 'dim', rightSlot, count, className = ''
       <div className="flex items-center gap-2 border-b-[1.5px] border-line focus-within:border-b-2 focus-within:border-coral transition-colors">
         <input
           id={id}
+          ref={inputRef}
           aria-describedby={help ? helpId : undefined}
           aria-invalid={helpTone === 'bad' ? true : undefined}
           className="w-full bg-transparent border-0 text-chalk font-body text-[16px] py-2 px-0.5 outline-none placeholder:text-chalk-dim"

@@ -17,7 +17,7 @@ const Textarea = ({ value, onChange, onBlur, placeholder, disabled, className = 
       onBlur={onBlur}
       placeholder={placeholder}
       disabled={disabled}
-      className={`w-full resize-none bg-transparent border-0 border-b border-dashed border-chalk-faint focus:border-coral text-chalk font-body text-[15px] py-2 outline-none placeholder:italic placeholder:text-chalk-dim disabled:opacity-70 ${className}`}
+      className={`w-full resize-none bg-transparent border-0 border-b border-dashed border-chalk-faint focus:border-coral text-chalk font-body text-[16px] py-2 outline-none placeholder:italic placeholder:text-chalk-dim disabled:opacity-70 ${className}`}
     />
   );
 };

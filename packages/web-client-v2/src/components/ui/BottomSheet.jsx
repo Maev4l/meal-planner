@@ -5,7 +5,12 @@ const FOCUSABLE =
 
 // `label` becomes the dialog's accessible name — it declared role="dialog" with no
 // name at all before, so a screen reader announced an anonymous dialog.
-const BottomSheet = ({ open, onClose, label, children }) => {
+//
+// `initialFocus` is an optional ref to focus on open. It defaults to the panel
+// itself, deliberately: focusing the first focusable put focus on the *destructive*
+// button in every confirm sheet, one Enter away from removing a member. Sheets whose
+// job is text entry pass their input instead, so typing still starts immediately.
+const BottomSheet = ({ open, onClose, label, initialFocus, children }) => {
   const panelRef = useRef(null);
   const restoreTo = useRef(null);
 
@@ -17,7 +22,7 @@ const BottomSheet = ({ open, onClose, label, children }) => {
     const panel = panelRef.current;
     // Focus previously stayed behind the scrim, so a keyboard user opening the
     // delete-group sheet went on tabbing through the page underneath it.
-    (panel?.querySelector(FOCUSABLE) ?? panel)?.focus();
+    (initialFocus?.current ?? panel)?.focus();
 
     const onKey = (e) => {
       if (e.key === 'Escape') { onClose(); return; }
@@ -36,7 +41,7 @@ const BottomSheet = ({ open, onClose, label, children }) => {
       document.body.style.overflow = '';
       restoreTo.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, initialFocus]);
 
   if (!open) return null;
   return (

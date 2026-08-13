@@ -44,6 +44,15 @@
     -webkit-touch-callout: default;
   }
   html, body, #root { margin: 0; min-height: 100dvh; }
+  /* Keyboard focus is chalk, not Chrome. Without this the UA default landed a
+     platform blue ring (rgb(0,95,204)) on controls in a product with no blue in
+     its palette — including, before the sheet fix, the destructive button.
+     Text inputs opt out via their own `outline-none` utility and signal focus by
+     thickening their underline to coral instead; that is the Field pattern. */
+  :focus-visible {
+    outline: 2px solid var(--color-coral);
+    outline-offset: 2px;
+  }
   /* Grain is baked into the body background (not a fixed ::after overlay): a fixed
      mix-blend-mode overlay swallows taps on iOS Safari even with pointer-events:none,
      which made the whole app untappable. A background layer can never intercept input. */
