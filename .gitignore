@@ -25,5 +25,11 @@ packages/functions/api/.env.local
 # asserted against without a Cognito session. Local-only by design — it must never
 # ship, and it exposes modules on `window` for test scripts.
 # Recreate it as packages/web-client-v2/dev-harness.html + src/dev-harness.jsx.
+#
+# The harness is driven with `puppeteer-core` (a devDependency of web-client-v2).
+# puppeteer-core ships NO browser — unlike `puppeteer`, which downloads ~550MB of
+# Chromium — so a script must pass an executable explicitly:
+#   executablePath: process.env.CHROME_PATH
+#     || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 dev-harness.html
 dev-harness.jsx
