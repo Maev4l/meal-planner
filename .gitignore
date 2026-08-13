@@ -19,3 +19,11 @@ tfplan
 
 # Local dev env file for the api lambda (gitignored on purpose; see api/.env.local.example).
 packages/functions/api/.env.local
+
+# Throwaway visual/a11y harness for the web client: a standalone Vite entry that
+# renders real primitives with mock data, so components can be inspected and
+# asserted against without a Cognito session. Local-only by design — it must never
+# ship, and it exposes modules on `window` for test scripts.
+# Recreate it as packages/web-client-v2/dev-harness.html + src/dev-harness.jsx.
+dev-harness.html
+dev-harness.jsx
