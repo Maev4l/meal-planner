@@ -85,8 +85,11 @@ const SignUpPage = () => {
         </Button>
       </form>
 
-      <div className="text-center mt-6 text-[12.5px] text-chalk-dim">
-        Already have an account? <Link to="/login" className="text-coral font-semibold no-underline">Sign in</Link>
+      <div className="text-center mt-5 text-[12.5px] text-chalk-dim">
+        Already have an account?{' '}
+        <Link to="/login" className="inline-block px-2 py-3.5 -my-2 text-coral font-semibold no-underline">
+          Sign in
+        </Link>
       </div>
     </div>
   );

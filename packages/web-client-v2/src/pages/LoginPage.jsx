@@ -5,6 +5,7 @@ import Icon from '../components/Icon';
 import Field from '../components/ui/Field';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
+import Reveal from '../components/ui/Reveal';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -65,27 +66,22 @@ const LoginPage = () => {
                disabled={isSubmitting} onChange={(e) => setUsername(e.target.value)} />
         <Field label="Password" type={showPassword ? 'text' : 'password'} value={password} autoComplete="current-password" autoCapitalize="none"
                disabled={isSubmitting} onChange={(e) => setPassword(e.target.value)}
-               rightSlot={
-                 <button type="button" onClick={() => setShowPassword((v) => !v)}
-                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                   className="flex-none text-chalk-dim hover:text-chalk active:scale-90 transition p-1 -mr-1">
-                   <Icon name={showPassword ? 'eye' : 'eye-off'} className="w-[18px] h-[18px]" />
-                 </button>
-               } />
+               rightSlot={<Reveal shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />} />
         <Button type="submit" className="mt-2.5" disabled={isSubmitting || !username || !password}>
           {isSubmitting ? <Spinner inline /> : 'Sign in'}
         </Button>
       </form>
 
-      {/* The two email-only states, both as first-class actions: Sign in
-          (returning) above, Create account (new) here. Coral text ties this to
-          the brand's "join" accent and separates it from the neutral Google
-          ghost at the top. */}
-      <Link to="/signup" className="block mt-3">
-        <Button variant="ghost" disabled={isSubmitting} className="text-coral! hover:brightness-110">
+      {/* Signing up is a different task, not a peer of signing in. As a third
+          full-width button it made three near-identical slabs with no hierarchy on
+          the screen every new user meets first; as a foot link it mirrors the
+          "Already have an account?" line on SignUpPage. */}
+      <div className="text-center mt-5 text-[12.5px] text-chalk-dim">
+        New here?{' '}
+        <Link to="/signup" className="inline-block px-2 py-3.5 -my-2 text-coral font-semibold no-underline">
           Create account
-        </Button>
-      </Link>
+        </Link>
+      </div>
     </div>
   );
 };

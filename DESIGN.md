@@ -363,14 +363,22 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
 ## Components
 
 ### Buttons
+
+One filled control per screen. A second action is a ghost; a third — especially one that changes
+task rather than completing this one — is a text link, not a third slab.
 - **Shape:** softly rounded rectangle (14px), full-width by default, 15px vertical padding.
 - **Label:** always Archivo 700, 13px, uppercase, 0.1em tracking.
 - **Primary:** solid coral with near-black ink (`#221311`). Hover lifts `brightness(105%)`.
 - **Ghost:** transparent with a hairline border and chalk-dim label; hover raises the label to full
   chalk. Used for secondary and for federated sign-in.
 - **Danger:** transparent with a red border and red label; hover fills `red/10`.
-- **Press:** every variant scales to `0.98` on `:active`. Disabled drops to 40% opacity and
-  disables pointer events.
+- **Press:** every variant scales to `0.98` on `:active`.
+- **Disabled** is a state, not a variant: all three collapse to the same **dashed hairline shell**
+  with a chalk-dim label (6.20:1) and pointer events off. Fading the filled primary to 40% opacity
+  made the loudest control on the login screen the least legible — its label measured 2.11:1
+  against its own fill. Dashed carries the system's existing meaning for *provisional*, so a
+  not-yet primary is also distinguishable from a live ghost.
+- Every variant carries a border, so all three measure the same height.
 
 ### Icon Buttons
 - 40px circle, 1.5px hairline border, chalk-dim glyph at 58% of the box.

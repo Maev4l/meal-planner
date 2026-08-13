@@ -62,7 +62,7 @@
 
 ### Implemented Pages
 
-- `LoginPage.jsx` — login form + Google OAuth
+- `LoginPage.jsx` — crest, Google (ghost), email form with a coral-filled Sign in, then a "New here? Create account" foot link. Sign up is a task change, not a peer action, so it is a link rather than a third full-width button
 - `SignUpPage.jsx` — registration (pending approval)
 - `NotFoundPage.jsx` — any unmatched route (stale bookmark, removed route). Renders `ErrorState` with "Go to your groups"; previously an unmatched path rendered the app shell with an empty body
 - `PendingApprovalPage.jsx` — shown by `ProtectedRoute` for an authenticated-but-unapproved user (e.g. a fresh Google signup, which creates a session immediately, before an admin clicks Approve). "Check again" calls `refreshSession()`; once the admin approves (`custom:Approved` → `"true"`) the refreshed claim lets the app render. Prevents the raw 403 an unapproved user used to hit on GroupsPage.
@@ -91,6 +91,7 @@ Hand-built, Tailwind-based primitives replacing MUI:
 - `Button` — primary / secondary / danger variants
 - `IconButton` — icon-only button
 - `Spinner` — loading indicator
+- `Reveal` — password show/hide eye toggle, 44px hit area; shared by LoginPage and AccountPage so the same control is never an icon on one screen and the word "show" on another
 - `Field` — labelled input wrapper
 - `Textarea` — multiline text input
 - `Card` — surface container
