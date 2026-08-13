@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { signIn as cognitoSignIn, signOut as cognitoSignOut, signUp as cognitoSignUp, signInWithRedirect, fetchAuthSession } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 // Check URL for OAuth errors (returned after redirect)
 const checkOAuthError = () => {

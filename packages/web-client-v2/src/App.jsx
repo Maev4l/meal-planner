@@ -11,7 +11,6 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import SettingsPage from './pages/SettingsPage';
 import AccountPage from './pages/AccountPage';
-import AboutPage from './pages/AboutPage';
 import GroupSchedulePage from './pages/GroupSchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import GroupSettingsPage from './pages/GroupSettingsPage';
@@ -69,7 +68,6 @@ const App = () => {
             <Route path="/groups/:groupId/settings" element={<ProtectedRoute><GroupSettingsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/settings/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-            <Route path="/settings/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
             <Route path="/invite/:code" element={<InvitePage />} />
             {/* Catch-all: an unmatched path used to render the shell with an empty body */}
             <Route path="*" element={<ProtectedRoute><NotFoundPage /></ProtectedRoute>} />

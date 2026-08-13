@@ -1,12 +1,3 @@
-// Ardoise chalk re-skin of AccountPage.
-// Handlers/state preserved verbatim from the original:
-//   - updatePassword({ oldPassword, newPassword }) from aws-amplify/auth
-//   - passwordChecks object (minLength, hasUppercase, hasLowercase, hasNumber, hasSpecial)
-//   - isPasswordValid, passwordsMatch, canSubmit guards
-//   - handleChangePassword (sets error, saving, success; clears fields on success)
-//   - handleSignOut (calls signOut() then navigate('/login'))
-//   - State: oldPassword, newPassword, confirmPassword, error, saving, success
-// Note: show/hide password toggle state from original was kept; Field type prop toggles it.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword } from 'aws-amplify/auth';
@@ -15,47 +6,58 @@ import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
 import Button from '../components/ui/Button';
 import Field from '../components/ui/Field';
-import Card from '../components/ui/Card';
 import Icon from '../components/Icon';
 
-// A single password-requirement row with chalk/sage styling.
-const RequirementRow = ({ met, label }) => (
-  <div className={`flex items-center gap-2 text-[13px] mb-1.5 ${met ? 'text-sage' : 'text-chalk-dim'}`}>
-    <span className="w-4 text-center flex-none">{met ? '✓' : '✕'}</span>
+// One requirement. Rendered only once the user starts typing a new password —
+// five always-visible rows outweighed the three fields they were guarding.
+const Requirement = ({ met, label }) => (
+  <li className={`flex items-center gap-2 text-[12.5px] ${met ? 'text-sage' : 'text-chalk-dim'}`}>
+    <Icon name={met ? 'check' : 'dots'} className="w-3.5 h-3.5 flex-none" />
     {label}
-  </div>
+  </li>
+);
+
+// Eye toggle, matching the one on LoginPage — Account used to say "show"/"hide"
+// in words for the identical control.
+const Reveal = ({ shown, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    aria-label={shown ? 'Hide password' : 'Show password'}
+    aria-pressed={shown}
+    className="flex-none grid place-items-center w-11 h-11 -mr-2 bg-transparent border-0 text-chalk-dim hover:text-chalk cursor-pointer transition active:scale-90"
+  >
+    <Icon name={shown ? 'eye' : 'eye-off'} className="w-[18px] h-[18px]" />
+  </button>
 );
 
 const AccountPage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  // --- original state & logic (unchanged) ---
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Show/hide toggles — kept from original even though Field uses type prop.
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [shown, setShown] = useState({ old: false, next: false, confirm: false });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Password complexity validation — identical checks from original.
-  const passwordChecks = {
-    minLength: newPassword.length >= 8,
-    hasUppercase: /[A-Z]/.test(newPassword),
-    hasLowercase: /[a-z]/.test(newPassword),
-    hasNumber: /[0-9]/.test(newPassword),
-    hasSpecial: /[^a-zA-Z0-9]/.test(newPassword),
-  };
-
-  const isPasswordValid = Object.values(passwordChecks).every(Boolean);
+  const checks = [
+    ['At least 8 characters', newPassword.length >= 8],
+    ['An uppercase letter', /[A-Z]/.test(newPassword)],
+    ['A lowercase letter', /[a-z]/.test(newPassword)],
+    ['A number', /[0-9]/.test(newPassword)],
+    ['A special character', /[^a-zA-Z0-9]/.test(newPassword)],
+  ];
+  const isPasswordValid = checks.every(([, met]) => met);
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
   const canSubmit = oldPassword && isPasswordValid && passwordsMatch && !saving;
 
-  const handleChangePassword = async () => {
+  // A real <form>, so Enter submits — there was no form element at all before.
+  const handleChangePassword = async (e) => {
+    e?.preventDefault();
+    if (!canSubmit) return;
     setError(null);
     setSaving(true);
     try {
@@ -65,13 +67,12 @@ const AccountPage = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setError(err.message || 'Failed to change password');
+      setError(err.message || "Couldn't change your password.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Sign out then redirect to login — same flow as original.
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
@@ -81,111 +82,53 @@ const AccountPage = () => {
     <div className="flex flex-col">
       <TopBar
         title="Account"
-        left={
-          <IconButton
-            name="back"
-            label="Back"
-            onClick={() => navigate(-1)}
-            className="ml-0"
-          />
-        }
+        left={<IconButton name="back" label="Back to settings" onClick={() => navigate('/settings')} className="ml-0" />}
       />
 
       <div className="px-5 pb-6">
-        {/* Change password card */}
-        <Card className="p-[18px] mb-4">
-          {/* Card header */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-[40px] h-[40px] rounded-[12px] grid place-items-center bg-coral/15 text-coral flex-none">
-              <Icon name="lock" className="w-5 h-5" />
-            </div>
-            <h3 className="font-hand font-bold text-[24px]">Change password</h3>
-          </div>
+        <form onSubmit={handleChangePassword}>
+          <h2 className="font-hand font-bold text-[26px] leading-none mb-4">Change password</h2>
 
-          {/* Error/success feedback */}
-          {error && (
-            <div className="text-red text-sm mb-3">{error}</div>
-          )}
-          {success && (
-            <div className="text-sage text-sm mb-3">Password changed successfully.</div>
-          )}
+          {error && <div className="text-red text-sm mb-3">{error}</div>}
+          {success && <div className="text-sage text-sm mb-3">Password changed.</div>}
 
-          {/* Current password */}
           <Field
-            label="Current password"
-            type={showOldPassword ? 'text' : 'password'}
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowOldPassword((v) => !v)}
-                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
-              >
-                {showOldPassword ? 'hide' : 'show'}
-              </button>
-            }
+            label="Current password" type={shown.old ? 'text' : 'password'} value={oldPassword}
+            autoComplete="current-password" onChange={(e) => setOldPassword(e.target.value)}
+            rightSlot={<Reveal shown={shown.old} onToggle={() => setShown((s) => ({ ...s, old: !s.old }))} />}
           />
 
-          {/* New password */}
           <Field
-            label="New password"
-            type={showNewPassword ? 'text' : 'password'}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowNewPassword((v) => !v)}
-                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
-              >
-                {showNewPassword ? 'hide' : 'show'}
-              </button>
-            }
+            label="New password" type={shown.next ? 'text' : 'password'} value={newPassword}
+            autoComplete="new-password" onChange={(e) => setNewPassword(e.target.value)}
+            rightSlot={<Reveal shown={shown.next} onToggle={() => setShown((s) => ({ ...s, next: !s.next }))} />}
           />
 
-          {/* Password requirements */}
-          <Card dashed className="p-3.5 my-4">
-            <RequirementRow met={passwordChecks.minLength} label="At least 8 characters" />
-            <RequirementRow met={passwordChecks.hasUppercase} label="An uppercase letter" />
-            <RequirementRow met={passwordChecks.hasLowercase} label="A lowercase letter" />
-            <RequirementRow met={passwordChecks.hasNumber} label="A number" />
-            <RequirementRow met={passwordChecks.hasSpecial} label="A special character" />
-          </Card>
+          {newPassword.length > 0 && (
+            <ul className="list-none m-0 mb-4 -mt-1 grid gap-1.5">
+              {checks.map(([label, met]) => <Requirement key={label} met={met} label={label} />)}
+            </ul>
+          )}
 
-          {/* Confirm password */}
           <Field
-            label="Confirm new password"
-            type={showConfirmPassword ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            help={confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match' : undefined}
+            label="Confirm new password" type={shown.confirm ? 'text' : 'password'} value={confirmPassword}
+            autoComplete="new-password" onChange={(e) => setConfirmPassword(e.target.value)}
+            help={confirmPassword.length > 0 && !passwordsMatch ? "Those don't match." : undefined}
             helpTone="bad"
-            rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((v) => !v)}
-                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
-              >
-                {showConfirmPassword ? 'hide' : 'show'}
-              </button>
-            }
+            rightSlot={<Reveal shown={shown.confirm} onToggle={() => setShown((s) => ({ ...s, confirm: !s.confirm }))} />}
           />
 
-          <Button
-            variant="primary"
-            onClick={handleChangePassword}
-            disabled={!canSubmit}
-          >
+          <Button type="submit" variant="primary" disabled={!canSubmit}>
             {saving ? 'Changing…' : 'Change password'}
           </Button>
-        </Card>
+        </form>
 
-        {/* Sign out */}
-        <Button variant="ghost" onClick={handleSignOut}>
-          <Icon name="logout" className="w-4 h-4" />
-          Sign out
-        </Button>
+        <div className="mt-8 pt-5 border-t border-dashed border-chalk-faint">
+          <Button variant="ghost" onClick={handleSignOut}>
+            <Icon name="logout" className="w-4 h-4" />
+            Sign out
+          </Button>
+        </div>
       </div>
     </div>
   );

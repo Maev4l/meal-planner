@@ -53,7 +53,7 @@
 │     │                                                                       │
 │     └──> (create group) ──> GroupSettingsPage (navigates after create)      │
 │                                                                             │
-│  Bottom Nav: Groups | Account | Settings | About                            │
+│  Bottom Nav: Groups | Settings                                              │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -74,9 +74,8 @@
   - `CommentEditorSheet` — autosave bottom sheet for editing notes
   - TopBar: back button (left) + "Default schedule" repeat button (right); no settings gear
 - `DefaultSchedulePage.jsx` — default ("the usual") schedule settings
-- `AccountPage.jsx` — user account info
-- `SettingsPage.jsx` — app settings
-- `AboutPage.jsx` — app info
+- `AccountPage.jsx` — change password (three fields, requirements revealed only once a new password is typed, eye reveal toggles) + sign out. No cards: the form is the page
+- `SettingsPage.jsx` — identity (avatar, name, email + copy), one hairline row to Account, then a foot carrying the wordmark, `v<version> · <build>`, the update check and "à table."
 - `GroupSettingsPage.jsx` — role-adaptive group admin panel:
   - **All members**: identity block (avatar, name, member count); roster of members with Admin/You badges
   - **Admin only**: rename (pencil), members section with per-row kick (trash), invites section (create invite inline; each active-invite row carries Share / Copy / Revoke icon buttons), danger zone (type-to-confirm delete)
@@ -134,12 +133,18 @@ Hand-built, Tailwind-based primitives replacing MUI:
 | `/invite/:code` | InvitePage | Public (no guard) | Invite landing; branches on auth state internally |
 | `*` | NotFoundPage | Required | Catch-all for unmatched paths |
 | `/` | GroupsPage | Required | Groups list (home) |
-| `/groups/:groupId` | GroupSchedulePage | Required | Weekly schedule (My week / Everyone) |
-| `/groups/:groupId/default` | DefaultSchedulePage | Required | Default schedule |
+| `/groups/:groupId/:groupName` | GroupSchedulePage | Required | Weekly schedule (My week / Everyone) |
+| `/groups/:groupId/:groupName/default` | DefaultSchedulePage | Required | Default schedule ("the usual") |
 | `/groups/:groupId/settings` | GroupSettingsPage | Required | Group admin panel (role-adaptive) |
-| `/account` | AccountPage | Required | User account |
-| `/settings` | SettingsPage | Required | App settings |
-| `/about` | AboutPage | Required | App info |
+| `/settings` | SettingsPage | Required | Identity, Account row, and the version/update foot |
+| `/settings/account` | AccountPage | Required | Change password + sign out |
+| `*` | NotFoundPage | Required | Catch-all for unmatched paths |
+
+**Removed route (periphery distill):**
+- `/settings/about` (AboutPage) — deleted. Its crest, two boxed info rows, update button and tagline
+  collapsed into the foot of `SettingsPage`: wordmark, one mono `v<version> · <build>` line, the
+  update button, and "à table.". Nothing was lost; a bookmarked `/settings/about` now hits
+  `NotFoundPage`.
 
 **Removed routes (Ardoise redesign):**
 - `/groups/:groupId/comments` (CommentsPage) — deleted; comments now inline in GroupSchedulePage

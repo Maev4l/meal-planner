@@ -4,7 +4,7 @@
 import { createContext, useContext, useCallback, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
-const PWAContext = createContext(null);
+export const PWAContext = createContext(null);
 
 export const PWAProvider = ({ children }) => {
   const registrationRef = useRef(null);
