@@ -1,13 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import dayjs from 'dayjs';
-import isoWeek from 'dayjs/plugin/isoWeek';
 import { api } from '../services/api';
-import { DAYS, DAY_LABELS } from '../constants/schedule';
+import { DAYS, DAY_LABELS, fullDateOf } from '../constants/schedule';
 import BottomSheet from './ui/BottomSheet';
 import Textarea from './ui/Textarea';
 import { useToast } from './ui/Toast';
-
-dayjs.extend(isoWeek);
 
 // open: bool; day: 'monday'…; dayIndex: 0..6; year, week; groupId;
 // allComments: { monday:{lunch,dinner}, … } for the member this week; readOnly: bool;
@@ -27,7 +23,7 @@ const CommentEditorSheet = ({ open, onClose, day, dayIndex, year, week, groupId,
   }, [open, day, allComments]);
 
   const fullDate = open
-    ? dayjs(`${year}-01-04`).startOf('isoWeek').add(week - 1, 'week').add(dayIndex, 'day').format('D MMMM YYYY')
+    ? fullDateOf(year, week, dayIndex)
     : '';
 
   const persist = useCallback(async () => {

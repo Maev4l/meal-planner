@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
-import { DAYS, getCurrentWeek, getWeekDates, getTodayIndex } from '../constants/schedule';
+import { DAYS, getCurrentWeek, getWeekDates, getTodayIndex, periodOf } from '../constants/schedule';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
 import Spinner from '../components/ui/Spinner';
@@ -44,7 +44,7 @@ const GroupSchedulePage = () => {
     if (showLoading) setLoading(true);
     setError(null);
     try {
-      const data = await api.getSchedules(`${year}-${week}`);
+      const data = await api.getSchedules(periodOf(year, week));
       const group = data.schedules?.find((g) => g.groupId === groupId);
       if (!group) { setError('Group not found'); return; }
       setMembers(group.members);
@@ -68,7 +68,7 @@ const GroupSchedulePage = () => {
     setSchedule(next);
     setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
     try {
-      await api.createSchedule(groupId, { period: `${year}-${week}`, schedule: next });
+      await api.createSchedule(groupId, { period: periodOf(year, week), schedule: next });
     } catch {
       setSchedule(prev);
       setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
@@ -90,7 +90,7 @@ const GroupSchedulePage = () => {
     setSchedule(next);
     setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
     try {
-      await api.createSchedule(groupId, { period: `${year}-${week}`, schedule: next });
+      await api.createSchedule(groupId, { period: periodOf(year, week), schedule: next });
       toast?.('Week back on the usual', 'success');
     } catch {
       setSchedule(prev);

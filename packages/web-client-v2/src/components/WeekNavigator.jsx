@@ -1,5 +1,5 @@
 import IconButton from './ui/IconButton';
-import { getCurrentWeek } from '../constants/schedule';
+import { getCurrentWeek, previousWeek, nextWeek } from '../constants/schedule';
 
 // Week navigator for the Ardoise redesign.
 // Uses the shared chalk IconButton; the "back" chevron glyph is reused for all
@@ -10,15 +10,17 @@ const WeekNavigator = ({ year, week, onChange }) => {
   const current = getCurrentWeek();
   const isCurrentWeek = year === current.year && week === current.week;
   const canGoPrevious = year > current.year || (year === current.year && week > current.week);
-  const prevWeek = week === 1 ? 52 : week - 1;
-  const prevYear = week === 1 ? year - 1 : year;
+  // Week arithmetic lives in constants/schedule so the 52-vs-53-week year is
+  // handled in exactly one place.
+  const prev = previousWeek(year, week);
+  const next = nextWeek(year, week);
   // Hide jump-to-today when we're already on the current week OR when pressing
   // prev would land exactly on the current week (one step away → redundant).
-  const showJumpToToday = !isCurrentWeek && !(prevYear === current.year && prevWeek === current.week);
+  const showJumpToToday = !isCurrentWeek && !(prev.year === current.year && prev.week === current.week);
 
   const handleToday = () => onChange(current.year, current.week);
-  const handlePrevious = () => { if (canGoPrevious) onChange(week === 1 ? year - 1 : year, week === 1 ? 52 : week - 1); };
-  const handleNext = () => onChange(week === 52 ? year + 1 : year, week === 52 ? 1 : week + 1);
+  const handlePrevious = () => { if (canGoPrevious) onChange(prev.year, prev.week); };
+  const handleNext = () => onChange(next.year, next.week);
 
   return (
     <div className="flex items-center justify-center gap-1.5 my-1">

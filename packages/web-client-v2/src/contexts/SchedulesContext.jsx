@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
 import { api } from '../services/api';
+import { getCurrentPeriod } from '../constants/schedule';
 
 const SchedulesContext = createContext(null);
 
@@ -10,15 +11,6 @@ export const useSchedules = () => {
     throw new Error('useSchedules must be used within a SchedulesProvider');
   }
   return context;
-};
-
-const getCurrentPeriod = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
-  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-  return `${year}-${weekNumber}`;
 };
 
 export const SchedulesProvider = ({ children }) => {
