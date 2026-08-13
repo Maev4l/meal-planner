@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
-import { getCurrentWeek, getWeekDates, getTodayIndex } from '../constants/schedule';
+import { DAYS, getCurrentWeek, getWeekDates, getTodayIndex } from '../constants/schedule';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
 import Spinner from '../components/ui/Spinner';
@@ -11,6 +11,7 @@ import WeekNavigator from '../components/WeekNavigator';
 import PersonalScheduleView from '../components/PersonalScheduleView';
 import MembersScheduleView from '../components/MembersScheduleView';
 import CommentEditorSheet from '../components/CommentEditorSheet';
+import UsualStatus from '../components/UsualStatus';
 import { useToast } from '../components/ui/Toast';
 
 // A day is read-only if it falls before today within the current week.
@@ -31,9 +32,11 @@ const GroupSchedulePage = () => {
   const [week, setWeek] = useState(location.state?.week ?? current.week);
   const [view, setView] = useState('personal');
   const [schedule, setSchedule] = useState(null);
+  const [usual, setUsual] = useState(null); // the member's default schedule for this group
   const [comments, setComments] = useState(null);
   const [members, setMembers] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState(null);
   const [editor, setEditor] = useState(null); // { day, dayIndex } | null
 
@@ -48,6 +51,7 @@ const GroupSchedulePage = () => {
       const me = group.members[user.memberId];
       if (!me) { setError('You are not a member of this group'); return; }
       setSchedule({ ...me.schedule });
+      setUsual(me.default ?? null);
       setComments(me.comments ?? {});
     } catch (err) {
       setError(err.message);
@@ -71,6 +75,31 @@ const GroupSchedulePage = () => {
       toast?.('Failed to save schedule', 'error');
     }
   }, [schedule, groupId, year, week, user.memberId, toast]);
+
+  // Days a member can still act on this week; a reset never rewrites history.
+  const editableDays = DAYS.filter((_, i) => !isPastDay(i, year, week));
+
+  const handleReset = useCallback(async () => {
+    if (!schedule || !usual) return;
+    const prev = schedule;
+    const next = { ...schedule };
+    DAYS.forEach((day, i) => {
+      if (!isPastDay(i, year, week)) next[day] = usual[day] ?? 0;
+    });
+    setResetting(true);
+    setSchedule(next);
+    setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
+    try {
+      await api.createSchedule(groupId, { period: `${year}-${week}`, schedule: next });
+      toast?.('Week back on the usual', 'success');
+    } catch {
+      setSchedule(prev);
+      setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
+      toast?.('Could not reset the week', 'error');
+    } finally {
+      setResetting(false);
+    }
+  }, [schedule, usual, groupId, year, week, user.memberId, toast]);
 
   const dates = getWeekDates(year, week);
 
@@ -103,9 +132,16 @@ const GroupSchedulePage = () => {
           {loading ? <Spinner label="Loading schedule…" />
             : error ? <div className="text-red text-sm py-4">{error}</div>
             : view === 'personal' && schedule ? (
-              <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle}
-                year={year} week={week} comments={comments}
-                onDayClick={(day, dayIndex) => setEditor({ day, dayIndex })} />
+              <>
+                {usual && (
+                  <UsualStatus schedule={schedule} usual={usual} days={editableDays} busy={resetting}
+                    onEdit={() => navigate(`/groups/${groupId}/${groupName}/default`)}
+                    onReset={handleReset} />
+                )}
+                <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle}
+                  year={year} week={week} comments={comments}
+                  onDayClick={(day, dayIndex) => setEditor({ day, dayIndex })} />
+              </>
             ) : view === 'everyone' && members ? (
               <MembersScheduleView members={members} dates={dates} year={year} week={week} />
             ) : null}

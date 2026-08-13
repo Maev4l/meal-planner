@@ -162,6 +162,22 @@ Meal attendance encoding:
 
 Default schedule uses `scheduleId = "default"` (Year=0, Week=0)
 
+**The default is applied server-side, not by the client.** `computeMemberSchedule`
+(`internal/core/services/schedules.go`) returns the member's default whenever no record
+exists for the requested week, so a week nobody has touched is already pre-filled from
+"the usual". The response marks which case it is:
+
+- `overriden: false` — these values came from the default; no week record exists yet.
+- `overriden: true` — a week record exists (the member has saved this week at least once).
+
+There is **no DELETE for a week schedule**, so a week cannot be returned to the
+`overriden: false` state once written. A client "reset to the usual" can only write the
+default's values back into the week, which leaves the flag `true` while the values match —
+which is why the frontend's `UsualStatus` compares values rather than trusting the flag.
+
+A brand-new member's default is `SystemDefaultWeeklySchedule` (`3` — both meals, every day);
+guests get `SystemDefaultGuestWeeklySchedule` (`0`).
+
 ### Data Lifecycle
 - Schedules, comments, and notices auto-expire 14 days after their week via TTL
 - Week identifiers format: `<year>-<week>` (e.g., `2024-15`)

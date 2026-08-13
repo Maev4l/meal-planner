@@ -67,7 +67,7 @@
 - `PendingApprovalPage.jsx` — shown by `ProtectedRoute` for an authenticated-but-unapproved user (e.g. a fresh Google signup, which creates a session immediately, before an admin clicks Approve). "Check again" calls `refreshSession()`; once the admin approves (`custom:Approved` → `"true"`) the refreshed claim lets the app render. Prevents the raw 403 an unapproved user used to hit on GroupsPage.
 - `GroupsPage.jsx` — lists user's groups; `＋` TopBar button + empty-state CTA to create a group; per-row gear button navigates directly to `GroupSettingsPage`; after creating a group, navigates to that group's `GroupSettingsPage` (Invites section) so the new admin can create + share an invite inline
 - `GroupSchedulePage.jsx` — weekly schedule with "My week" / "Everyone" toggle:
-  - **My week** → `PersonalScheduleView`: one-tap `MealTile` grid + note trigger per day
+  - **My week** → `UsualStatus` row (says whether this week is running on the member's default or has been adjusted, with Edit usual / Reset week) above `PersonalScheduleView`: one-tap `MealTile` grid + note trigger per day
   - **Everyone** → `MembersScheduleView`: day-centric view — week board (7 day columns, each showing its own lunch/dinner headcount), then the selected day's Lunch/Dinner badge blocks and inline Notes block
   - Shared `WeekNavigator` for week navigation
   - `CommentEditorSheet` — autosave bottom sheet for editing notes
@@ -110,6 +110,7 @@ Hand-built, Tailwind-based primitives replacing MUI:
 
 - `WeekNavigator` — prev/next week controls, shared between views
 - `PersonalScheduleView` — "My week" tab: grid of `MealTile`s + per-day note trigger
+- `UsualStatus` — "My week" only: names whether the week is served from the member's default ("On the usual") or has been edited ("Adjusted this week — N days differ"). Action is `Edit usual` → `DefaultSchedulePage` or `Reset week` → rewrites the default into this week. Compares **values**, not the API's `overriden` flag (a reset week stays flagged as overridden), and only over days that are still editable, so a reset can always reach its goal
 - `MembersScheduleView` — "Everyone" tab: week board (7 columns of L/D headcounts, no horizontal scroll; column = day selector) + selected-day heading with full date + Lunch/Dinner badge blocks + inline Notes block. Selection re-anchors to today (or Monday) when the week changes
 - `CommentEditorSheet` — bottom sheet for editing a meal note; autosaves on close
 
@@ -166,7 +167,7 @@ When a user clicks an invite link while not logged in:
 ### GroupSchedulePage
 - "My week" / "Everyone" tab toggle at top
 - Shared `WeekNavigator` (prev / next week arrows)
-- **My week**: grid of `MealTile`s (one-tap to toggle lunch/dinner); tap note icon to open `CommentEditorSheet`
+- **My week**: `UsualStatus` row first — the API serves an untouched week from the member's default, so this row is what tells them the week is on autopilot rather than a set of choices they made; then the grid of `MealTile`s (one-tap to toggle lunch/dinner); tap note icon to open `CommentEditorSheet`
 - **Everyone**: week board across the top — every day shows its lunch and dinner headcount at once, so the whole week reads without a tap; tapping a column drills into that day's Lunch and Dinner attendee names plus an inline Notes block
 
 ### CommentEditorSheet
