@@ -93,7 +93,13 @@ const InvitePage = () => {
     <p className="text-chalk-dim text-[13.5px] leading-relaxed max-w-[250px] m-0 mb-6">You&apos;ll join as a member and can set your meals straight away.</p>
     <div className="w-full max-w-[250px]">
       <Button variant="primary" onClick={join}><Icon name="check" className="w-[17px] h-[17px]" />Join group</Button>
-      <div className="mt-3"><Button variant="ghost" onClick={() => navigate('/')}>Not now</Button></div>
+      {/* Declining must forget the code. PendingInviteHandler re-routes to this page
+          on any pathname change while a code is stored, with replace:true, so
+          leaving it behind bounced the user straight back here and took the back
+          button with it — the only escapes were joining the group they had just
+          declined, or waiting out the 7-day expiry. The `already` and `expired`
+          exits already clear it; this one did not. */}
+      <div className="mt-3"><Button variant="ghost" onClick={() => { clearPendingInvite(); navigate('/'); }}>Not now</Button></div>
     </div>
   </>);
 
