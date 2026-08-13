@@ -17,7 +17,7 @@ const MemberRow = ({ name, isAdmin, isYou, onRemove }) => (
     </div>
     {onRemove && (
       <button onClick={onRemove} aria-label={`Remove ${name}`}
-        className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
+        className="relative w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08] after:absolute after:content-[''] after:-inset-[6px]">
         <Icon name="trash" className="w-[17px] h-[17px]" />
       </button>
     )}

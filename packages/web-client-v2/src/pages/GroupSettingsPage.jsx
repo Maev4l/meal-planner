@@ -19,6 +19,20 @@ const SectionLabel = ({ children, danger }) => (
   <div className={`text-[10.5px] tracking-[0.24em] uppercase mt-[22px] mb-2.5 ${danger ? 'text-red' : 'text-chalk-dim'}`}>{children}</div>
 );
 
+// One invite-row action. The visible mark stays 34px; an invisible ::after inset
+// carries the touch target out to 44px, so the chalk stays small and the thumb
+// still lands.
+const InviteAction = ({ icon, label, onClick, danger, className = '' }) => (
+  <button
+    onClick={onClick}
+    aria-label={label}
+    className={`relative w-[34px] h-[34px] rounded-[9px] grid place-items-center bg-transparent border border-transparent text-chalk-dim cursor-pointer transition after:absolute after:content-[''] after:-inset-[6px]
+      ${danger ? 'hover:text-red hover:border-red/40 hover:bg-red/[0.08]' : 'hover:text-chalk hover:border-line hover:bg-chalk/[0.07]'} ${className}`}
+  >
+    <Icon name={icon} className="w-4 h-4" />
+  </button>
+);
+
 const GroupSettingsPage = () => {
   const { groupId } = useParams();
   const navigate = useNavigate();
@@ -166,20 +180,14 @@ const GroupSettingsPage = () => {
                   <Icon name="link" className="w-4 h-4 text-coral flex-none" />
                   <span className="font-mono text-[13px] truncate">{inv.code.slice(0, 8)}…</span>
                   <span className="text-[11px] text-chalk-dim ml-auto whitespace-nowrap">{relExpiry(inv.expiresAt)}</span>
-                  {/* Per-row actions: each invite carries its own Share / Copy / Revoke */}
-                  <div className="flex items-center gap-1 flex-none">
-                    <button onClick={() => shareInvite(inv.code)} aria-label="Share invite link"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
-                      <Icon name="share" className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => copyInvite(inv.code)} aria-label="Copy invite link"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
-                      <Icon name="copy" className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setRevokeFor(inv.code)} aria-label="Revoke invite"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
-                      <Icon name="trash" className="w-4 h-4" />
-                    </button>
+                  {/* Per-row actions: Share / Copy, then Revoke set apart. 10px between
+                      the safe pair puts their 44px hit areas edge to edge without
+                      overlapping; Revoke gets another 8px because a mis-tap there
+                      destroys a link the admin may have just sent. */}
+                  <div className="flex items-center gap-2.5 flex-none">
+                    <InviteAction icon="share" label="Share invite link" onClick={() => shareInvite(inv.code)} />
+                    <InviteAction icon="copy" label="Copy invite link" onClick={() => copyInvite(inv.code)} />
+                    <InviteAction icon="trash" label="Revoke invite" danger className="ml-2" onClick={() => setRevokeFor(inv.code)} />
                   </div>
                 </div>
               ))}
