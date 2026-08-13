@@ -213,8 +213,10 @@ that read as pastel on dark without ever going neon.
   selected day in the day strip, where it inverts to slate text.
 - **Chalk Dim** (60% chalk): **all** secondary and tertiary text — dates, member counts, sub-labels,
   section labels, placeholders, ghost-button text, inactive nav tabs, and any icon that carries
-  meaning. 60% is not a taste choice: it is the lowest alpha clearing 4.5:1 on the lightest ground
-  text ever sits on (chalk/5 over slate-2, where it measures 4.82:1). At 56% it measured 4.42:1.
+  meaning. These tokens are translucent, so each has a different ratio on every surface it lands
+  on; measure against the tightest real ground, a bottom sheet (`#262c28`), which is the lightest
+  thing text sits on here. At 60% chalk-dim is 5.29:1 there. It was 56% (4.80:1) — passing, but
+  with little headroom, and raised for margin rather than to fix a failure.
 - **Chalk Faint** (26% chalk): **decoration only** — dashed rules, the sheet grab handle, indicator
   dots, the empty-state ring illustration. It measures ~2.1:1 and must never carry text.
 - **Hairline** (18% chalk): every solid border and divider in the system.
@@ -239,10 +241,11 @@ days already past are dimmed to 45% because they are no longer editable. Everyth
 "off" is *red and explicit*. An unset meal and a refused meal must not look alike.
 
 **The Two-Tier Text Rule.** Text and meaningful icons get exactly two tiers: `chalk` and
-`chalk-dim`. There is no third, fainter legible tier and there cannot be one — on this ground any
-alpha that clears 4.5:1 is *brighter* than `chalk-dim`, so "fainter but still readable" is
-arithmetically impossible. When a label feels too loud at 60%, make it smaller or shorter; never
-dimmer. `chalk-faint` is decoration.
+`chalk-dim`. There is no third, fainter legible tier worth having: clearing 4.5:1 on the sheet
+ground takes roughly 52% or more, which sits close enough to `chalk-dim` to be indistinguishable
+and nowhere near `chalk-faint`. When a label feels too loud at 60%, make it smaller or shorter;
+never dimmer. `chalk-faint` (~2.1:1) is decoration — it is the token that was genuinely failing,
+and it used to carry section labels, nav labels and placeholders.
 
 ## Typography
 

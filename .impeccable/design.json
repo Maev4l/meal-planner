@@ -81,12 +81,12 @@
       },
       "chalk-dim": {
         "role": "neutral",
-        "displayName": "Chalk Dim — all secondary and tertiary text (60% chalk)",
+        "displayName": "Chalk Dim — all secondary and tertiary text (60% chalk; 5.29:1 on a bottom sheet, the tightest real ground)",
         "canonical": "rgba(241, 234, 217, 0.6)"
       },
       "chalk-faint": {
         "role": "neutral",
-        "displayName": "Chalk Faint — decoration only, never text (26% chalk)",
+        "displayName": "Chalk Faint — decoration only, never text (26% chalk; ~2.1:1)",
         "canonical": "rgba(241, 234, 217, 0.26)"
       },
       "line": {
@@ -438,7 +438,7 @@
       },
       {
         "name": "The Two-Tier Text Rule",
-        "body": "Text and meaningful icons get exactly two tiers: chalk and chalk-dim. There is no third, fainter legible tier and there cannot be one — on this ground any alpha that clears 4.5:1 is brighter than chalk-dim, so \"fainter but still readable\" is arithmetically impossible. When a label feels too loud at 60%, make it smaller or shorter; never dimmer. chalk-faint is decoration.",
+        "body": "Text and meaningful icons get exactly two tiers: chalk and chalk-dim. There is no third, fainter legible tier worth having: clearing 4.5:1 on the sheet ground takes roughly 52% or more, which sits close enough to chalk-dim to be indistinguishable and nowhere near chalk-faint. When a label feels too loud at 60%, make it smaller or shorter; never dimmer. chalk-faint (~2.1:1) is decoration — it is the token that was genuinely failing, and it used to carry section labels, nav labels and placeholders.",
         "section": "colors"
       },
       {
