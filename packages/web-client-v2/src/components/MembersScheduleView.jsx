@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DAYS, DAY_LABELS, MEAL, getTodayIndex } from '../constants/schedule';
+import Icon from './Icon';
 import Avatar from './ui/Avatar';
 import Badge from './ui/Badge';
 
@@ -45,12 +46,18 @@ const DayColumn = ({ label, date, lunch, dinner, hasNotes, selected, isToday, on
   </button>
 );
 
-// One meal's attendees for the selected day.
-const MealBlock = ({ title, tone, attendees }) => (
+// One meal's attendees for the selected day. `unconfirmed` is the set of names
+// whose attendance came from their usual rather than from them.
+const MealBlock = ({ title, tone, attendees, unconfirmed }) => (
   <div>
-    <div className={`font-hand font-bold text-[24px] leading-none mb-2.5 ${tone}`}>{title}</div>
+    <div className="flex items-baseline gap-2.5 mb-2.5">
+      <span className={`font-hand font-bold text-[24px] leading-none ${tone}`}>{title}</span>
+      <span className="font-mono text-[13px] text-chalk tabular-nums">{attendees.length}</span>
+    </div>
     {attendees.length ? (
-      <div className="flex flex-wrap gap-[7px]">{attendees.map((n) => <Badge key={n} name={n} />)}</div>
+      <div className="flex flex-wrap gap-[7px]">
+        {attendees.map((n) => <Badge key={n} name={n} provisional={unconfirmed.has(n)} />)}
+      </div>
     ) : (
       <div className="text-chalk-dim italic font-hand text-[19px]">nobody yet — quiet one</div>
     )}
@@ -68,6 +75,12 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
   }, [year, week, todayIndex]);
 
   const list = Object.values(members);
+  // The API serves an untouched week from the member's default and flags it
+  // `overriden: false`. That is the difference between "they said no" and "they
+  // never looked" — the one distinction the product turns on, and the client
+  // used to discard it.
+  const unconfirmed = new Set(list.filter((m) => m.schedule?.overriden !== true).map((m) => m.memberName));
+  const waitingOn = [...unconfirmed].sort((a, b) => a.localeCompare(b));
   const attendeesFor = (dayKey, meal) =>
     list.filter((m) => ((m.schedule?.[dayKey] ?? 0) & meal) !== 0).map((m) => m.memberName).sort((a, b) => a.localeCompare(b));
   const countFor = (dayKey, meal) =>
@@ -101,6 +114,20 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
         ))}
       </div>
 
+      {/* Whose numbers are still assumptions. Without this the board reads as
+          seven settled days when it may be mostly guesswork. */}
+      {waitingOn.length > 0 && (
+        <div className="flex items-start gap-2 mb-4 text-[12px] leading-snug text-chalk-dim">
+          <Icon name="clock" className="w-3.5 h-3.5 mt-[1px] flex-none text-mustard" />
+          <span>
+            <b className="font-semibold text-chalk">
+              {waitingOn.length <= 2 ? waitingOn.join(' and ') : `${waitingOn.slice(0, 2).join(', ')} +${waitingOn.length - 2}`}
+            </b>{' '}
+            {waitingOn.length === 1 ? "hasn't" : "haven't"} answered for this week — the counts show their usual.
+          </span>
+        </div>
+      )}
+
       {/* Selected day — names and notes behind the numbers above */}
       <div className="flex items-baseline gap-2.5 mb-4">
         <h2 className="font-hand font-bold text-[30px] leading-none m-0">{DAY_LABELS[sel]}</h2>
@@ -108,9 +135,9 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
       </div>
 
       <div className="flex flex-col gap-3.5">
-        <MealBlock title="Lunch" tone="text-mustard" attendees={attendeesFor(dayKey, MEAL.LUNCH)} />
+        <MealBlock title="Lunch" tone="text-mustard" attendees={attendeesFor(dayKey, MEAL.LUNCH)} unconfirmed={unconfirmed} />
         <div className="border-b border-dashed border-chalk-faint" />
-        <MealBlock title="Dinner" tone="text-coral" attendees={attendeesFor(dayKey, MEAL.DINNER)} />
+        <MealBlock title="Dinner" tone="text-coral" attendees={attendeesFor(dayKey, MEAL.DINNER)} unconfirmed={unconfirmed} />
 
         {notes.length > 0 && (
           <>

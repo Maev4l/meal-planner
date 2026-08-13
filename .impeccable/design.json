@@ -297,9 +297,9 @@
       "name": "Member Badge",
       "kind": "chip",
       "refersTo": "member-badge",
-      "description": "Who is eating, as a wrapping row of avatar chips. The avatar fill is a deterministic hash of the member's name.",
-      "html": "<span class=\"ds-badge\"><span class=\"ds-badge-av\">CL</span>Claire</span> <span class=\"ds-badge\"><span class=\"ds-badge-av ds-badge-av-2\">TH</span>Thomas</span>",
-      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border: 1px solid var(--color-line, rgba(241,234,217,0.18)); border-radius: 9999px; background: rgba(241,234,217,0.05); color: var(--color-chalk, #f1ead9); font-family: Archivo, system-ui, sans-serif; font-size: 13px; line-height: 1; } .ds-badge-av { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 9999px; background: var(--color-coral, #e9806a); color: var(--color-ink-on-accent, #1b1f1c); font-weight: 700; font-size: 9px; } .ds-badge-av-2 { background: var(--color-sage, #9cc08a); }"
+      "description": "Who is eating, as a wrapping row of avatar chips. A dashed chip is attendance the member never confirmed — the API served it from their usual.",
+      "html": "<span class=\"ds-badge\"><span class=\"ds-badge-av\">CL</span>Claire</span> <span class=\"ds-badge ds-badge-provisional\"><span class=\"ds-badge-av ds-badge-av-2\">TH</span>Thomas</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border: 1px solid var(--color-line, rgba(241,234,217,0.18)); border-radius: 9999px; background: rgba(241,234,217,0.05); color: var(--color-chalk, #f1ead9); font-family: Archivo, system-ui, sans-serif; font-size: 13px; line-height: 1; } .ds-badge-av { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 9999px; background: var(--color-coral, #e9806a); color: var(--color-ink-on-accent, #1b1f1c); font-weight: 700; font-size: 9px; } .ds-badge-av-2 { background: var(--color-sage, #9cc08a); } .ds-badge-provisional { border-style: dashed; border-color: var(--color-chalk-faint, rgba(241,234,217,0.26)); color: var(--color-chalk-dim, rgba(241,234,217,0.6)); }"
     },
     {
       "name": "Card",
@@ -428,7 +428,7 @@
       },
       {
         "name": "The Dashed-Line Rule",
-        "body": "Solid hairline = structural division. Dashed hairline = provisional, optional, empty, or hand-drawn. Never use dashed to divide two equally solid things.",
+        "body": "Solid hairline = structural division. Dashed hairline = provisional, optional, empty, or hand-drawn. It carries meaning as well as structure: a disabled button, an attendance nobody confirmed, and an empty-state ring are all the same idea drawn the same way. Never use dashed to divide two equally solid things.",
         "section": "shapes"
       },
       {

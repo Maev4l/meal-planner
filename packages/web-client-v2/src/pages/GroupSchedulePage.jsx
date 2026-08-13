@@ -121,6 +121,7 @@ const GroupSchedulePage = () => {
     <div className="min-h-dvh flex flex-col">
       <TopBar
         title={decodeURIComponent(groupName)}
+        sub={members ? `${Object.keys(members).length} ${Object.keys(members).length === 1 ? 'member' : 'members'}` : undefined}
         left={<IconButton name="back" label="Back" onClick={() => navigate('/')} className="ml-0" />}
         right={<IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />}
       />
