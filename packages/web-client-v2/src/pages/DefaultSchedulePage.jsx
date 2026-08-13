@@ -64,8 +64,8 @@ const DefaultSchedulePage = () => {
                   <div key={day} className="flex items-center gap-2.5 py-2.5 border-b border-line last:border-0">
                     <div className="w-[80px] flex-none font-semibold text-sm">{DAY_LABELS[i]}</div>
                     <div className="ml-auto flex gap-2.5">
-                      <MealTile label="Lunch" on={(a & MEAL.LUNCH) !== 0} onClick={() => handleToggle(day, MEAL.LUNCH)} />
-                      <MealTile label="Dinner" on={(a & MEAL.DINNER) !== 0} onClick={() => handleToggle(day, MEAL.DINNER)} />
+                      <MealTile label="Lunch" day={DAY_LABELS[i]} on={(a & MEAL.LUNCH) !== 0} onClick={() => handleToggle(day, MEAL.LUNCH)} />
+                      <MealTile label="Dinner" day={DAY_LABELS[i]} on={(a & MEAL.DINNER) !== 0} onClick={() => handleToggle(day, MEAL.DINNER)} />
                     </div>
                   </div>
                 );

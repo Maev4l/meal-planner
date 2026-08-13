@@ -17,7 +17,7 @@ const RenameGroupSheet = ({ open, onClose, currentName, onRename }) => {
   };
 
   return (
-    <BottomSheet open={open} onClose={busy ? () => {} : onClose}>
+    <BottomSheet open={open} onClose={busy ? () => {} : onClose} label="Rename group">
       <h2 className="font-hand font-bold text-[30px] leading-none m-0 mb-1.5">Rename group</h2>
       <div className="flex justify-center my-4">
         <span className="w-[74px] h-[74px] rounded-[20px] grid place-items-center font-hand font-bold text-[40px] text-slate-0 -rotate-3"

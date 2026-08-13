@@ -6,7 +6,16 @@
   --color-slate-1: #1f2421;
   --color-slate-2: #262c28;
   --color-chalk: #f1ead9;
-  --color-chalk-dim: rgba(241, 234, 217, 0.56);
+  /* The chalk ramp is split by ROLE, not by three shades of emphasis:
+     - chalk / chalk-dim are the only tokens allowed to carry TEXT or a meaningful
+       icon. chalk-dim is 0.60 because that is the lowest alpha clearing WCAG AA
+       (4.5:1) on the lightest ground text ever sits on — chalk/5 over slate-2,
+       where it measures 4.82:1. At the previous 0.56 it measured 4.42:1 and failed.
+     - chalk-faint is DECORATION ONLY: dashed rules, grab handles, indicator dots,
+       empty-state illustration. It measures ~2.1:1 and must never carry text.
+     There is deliberately no third text tier: any alpha passing AA is brighter than
+     chalk-dim, so a "fainter but legible" step cannot exist on this ground. */
+  --color-chalk-dim: rgba(241, 234, 217, 0.6);
   --color-chalk-faint: rgba(241, 234, 217, 0.26);
   --color-line: rgba(241, 234, 217, 0.18);
   --color-coral: #e9806a;

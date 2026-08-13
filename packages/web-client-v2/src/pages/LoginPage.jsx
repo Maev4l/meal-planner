@@ -56,7 +56,7 @@ const LoginPage = () => {
         <Icon name="google" className="w-[18px] h-[18px]" />Continue with Google
       </Button>
 
-      <div className="flex items-center gap-3 text-chalk-faint text-[11px] tracking-[0.2em] uppercase my-5 before:flex-1 before:border-b before:border-dashed before:border-chalk-faint after:flex-1 after:border-b after:border-dashed after:border-chalk-faint">or with email</div>
+      <div className="flex items-center gap-3 text-chalk-dim text-[11px] tracking-[0.2em] uppercase my-5 before:flex-1 before:border-b before:border-dashed before:border-chalk-faint after:flex-1 after:border-b after:border-dashed after:border-chalk-faint">or with email</div>
 
       <form onSubmit={handleSubmit}>
         <Field label="Email" type="email" value={username} autoComplete="email" autoCapitalize="none"
@@ -66,7 +66,7 @@ const LoginPage = () => {
                rightSlot={
                  <button type="button" onClick={() => setShowPassword((v) => !v)}
                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                   className="flex-none text-chalk-faint hover:text-chalk-dim active:scale-90 transition p-1 -mr-1">
+                   className="flex-none text-chalk-dim hover:text-chalk active:scale-90 transition p-1 -mr-1">
                    <Icon name={showPassword ? 'eye' : 'eye-off'} className="w-[18px] h-[18px]" />
                  </button>
                } />

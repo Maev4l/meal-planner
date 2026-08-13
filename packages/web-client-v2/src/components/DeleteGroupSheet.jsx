@@ -11,7 +11,7 @@ const DeleteGroupSheet = ({ open, onClose, groupName, memberCount, onConfirm, bu
   const armed = text.trim() === groupName;
 
   return (
-    <BottomSheet open={open} onClose={busy ? () => {} : onClose}>
+    <BottomSheet open={open} onClose={busy ? () => {} : onClose} label={`Delete ${groupName}`}>
       <h2 className="font-hand font-bold text-[30px] leading-none m-0 mb-1.5 text-red">Delete {groupName}</h2>
       <p className="text-[13px] text-chalk-dim leading-relaxed m-0 mb-4">
         Permanently deletes the group and all schedules, notes &amp; invites for{' '}

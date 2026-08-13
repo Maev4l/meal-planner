@@ -116,7 +116,7 @@ const AboutPage = () => {
         )}
 
         {/* Footer */}
-        <div className="font-hand text-chalk-faint text-center mt-6 text-[18px]">
+        <div className="font-hand text-chalk-dim text-center mt-6 text-[18px]">
           made with care for shared meals
         </div>
       </div>

@@ -4,7 +4,7 @@ import Icon from './Icon';
 
 // Simple destructive confirm. `iconName` optional; `busy` disables actions.
 const ConfirmSheet = ({ open, onClose, title, body, confirmLabel, onConfirm, iconName = 'trash', busy = false }) => (
-  <BottomSheet open={open} onClose={busy ? () => {} : onClose}>
+  <BottomSheet open={open} onClose={busy ? () => {} : onClose} label={title}>
     <div className="w-[54px] h-[54px] rounded-[16px] grid place-items-center mb-3.5 bg-red/15 text-red">
       <Icon name={iconName} className="w-[26px] h-[26px]" />
     </div>

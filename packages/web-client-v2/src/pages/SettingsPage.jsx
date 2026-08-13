@@ -28,7 +28,7 @@ const SettingsRow = ({ iconName, title, sub, onClick }) => (
     </div>
 
     {/* Chevron */}
-    <span className="ml-auto text-chalk-faint text-[20px]">→</span>
+    <span className="ml-auto text-chalk-dim text-[20px]">→</span>
   </button>
 );
 
@@ -75,7 +75,7 @@ const SettingsPage = () => {
         </div>
 
         {/* Account section */}
-        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-faint my-3">
+        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-dim my-3">
           Account
         </div>
         <SettingsRow
@@ -86,7 +86,7 @@ const SettingsPage = () => {
         />
 
         {/* App section */}
-        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-faint my-3">
+        <div className="text-[10.5px] tracking-[0.24em] uppercase text-chalk-dim my-3">
           App
         </div>
         <SettingsRow

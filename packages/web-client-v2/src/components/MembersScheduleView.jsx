@@ -10,7 +10,7 @@ import Badge from './ui/Badge';
 const CountCell = ({ letter, n, tone }) => (
   <span
     className={`flex items-center justify-center gap-[3px] h-[25px] rounded-[8px] border tabular-nums
-      ${n ? tone : 'border-line text-chalk-faint'}`}
+      ${n ? tone : 'border-line text-chalk-dim'}`}
   >
     <small className="text-[8.5px] tracking-[0.1em] font-bold">{letter}</small>
     <b className="text-[13px] font-bold leading-none">{n || '–'}</b>
@@ -52,7 +52,7 @@ const MealBlock = ({ title, tone, attendees }) => (
     {attendees.length ? (
       <div className="flex flex-wrap gap-[7px]">{attendees.map((n) => <Badge key={n} name={n} />)}</div>
     ) : (
-      <div className="text-chalk-faint italic font-hand text-[19px]">nobody yet — quiet one</div>
+      <div className="text-chalk-dim italic font-hand text-[19px]">nobody yet — quiet one</div>
     )}
   </div>
 );

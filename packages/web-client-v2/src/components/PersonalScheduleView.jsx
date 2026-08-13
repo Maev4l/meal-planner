@@ -21,11 +21,11 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week, comments,
               <small className="text-chalk-dim text-[11px]">{dates[i]}</small>
             </div>
             <div className="ml-auto flex gap-2.5 items-center">
-              <MealTile label="Lunch" on={(attendance & MEAL.LUNCH) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.LUNCH)} />
-              <MealTile label="Dinner" on={(attendance & MEAL.DINNER) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.DINNER)} />
+              <MealTile label="Lunch" day={DAY_LABELS[i]} on={(attendance & MEAL.LUNCH) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.LUNCH)} />
+              <MealTile label="Dinner" day={DAY_LABELS[i]} on={(attendance & MEAL.DINNER) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.DINNER)} />
               <button onClick={() => onDayClick(day, i)} aria-label={`Notes for ${DAY_LABELS[i]}`}
                 className={`flex-none w-9 h-9 grid place-items-center rounded-full border-[1.5px] bg-transparent cursor-pointer transition active:scale-95
-                  ${hasComment ? 'border-coral text-coral' : 'border-line text-chalk-faint hover:text-chalk-dim'}`}>
+                  ${hasComment ? 'border-coral text-coral' : 'border-line text-chalk-dim hover:text-chalk'}`}>
                 <Icon name="note" className="w-[52%] h-[52%]" />
               </button>
             </div>

@@ -114,7 +114,7 @@ const InvitePage = () => {
 
   // error / network
   return wrap(<>
-    <Crest tone="border-2 border-dashed border-chalk-faint"><Icon name="refresh" className="w-[46%] h-[46%] text-chalk-faint" /></Crest>
+    <Crest tone="border-2 border-dashed border-chalk-faint"><Icon name="refresh" className="w-[46%] h-[46%] text-chalk-dim" /></Crest>
     <h2 className="font-hand font-bold text-[40px] leading-[0.9] m-0 mb-2">Something<br />went wrong</h2>
     <p className="text-chalk-dim text-[13.5px] leading-relaxed max-w-[250px] m-0 mb-6">Couldn&apos;t reach the server. Check your connection and try again.</p>
     <div className="w-full max-w-[250px]"><Button variant="primary" onClick={load}>Try again</Button></div>

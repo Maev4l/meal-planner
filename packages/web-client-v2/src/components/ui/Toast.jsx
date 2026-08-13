@@ -23,7 +23,11 @@ export const ToastProvider = ({ children }) => {
     <ToastContext.Provider value={show}>
       {children}
       {toast && (
+        // Announced to assistive tech: every save and every failure was previously
+        // silent. Errors interrupt (`alert`), confirmations wait their turn (`status`).
         <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
+          aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
           className={`fixed left-1/2 -translate-x-1/2 bottom-[96px] z-50 px-4 py-2.5 rounded-full bg-slate-2 border text-[13px] shadow-[0_18px_44px_-12px_rgba(0,0,0,0.7)] flex items-center gap-2 ${variant.className}`}
         >
           {variant.icon && <Icon name={variant.icon} className="w-4 h-4" />}

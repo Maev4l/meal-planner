@@ -13,11 +13,11 @@ const MemberRow = ({ name, isAdmin, isYou, onRemove }) => (
           <Icon name="crown" className="w-[11px] h-[11px]" />Admin
         </span>
       )}
-      {isYou && <span className="text-[9.5px] tracking-[0.12em] uppercase text-chalk-faint">&middot; You</span>}
+      {isYou && <span className="text-[9.5px] tracking-[0.12em] uppercase text-chalk-dim">&middot; You</span>}
     </div>
     {onRemove && (
       <button onClick={onRemove} aria-label={`Remove ${name}`}
-        className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-faint bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
+        className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
         <Icon name="trash" className="w-[17px] h-[17px]" />
       </button>
     )}

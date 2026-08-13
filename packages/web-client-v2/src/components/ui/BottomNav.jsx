@@ -16,7 +16,7 @@ const BottomNav = () => {
         <button
           key={t.path}
           onClick={() => navigate(t.path)}
-          className={`flex-1 flex flex-col items-center justify-center gap-1.5 bg-transparent border-0 cursor-pointer text-[10px] tracking-[0.1em] uppercase ${i === activeIdx ? 'text-chalk' : 'text-chalk-faint'}`}
+          className={`flex-1 flex flex-col items-center justify-center gap-1.5 bg-transparent border-0 cursor-pointer text-[10px] tracking-[0.1em] uppercase ${i === activeIdx ? 'text-chalk' : 'text-chalk-dim'}`}
         >
           <Icon name={t.name} className="w-5 h-5" />
           {t.label}

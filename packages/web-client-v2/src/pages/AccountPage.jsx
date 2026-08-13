@@ -120,7 +120,7 @@ const AccountPage = () => {
               <button
                 type="button"
                 onClick={() => setShowOldPassword((v) => !v)}
-                className="text-chalk-faint text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
+                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
               >
                 {showOldPassword ? 'hide' : 'show'}
               </button>
@@ -137,7 +137,7 @@ const AccountPage = () => {
               <button
                 type="button"
                 onClick={() => setShowNewPassword((v) => !v)}
-                className="text-chalk-faint text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
+                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
               >
                 {showNewPassword ? 'hide' : 'show'}
               </button>
@@ -165,7 +165,7 @@ const AccountPage = () => {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((v) => !v)}
-                className="text-chalk-faint text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
+                className="text-chalk-dim text-[11px] tracking-wide uppercase cursor-pointer pb-1 flex-none"
               >
                 {showConfirmPassword ? 'hide' : 'show'}
               </button>

@@ -49,7 +49,7 @@ const CommentEditorSheet = ({ open, onClose, day, dayIndex, year, week, groupId,
   const handleClose = async () => { await persist(); onClose(); };
 
   return (
-    <BottomSheet open={open} onClose={handleClose}>
+    <BottomSheet open={open} onClose={handleClose} label={`Notes for ${DAY_LABELS[dayIndex] ?? 'this day'}`}>
       <div className="mb-4">
         <div className="font-hand font-bold text-[30px] leading-none">{DAY_LABELS[dayIndex] ?? ''}</div>
         <div className="text-[11px] tracking-[0.2em] uppercase text-chalk-dim mt-1">{fullDate}</div>
@@ -66,7 +66,7 @@ const CommentEditorSheet = ({ open, onClose, day, dayIndex, year, week, groupId,
           placeholder={readOnly ? 'past — read only' : 'note for the cook…'}
           onChange={(e) => setDinner(e.target.value)} />
       </div>
-      {readOnly && <div className="text-chalk-faint italic font-hand text-[18px] mt-3">past — read only</div>}
+      {readOnly && <div className="text-chalk-dim italic font-hand text-[18px] mt-3">past — read only</div>}
     </BottomSheet>
   );
 };

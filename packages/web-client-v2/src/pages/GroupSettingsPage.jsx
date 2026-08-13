@@ -16,7 +16,7 @@ import { colorForName, initialsOf } from '../constants/colors';
 import { useToast } from '../components/ui/Toast';
 
 const SectionLabel = ({ children, danger }) => (
-  <div className={`text-[10.5px] tracking-[0.24em] uppercase mt-[22px] mb-2.5 ${danger ? 'text-red' : 'text-chalk-faint'}`}>{children}</div>
+  <div className={`text-[10.5px] tracking-[0.24em] uppercase mt-[22px] mb-2.5 ${danger ? 'text-red' : 'text-chalk-dim'}`}>{children}</div>
 );
 
 const GroupSettingsPage = () => {
@@ -160,7 +160,7 @@ const GroupSettingsPage = () => {
               {invitesLoading ? (
                 <Spinner label="Loading invites…" />
               ) : invites.length === 0 ? (
-                <div className="text-chalk-faint italic font-hand text-[18px] px-0.5 py-1.5">No active invite links — create one to add people.</div>
+                <div className="text-chalk-dim italic font-hand text-[18px] px-0.5 py-1.5">No active invite links — create one to add people.</div>
               ) : invites.map((inv) => (
                 <div key={inv.code} className="flex items-center gap-2 py-2.5 px-3 border border-line rounded-[13px] bg-chalk/[0.04] mb-2.5">
                   <Icon name="link" className="w-4 h-4 text-coral flex-none" />
@@ -169,15 +169,15 @@ const GroupSettingsPage = () => {
                   {/* Per-row actions: each invite carries its own Share / Copy / Revoke */}
                   <div className="flex items-center gap-1 flex-none">
                     <button onClick={() => shareInvite(inv.code)} aria-label="Share invite link"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-faint bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
+                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
                       <Icon name="share" className="w-4 h-4" />
                     </button>
                     <button onClick={() => copyInvite(inv.code)} aria-label="Copy invite link"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-faint bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
+                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-chalk hover:border-line hover:bg-chalk/[0.07]">
                       <Icon name="copy" className="w-4 h-4" />
                     </button>
                     <button onClick={() => setRevokeFor(inv.code)} aria-label="Revoke invite"
-                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-faint bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
+                      className="w-[34px] h-[34px] rounded-[9px] grid place-items-center text-chalk-dim bg-transparent border border-transparent cursor-pointer hover:text-red hover:border-red/40 hover:bg-red/[0.08]">
                       <Icon name="trash" className="w-4 h-4" />
                     </button>
                   </div>

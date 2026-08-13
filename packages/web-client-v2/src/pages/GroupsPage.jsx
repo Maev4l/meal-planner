@@ -36,7 +36,7 @@ const GroupRow = ({ group, onOpen, onSettings }) => {
       </button>
       {/* Gear goes directly to settings — no intermediate action sheet */}
       <button onClick={onSettings} aria-label={`${group.groupName} settings`}
-        className="flex-none w-9 h-9 rounded-full grid place-items-center text-chalk-faint bg-transparent border-0 cursor-pointer hover:text-chalk hover:bg-chalk/[0.07]">
+        className="flex-none w-9 h-9 rounded-full grid place-items-center text-chalk-dim bg-transparent border-0 cursor-pointer hover:text-chalk hover:bg-chalk/[0.07]">
         <Icon name="gear" className="w-6 h-6" />
       </button>
     </div>

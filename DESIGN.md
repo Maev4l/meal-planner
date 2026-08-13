@@ -7,7 +7,7 @@ colors:
   slate-1: "#1f2421"
   slate-2: "#262c28"
   chalk: "#f1ead9"
-  chalk-dim: "rgba(241, 234, 217, 0.56)"
+  chalk-dim: "rgba(241, 234, 217, 0.6)"
   chalk-faint: "rgba(241, 234, 217, 0.26)"
   line: "rgba(241, 234, 217, 0.18)"
   coral: "#e9806a"
@@ -135,7 +135,7 @@ components:
     padding: "2px 7px"
   bottom-nav:
     backgroundColor: "rgba(23, 27, 24, 0.9)"
-    textColor: "{colors.chalk-faint}"
+    textColor: "{colors.chalk-dim}"
     height: "74px"
     width: "100%"
   bottom-sheet:
@@ -211,8 +211,12 @@ that read as pastel on dark without ever going neon.
 ### Neutral
 - **Warm Chalk** (`#f1ead9`): all primary text and every icon stroke. Also the fill of the
   selected day in the day strip, where it inverts to slate text.
-- **Chalk Dim** (56% chalk): secondary text — dates, member counts, sub-labels, ghost-button text.
-- **Chalk Faint** (26% chalk): tertiary text, placeholders, inactive nav tabs, dashed rules.
+- **Chalk Dim** (60% chalk): **all** secondary and tertiary text — dates, member counts, sub-labels,
+  section labels, placeholders, ghost-button text, inactive nav tabs, and any icon that carries
+  meaning. 60% is not a taste choice: it is the lowest alpha clearing 4.5:1 on the lightest ground
+  text ever sits on (chalk/5 over slate-2, where it measures 4.82:1). At 56% it measured 4.42:1.
+- **Chalk Faint** (26% chalk): **decoration only** — dashed rules, the sheet grab handle, indicator
+  dots, the empty-state ring illustration. It measures ~2.1:1 and must never carry text.
 - **Hairline** (18% chalk): every solid border and divider in the system.
 - **Warm Slate** (`#171b18` → `#1f2421` → `#262c28`): app bar base, page surface, raised surface
   (sheets, toasts). Under all of it, **Slate Void** (`#0d100e`) with a radial warm lift at 30% 0%
@@ -231,6 +235,12 @@ category colour, never a chart colour.
 **The Never-Grey Rule.** No state is communicated by greying something out, with one exception:
 days already past are dimmed to 45% because they are no longer editable. Everything else that is
 "off" is *red and explicit*. An unset meal and a refused meal must not look alike.
+
+**The Two-Tier Text Rule.** Text and meaningful icons get exactly two tiers: `chalk` and
+`chalk-dim`. There is no third, fainter legible tier and there cannot be one — on this ground any
+alpha that clears 4.5:1 is *brighter* than `chalk-dim`, so "fainter but still readable" is
+arithmetically impossible. When a label feels too loud at 60%, make it smaller or shorter; never
+dimmer. `chalk-faint` is decoration.
 
 ## Typography
 
@@ -372,10 +382,11 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
 ### Inputs / Fields
 - **Style:** an uppercase 10.5px/0.24em chalk-dim label above a transparent input sitting on a
   1.5px hairline **underline**. Never a box, never a fill.
-- **Focus:** the underline turns coral (`focus-within`, colour transition only).
+- **Focus:** the underline turns coral **and thickens to 2px**, so focus is never signalled by
+  colour alone. Labels are associated with `useId()`; help text is wired via `aria-describedby`.
 - **Size:** 16px text, 8px vertical padding — the 16px is load-bearing on iOS.
 - **Help:** 11px line under the field, toned chalk-dim / sage / red.
-- **Textarea:** same idea with a *dashed* underline and an italic chalk-faint placeholder;
+- **Textarea:** same idea with a *dashed* underline and an italic chalk-dim placeholder;
   auto-grows to content.
 
 ### Navigation
@@ -384,7 +395,7 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
   (actions), all icon buttons.
 - **Bottom nav:** fixed, 74px + safe-area, `slate-0/90` with `backdrop-blur-md` and a top hairline.
   Two tabs, each a 20px chalk icon over a 10px/0.1em uppercase label; active is full chalk,
-  inactive is chalk-faint. No indicator bar, no pill, no colour — presence *is* the indicator.
+  inactive is chalk-dim. No indicator bar, no pill, no colour — presence *is* the indicator.
 
 ### Bottom Sheets
 - `slate-2`, 22px top corners, top hairline, 80vh max, scrim `black/55`.
@@ -433,7 +444,7 @@ that selects the day detailed below.
   rest, coral on today, and it **inverts** to solid chalk with slate text on the selected day.
 - **Headcount cells** (8px radius, 25px tall): an 8.5px `L` / `D` letter beside a 13px tabular
   number. A count carries its meal's tone (mustard for lunch, coral for dinner) as a 45%-opacity
-  border over a 15% fill; a zero is a hairline border with a chalk-faint em-dash. The letter means
+  border over a 15% fill; a zero is a hairline border with a chalk-dim em-dash. The letter means
   the board never depends on colour alone to say which meal a number belongs to.
 - **A zero is an em-dash, not a grey number.** The Never-Grey Rule governs *refusal*; a headcount of
   nobody is genuine absence, so it reads as nothing rather than as somebody's "no".
@@ -467,6 +478,12 @@ no skeleton screen in this system.
   update prompt.
 - **Do** set every name in Caveat and every instruction in Archivo — the Chalk-Hand Rule.
 - **Do** letter-space and uppercase anything under 12px (0.12–0.24em).
+- **Do** keep text and meaningful icons on `chalk` or `chalk-dim` only — the Two-Tier Text Rule.
+  `chalk-faint` is for dashed rules, grab handles, indicator dots, and empty-state illustration.
+- **Do** signal focus with more than colour: the field underline turns coral **and** thickens to 2px.
+- **Do** give every control an accessible name and state — `useId()`-paired labels on fields,
+  `aria-pressed` plus a day-qualified label on each meal tile, `aria-label` on every sheet,
+  `role="status"`/`role="alert"` on toasts, and a real `<h1>` in the top bar.
 - **Do** make "not eating" red and explicit. The Never-Grey Rule: only the past may be dimmed.
 - **Do** keep coral as the only pressable colour and mustard as a marking colour.
 - **Do** give every tappable element `active:scale-[0.93–0.98]` — it is the only motion budget the
@@ -496,6 +513,8 @@ no skeleton screen in this system.
 - **Don't** import an icon set, icon font, or emoji. Every glyph is drawn and filtered.
 - **Don't** use pure black, pure white, or a neutral grey. The ground is warm slate; the ink is
   warm chalk.
+- **Don't** put text, a placeholder, or a meaning-carrying icon on `chalk-faint`. It measures ~2.1:1
+  and fails WCAG AA at every size.
 - **Don't** introduce a sharp 0px corner or a half-round pill on a wide rectangle — soft rectangle
   or full circle, nothing between.
 - **Don't** make the user press Save. Attendance and notes persist optimistically on interaction.
