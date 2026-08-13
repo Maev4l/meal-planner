@@ -14,7 +14,7 @@ const DeleteGroupSheet = ({ open, onClose, groupName, memberCount, onConfirm, bu
 
   return (
     <BottomSheet open={open} onClose={busy ? () => {} : onClose} label={`Delete ${groupName}`} initialFocus={inputRef}>
-      <h2 className="font-hand font-bold text-[30px] leading-none m-0 mb-1.5 text-red">Delete {groupName}</h2>
+      <h2 className="font-hand font-bold text-[30px] leading-tight m-0 mb-1.5 text-red break-words line-clamp-2">Delete {groupName}</h2>
       <p className="text-[13px] text-chalk-dim leading-relaxed m-0 mb-4">
         Permanently deletes the group and all schedules, notes &amp; invites for{' '}
         <b>{memberCount} {memberCount === 1 ? 'member' : 'members'}</b>. This cannot be undone.

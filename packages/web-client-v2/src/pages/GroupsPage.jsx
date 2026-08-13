@@ -12,6 +12,10 @@ import Button from '../components/ui/Button';
 import CreateGroupSheet from '../components/CreateGroupSheet';
 import ErrorState from '../components/ErrorState';
 
+// Beyond this the stack becomes a smudge rather than a set of faces, and the row
+// starts to wrap.
+const AVATARS_SHOWN = 4;
+
 // Row body navigates to schedule; trailing gear navigates directly to group settings.
 const GroupRow = ({ group, onOpen, onSettings }) => {
   const members = Object.values(group.members)
@@ -26,11 +30,18 @@ const GroupRow = ({ group, onOpen, onSettings }) => {
           <span className="block font-hand font-bold text-[27px] leading-none group-hover:text-mustard transition-colors truncate">{group.groupName}</span>
           <span className="flex items-center gap-2 text-xs text-chalk-dim mt-1">
             {members.length} {members.length === 1 ? 'member' : 'members'}
-            <span className="flex flex-wrap gap-y-1">
-              {members.map((m, i) => (
-                <span key={i} className="w-6 h-6 rounded-full border-2 border-slate-1 grid place-items-center text-[9.5px] font-bold text-[#1b1f1c] -ml-[7px] first:ml-0"
+            {/* Capped: every member used to render, so a large group wrapped the
+                stack onto a second line and inflated the row. */}
+            <span className="flex flex-none">
+              {members.slice(0, AVATARS_SHOWN).map((m, i) => (
+                <span key={m.memberId ?? i} className="w-6 h-6 rounded-full border-2 border-slate-1 grid place-items-center text-[9.5px] font-bold text-[#1b1f1c] -ml-[7px] first:ml-0"
                   style={{ background: avatarColors[i] }}>{initialsOf(m.memberName)}</span>
               ))}
+              {members.length > AVATARS_SHOWN && (
+                <span className="w-6 h-6 rounded-full border-2 border-slate-1 grid place-items-center text-[9px] font-bold text-chalk-dim bg-slate-2 -ml-[7px] tabular-nums">
+                  +{members.length - AVATARS_SHOWN}
+                </span>
+              )}
             </span>
           </span>
         </span>
