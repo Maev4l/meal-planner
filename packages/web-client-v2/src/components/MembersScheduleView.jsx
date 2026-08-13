@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { DAYS, DAY_LABELS, MEAL, getTodayIndex } from '../constants/schedule';
-import Icon from './Icon';
 import Avatar from './ui/Avatar';
 import Badge from './ui/Badge';
 
@@ -48,7 +47,7 @@ const DayColumn = ({ label, date, lunch, dinner, hasNotes, selected, isToday, on
 
 // One meal's attendees for the selected day. `unconfirmed` is the set of names
 // whose attendance came from their usual rather than from them.
-const MealBlock = ({ title, tone, attendees, unconfirmed }) => (
+const MealBlock = ({ title, tone, attendees }) => (
   <div>
     <div className="flex items-baseline gap-2.5 mb-2.5">
       <span className={`font-hand font-bold text-[24px] leading-none ${tone}`}>{title}</span>
@@ -56,7 +55,7 @@ const MealBlock = ({ title, tone, attendees, unconfirmed }) => (
     </div>
     {attendees.length ? (
       <div className="flex flex-wrap gap-[7px]">
-        {attendees.map((n) => <Badge key={n} name={n} provisional={unconfirmed.has(n)} />)}
+        {attendees.map((n) => <Badge key={n} name={n} />)}
       </div>
     ) : (
       <div className="text-chalk-dim italic font-hand text-[19px]">nobody yet — quiet one</div>
@@ -75,12 +74,6 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
   }, [year, week, todayIndex]);
 
   const list = Object.values(members);
-  // The API serves an untouched week from the member's default and flags it
-  // `overriden: false`. That is the difference between "they said no" and "they
-  // never looked" — the one distinction the product turns on, and the client
-  // used to discard it.
-  const unconfirmed = new Set(list.filter((m) => m.schedule?.overriden !== true).map((m) => m.memberName));
-  const waitingOn = [...unconfirmed].sort((a, b) => a.localeCompare(b));
   const attendeesFor = (dayKey, meal) =>
     list.filter((m) => ((m.schedule?.[dayKey] ?? 0) & meal) !== 0).map((m) => m.memberName).sort((a, b) => a.localeCompare(b));
   const countFor = (dayKey, meal) =>
@@ -115,32 +108,15 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
       </div>
 
       {/* Selected day — names and notes behind the numbers above */}
-      <div className="flex items-baseline gap-2.5 mb-2">
+      <div className="flex items-baseline gap-2.5 mb-4">
         <h2 className="font-hand font-bold text-[30px] leading-none m-0">{DAY_LABELS[sel]}</h2>
         <span className="text-[10.5px] tracking-[0.2em] uppercase text-chalk-dim">{dates[sel]}</span>
       </div>
 
-      {/* Whose numbers below are still assumptions. Scoped to the day on screen,
-          because that is the day being cooked — though the underlying flag is
-          week-level: the API stores one record per member per week, so touching
-          any day marks the whole week answered. Someone who has touched nothing
-          has answered for no day, which is what this says. */}
-      {waitingOn.length > 0 && (
-        <div className="flex items-start gap-2 mb-4 text-[12px] leading-snug text-chalk-dim">
-          <Icon name="clock" className="w-3.5 h-3.5 mt-[1px] flex-none text-mustard" />
-          <span>
-            <b className="font-semibold text-chalk">
-              {waitingOn.length <= 2 ? waitingOn.join(' and ') : `${waitingOn.slice(0, 2).join(', ')} +${waitingOn.length - 2}`}
-            </b>{' '}
-            {waitingOn.length === 1 ? "hasn't" : "haven't"} answered for {DAY_LABELS[sel]} — these counts show their usual.
-          </span>
-        </div>
-      )}
-
       <div className="flex flex-col gap-3.5">
-        <MealBlock title="Lunch" tone="text-mustard" attendees={attendeesFor(dayKey, MEAL.LUNCH)} unconfirmed={unconfirmed} />
+        <MealBlock title="Lunch" tone="text-mustard" attendees={attendeesFor(dayKey, MEAL.LUNCH)} />
         <div className="border-b border-dashed border-chalk-faint" />
-        <MealBlock title="Dinner" tone="text-coral" attendees={attendeesFor(dayKey, MEAL.DINNER)} unconfirmed={unconfirmed} />
+        <MealBlock title="Dinner" tone="text-coral" attendees={attendeesFor(dayKey, MEAL.DINNER)} />
 
         {notes.length > 0 && (
           <>

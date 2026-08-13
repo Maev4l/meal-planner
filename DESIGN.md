@@ -355,9 +355,9 @@ circles.
 
 ### Named Rules
 **The Dashed-Line Rule.** Solid hairline = structural division. Dashed hairline = provisional,
-optional, empty, or hand-drawn. It carries meaning as well as structure: a disabled button, an
-attendance nobody confirmed, and an empty-state ring are all the same idea drawn the same way.
-Never use dashed to divide two equally solid things.
+optional, empty, or hand-drawn. It carries meaning as well as structure: a disabled button and an
+empty-state ring are the same idea drawn the same way. Never use dashed to divide two equally
+solid things.
 
 **The Drawn-Not-Rendered Rule.** Every glyph in the product goes through the chalk filter. No
 imported icon set, no icon font, no emoji, no filled/solid icon styles.
@@ -480,11 +480,6 @@ that selects the day detailed below.
 - Below the board, the selected day is named in Caveat 30px beside its full date in 10.5px/0.2em
   uppercase, then Lunch and Dinner attendee badges, then Notes — numbers first, names second, notes
   third, matching how the cook reads. Each meal heading carries its headcount in mono beside it.
-- When anyone has not answered, a mustard-marked line sits under the **selected day's heading** —
-  next to the counts it qualifies — naming them and saying those counts show their usual. The
-  sentence is scoped to the day on screen because that is the day being cooked, though the flag
-  behind it is week-level: the API stores one record per member per week, so touching any day marks
-  the whole week answered. Someone who has touched nothing has answered for no day.
 
 ### Member Badge & Avatar
 - **Avatar:** circle filled from a deterministic name→colour hash over the five-pigment palette,
@@ -492,9 +487,6 @@ that selects the day detailed below.
   a list are nudged to avoid repeating a colour. Stacked avatars overlap `-7px` with a 2px
   `slate-1` ring.
 - **Badge:** a full-round 13px chip — 22px avatar, then the name — on 5% chalk with a hairline.
-  A **provisional** badge (the member never answered for this week, so the API served their usual)
-  swaps that hairline for a dashed chalk-faint one and drops the name to chalk-dim. An assumption
-  and a decision must not look identical.
 
 ### Toast
 Full-round `slate-2` pill, 96px from the bottom, centred, with the floating lift shadow. Success is
