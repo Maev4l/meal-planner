@@ -21,7 +21,10 @@ import SplashScreen from './components/SplashScreen';
 import PendingInviteHandler from './components/PendingInviteHandler';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 
-const MIN_SPLASH_DURATION = 2000;
+// Long enough that the crest reads as intentional rather than a flash, short enough
+// that it is not a visible tax on a session the product measures in seconds. Auth
+// usually resolves well inside this, and every cold start used to wait a full 2s.
+const MIN_SPLASH_DURATION = 400;
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isApproved, isLoading } = useAuth();

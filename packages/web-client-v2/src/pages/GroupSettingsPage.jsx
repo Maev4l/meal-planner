@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSchedules } from '../contexts/SchedulesContext';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
+import { api, errorMessage } from '../services/api';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
 import Spinner from '../components/ui/Spinner';
@@ -64,14 +64,14 @@ const GroupSettingsPage = () => {
 
   const handleRename = async (name) => {
     try { await api.renameGroup(groupId, name); await fetchSchedules(true); setRenameOpen(false); toast?.('Group renamed', 'success'); }
-    catch { toast?.('Could not rename', 'error'); }
+    catch (err) { toast?.(errorMessage(err, { fallback: "Couldn't rename the group." }), 'error'); }
   };
 
   const handleKick = async () => {
     if (!kickFor) return;
     setBusy(true);
     try { await api.kickMember(groupId, kickFor.id); await fetchSchedules(true); toast?.(`${kickFor.name} removed`, 'success'); setKickFor(null); }
-    catch { toast?.('Could not remove member', 'error'); }
+    catch (err) { toast?.(errorMessage(err, { 403: 'Only the group admin can remove members.', fallback: "Couldn't remove that member." }), 'error'); }
     finally { setBusy(false); }
   };
 
@@ -82,18 +82,18 @@ const GroupSettingsPage = () => {
     if (!revokeFor) return;
     setBusy(true);
     try { await api.revokeInvite(groupId, revokeFor); await reloadInvites(); toast?.('Invite revoked', 'success'); setRevokeFor(null); }
-    catch { toast?.('Could not revoke', 'error'); }
+    catch (err) { toast?.(errorMessage(err, { fallback: "Couldn't revoke that invite link." }), 'error'); }
     finally { setBusy(false); }
   };
   const handleDelete = async () => {
     setBusy(true);
     try { await api.deleteGroup(groupId); await fetchSchedules(true); toast?.('Group deleted', 'success'); navigate('/'); }
-    catch { toast?.('Could not delete group', 'error'); setBusy(false); }
+    catch (err) { toast?.(errorMessage(err, { 403: 'Only the group admin can delete this group.', fallback: "Couldn't delete the group." }), 'error'); setBusy(false); }
   };
   const handleLeave = async () => {
     setBusy(true);
     try { await api.leaveGroup(groupId, user.memberId); await fetchSchedules(true); toast?.('You left the group', 'success'); navigate('/'); }
-    catch { toast?.('Could not leave the group', 'error'); setBusy(false); }
+    catch (err) { toast?.(errorMessage(err, { 403: "You're the only admin — delete the group instead of leaving.", fallback: "Couldn't leave the group." }), 'error'); setBusy(false); }
   };
   const relExpiry = (iso) => {
     const days = Math.max(0, Math.ceil((new Date(iso) - Date.now()) / 86400000));
@@ -119,7 +119,7 @@ const GroupSettingsPage = () => {
   const handleCreateInvite = async () => {
     setCreatingInvite(true);
     try { await api.createInvite(groupId); await reloadInvites(); toast?.('Invite link created', 'success'); }
-    catch { toast?.('Could not create invite', 'error'); }
+    catch (err) { toast?.(errorMessage(err, { fallback: "Couldn't create an invite link." }), 'error'); }
     finally { setCreatingInvite(false); }
   };
 

@@ -19,6 +19,34 @@ export class ApiError extends Error {
   }
 }
 
+// `err.message` on an ApiError is always the literal "API error: <status>" — it is
+// diagnostic, never something to render. Every place that shows a failure to a
+// person goes through this instead.
+//
+// `overrides` takes status keys plus `fallback`, because the same status means
+// different things in different places: 403 on a group page is "you're not a member
+// any more", 403 on an invite is "you're not approved yet".
+export const errorMessage = (err, overrides = {}) => {
+  const status = err instanceof ApiError ? err.status : null;
+  if (status != null && overrides[status]) return overrides[status];
+  const fallback = overrides.fallback ?? 'Something went wrong.';
+  switch (status) {
+    case 0:
+      return "Couldn't reach the server. Check your connection and try again.";
+    case 401:
+      return 'Your session has expired — sign in again.';
+    case 403:
+      return "You don't have access to this any more.";
+    case 404:
+      return "This isn't here any more.";
+    case 409:
+      return 'Someone changed this first. Refresh and try again.';
+    default:
+      if (status >= 500) return 'The server had a problem. Try again in a moment.';
+      return fallback;
+  }
+};
+
 const fetchWithAuth = async (url, options = {}) => {
   const token = await getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };

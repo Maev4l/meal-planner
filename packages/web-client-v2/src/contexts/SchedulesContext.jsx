@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useMemo, useRef } from 'react';
-import { api } from '../services/api';
+import { api, errorMessage } from '../services/api';
 import { getCurrentPeriod } from '../constants/schedule';
 
 const SchedulesContext = createContext(null);
@@ -48,7 +48,7 @@ export const SchedulesProvider = ({ children }) => {
         return fetchedSchedules;
       })
       .catch((err) => {
-        setError(err.message);
+        setError(errorMessage(err, { fallback: "Couldn't load your groups." }));
         throw err;
       })
       .finally(() => {

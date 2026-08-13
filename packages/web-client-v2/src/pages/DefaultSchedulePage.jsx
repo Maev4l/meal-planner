@@ -9,6 +9,7 @@ import IconButton from '../components/ui/IconButton';
 import MealTile from '../components/ui/MealTile';
 import Spinner from '../components/ui/Spinner';
 import Card from '../components/ui/Card';
+import ErrorState from '../components/ErrorState';
 import { useToast } from '../components/ui/Toast';
 
 const DefaultSchedulePage = () => {
@@ -24,9 +25,9 @@ const DefaultSchedulePage = () => {
     (async () => {
       const schedules = await fetchSchedules();
       const group = schedules.find((g) => g.groupId === groupId);
-      if (!group) return setError('Group not found');
+      if (!group) return setError("This group isn't here any more.");
       const me = group.members[user.memberId];
-      if (!me) return setError('You are not a member of this group');
+      if (!me) return setError("You're no longer a member of this group.");
       setSchedule({ ...me.default });
     })();
   }, [groupId, user.memberId, fetchSchedules]);
@@ -50,7 +51,7 @@ const DefaultSchedulePage = () => {
         left={<IconButton name="back" label="Back" onClick={() => navigate(-1)} className="ml-0" />} />
       <div className="px-5 pt-4 pb-6">
         {loading || !schedule ? (
-          error ? <div className="text-red text-sm py-4">{error}</div> : <Spinner label="Loading the usual…" />
+          error ? <ErrorState message={error} onRetry={() => fetchSchedules(true)} /> : <Spinner label="Loading the usual…" />
         ) : (
           <>
             <div className="text-center mb-4">

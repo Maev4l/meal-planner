@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../services/api';
+import { api, errorMessage } from '../services/api';
 import { DAYS, getCurrentWeek, getWeekDates, getTodayIndex, periodOf } from '../constants/schedule';
 import TopBar from '../components/ui/TopBar';
 import IconButton from '../components/ui/IconButton';
@@ -12,6 +12,7 @@ import PersonalScheduleView from '../components/PersonalScheduleView';
 import MembersScheduleView from '../components/MembersScheduleView';
 import CommentEditorSheet from '../components/CommentEditorSheet';
 import UsualStatus from '../components/UsualStatus';
+import ErrorState from '../components/ErrorState';
 import { useToast } from '../components/ui/Toast';
 
 // A day is read-only if it falls before today within the current week.
@@ -46,15 +47,19 @@ const GroupSchedulePage = () => {
     try {
       const data = await api.getSchedules(periodOf(year, week));
       const group = data.schedules?.find((g) => g.groupId === groupId);
-      if (!group) { setError('Group not found'); return; }
+      if (!group) { setError("This group isn't here any more."); return; }
       setMembers(group.members);
       const me = group.members[user.memberId];
-      if (!me) { setError('You are not a member of this group'); return; }
+      if (!me) { setError("You're no longer a member of this group."); return; }
       setSchedule({ ...me.schedule });
       setUsual(me.default ?? null);
       setComments(me.comments ?? {});
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err, {
+        403: "You're no longer a member of this group.",
+        404: "This group isn't here any more.",
+        fallback: "Couldn't load this week.",
+      }));
     } finally {
       setLoading(false);
     }
@@ -69,10 +74,10 @@ const GroupSchedulePage = () => {
     setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
     try {
       await api.createSchedule(groupId, { period: periodOf(year, week), schedule: next });
-    } catch {
+    } catch (err) {
       setSchedule(prev);
       setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
-      toast?.('Failed to save schedule', 'error');
+      toast?.(errorMessage(err, { fallback: "Couldn't save — tap the meal again." }), 'error');
     }
   }, [schedule, groupId, year, week, user.memberId, toast]);
 
@@ -92,10 +97,10 @@ const GroupSchedulePage = () => {
     try {
       await api.createSchedule(groupId, { period: periodOf(year, week), schedule: next });
       toast?.('Week back on the usual', 'success');
-    } catch {
+    } catch (err) {
       setSchedule(prev);
       setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
-      toast?.('Could not reset the week', 'error');
+      toast?.(errorMessage(err, { fallback: "Couldn't reset the week." }), 'error');
     } finally {
       setResetting(false);
     }
@@ -130,7 +135,7 @@ const GroupSchedulePage = () => {
       <PullToRefresh onRefresh={() => loadData(false)} pullingContent="">
         <div className="px-5 pt-2 pb-6">
           {loading ? <Spinner label="Loading schedule…" />
-            : error ? <div className="text-red text-sm py-4">{error}</div>
+            : error ? <ErrorState message={error} onRetry={() => loadData()} />
             : view === 'personal' && schedule ? (
               <>
                 {usual && (

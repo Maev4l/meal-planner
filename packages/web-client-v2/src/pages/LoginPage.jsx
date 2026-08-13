@@ -34,7 +34,9 @@ const LoginPage = () => {
     setError(null);
     setIsSubmitting(true);
     try { await signIn(username, password); }
-    catch (err) { setError(err.message || err.name || 'Failed to sign in'); }
+    // Never fall back to err.name — that surfaces Cognito codes like
+    // "UserNotConfirmedException" to someone trying to sign in.
+    catch (err) { setError(err.message || "Couldn't sign in. Check your email and password."); }
     finally { setIsSubmitting(false); }
   };
 

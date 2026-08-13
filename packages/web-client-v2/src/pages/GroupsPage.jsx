@@ -10,6 +10,7 @@ import IconButton from '../components/ui/IconButton';
 import Spinner from '../components/ui/Spinner';
 import Button from '../components/ui/Button';
 import CreateGroupSheet from '../components/CreateGroupSheet';
+import ErrorState from '../components/ErrorState';
 
 // Row body navigates to schedule; trailing gear navigates directly to group settings.
 const GroupRow = ({ group, onOpen, onSettings }) => {
@@ -70,7 +71,7 @@ const GroupsPage = () => {
         {loading ? (
           <Spinner label="Loading your groups…" />
         ) : error ? (
-          <div className="text-red text-sm py-4">{error}</div>
+          <ErrorState message={error} onRetry={() => fetchSchedules(true)} />
         ) : groups.length === 0 ? (
           <div className="flex flex-col items-center text-center pt-12 px-2">
             <div className="w-28 h-28 rounded-full border-2 border-dashed border-chalk-faint grid place-items-center mb-6 text-chalk-faint">
