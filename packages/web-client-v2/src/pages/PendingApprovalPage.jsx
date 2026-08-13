@@ -37,8 +37,12 @@ const PendingApprovalPage = () => {
         <Icon name="clock" className="w-[46%] h-[46%]" />
       </div>
       <h1 className="font-hand font-bold text-[52px] leading-none m-0">Pending<br />approval</h1>
+      {/* Factually true rather than reassuring noise: signing up raises a Slack
+          alert to an administrator from the user-onboarding lambda, so anyone
+          seeing this screen has already triggered one. Saying so removes the
+          worst part of the wait — not knowing whether anybody knows. */}
       <p className="text-chalk-dim text-sm leading-relaxed max-w-[260px] my-3 mb-7">
-        Your account is awaiting an administrator&apos;s approval. You&apos;ll get access as soon as it&apos;s granted.
+        An administrator has already been notified. You&apos;ll get access as soon as they approve your account.
       </p>
       <div className="w-full max-w-[240px] flex flex-col gap-3">
         <Button onClick={handleCheck} disabled={checking}>
