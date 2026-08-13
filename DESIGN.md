@@ -423,11 +423,25 @@ A fixed-width (200px) 14px-radius chalk box showing "Week NN" in Caveat 23px ove
 mustard "Now" chip pins to the right edge of the box on the current week and is removed otherwise.
 Backwards navigation stops at the current week.
 
-### Day Strip (signature)
-Seven 42×56px cells (14px radius), horizontally scrollable with the scrollbar hidden. Unselected
-cells are hairline-bordered with chalk-dim text; the selected cell **inverts** to solid chalk with
-slate text. Under each label sits a 5px dot row: coral = someone is attending, mustard = notes
-exist.
+### Week Board (signature)
+The reading counterpart to the Meal Tile: seven columns, one per day, sized with `flex-1` so the
+whole week fits the phone column and **nothing scrolls sideways**. Each column carries a day header
+chip over two headcount cells and a reserved 5px marker slot, and the whole column is the tap target
+that selects the day detailed below.
+
+- **Header chip** (8px radius): 8.5px uppercase day abbreviation over a 14px date. Chalk-dim at
+  rest, coral on today, and it **inverts** to solid chalk with slate text on the selected day.
+- **Headcount cells** (8px radius, 25px tall): an 8.5px `L` / `D` letter beside a 13px tabular
+  number. A count carries its meal's tone (mustard for lunch, coral for dinner) as a 45%-opacity
+  border over a 15% fill; a zero is a hairline border with a chalk-faint em-dash. The letter means
+  the board never depends on colour alone to say which meal a number belongs to.
+- **A zero is an em-dash, not a grey number.** The Never-Grey Rule governs *refusal*; a headcount of
+  nobody is genuine absence, so it reads as nothing rather than as somebody's "no".
+- **Marker slot** keeps its 5px height on every column so heights never shift; a mustard dot fills
+  it when that day carries notes.
+- Below the board, the selected day is named in Caveat 30px beside its full date in 10.5px/0.2em
+  uppercase, then Lunch and Dinner attendee badges, then Notes — numbers first, names second, notes
+  third, matching how the cook reads.
 
 ### Member Badge & Avatar
 - **Avatar:** circle filled from a deterministic name→colour hash over the five-pigment palette,
