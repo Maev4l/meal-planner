@@ -474,8 +474,9 @@ no skeleton screen in this system.
   Fields are a chalk underline on transparent, always.
 - **Don't** add light mode, a theme toggle, or light-mode tokens. Dark-only is an identity
   commitment, not a default.
-- **Don't** animate anything beyond press feedback, the 0.16s sheet fade/rise, and the splash
-  crest's breathe. No entrance staggers, no scroll reveals, no page transitions.
+- **Don't** animate anything beyond press feedback, the 0.16s sheet fade/rise, the splash crest's
+  breathe, and the spinner's staggered dot bounce. No entrance staggers, no scroll reveals, no
+  page transitions.
 - **Don't** use sage or red for anything other than meal state and system verdict, and don't use
   lilac anywhere except an avatar fill.
 - **Don't** import an icon set, icon font, or emoji. Every glyph is drawn and filtered.
