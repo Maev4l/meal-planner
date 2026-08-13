@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import dayjs from 'dayjs';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
 import Button from '../components/ui/Button';
@@ -11,13 +12,22 @@ import Button from '../components/ui/Button';
 const PendingApprovalPage = () => {
   const { refreshSession, signOut } = useAuth();
   const [checking, setChecking] = useState(false);
+  const [lastChecked, setLastChecked] = useState(null);
+  const [failed, setFailed] = useState(false);
 
   const handleCheck = async () => {
     setChecking(true);
+    setFailed(false);
     try {
       await refreshSession();
+    } catch {
+      setFailed(true);
     } finally {
       setChecking(false);
+      // Approval landing unmounts this page, so anything rendered after a check
+      // is by definition "still pending". Without it the button looked broken:
+      // it produced no message, no toast and no change on the likely path.
+      setLastChecked(dayjs());
     }
   };
 
@@ -28,13 +38,22 @@ const PendingApprovalPage = () => {
       </div>
       <h1 className="font-hand font-bold text-[52px] leading-none m-0">Pending<br />approval</h1>
       <p className="text-chalk-dim text-sm leading-relaxed max-w-[260px] my-3 mb-7">
-        Your account is awaiting an administrator's approval. You'll get access as soon as it's granted.
+        Your account is awaiting an administrator&apos;s approval. You&apos;ll get access as soon as it&apos;s granted.
       </p>
       <div className="w-full max-w-[240px] flex flex-col gap-3">
         <Button onClick={handleCheck} disabled={checking}>
           {checking ? 'Checking…' : 'Check again'}
         </Button>
         <Button variant="ghost" onClick={signOut}>Sign out</Button>
+      </div>
+
+      {/* Reserve the line so the buttons never jump when it appears. */}
+      <div className="mt-4 h-5 text-[12px]" aria-live="polite">
+        {failed ? (
+          <span className="text-red">Couldn&apos;t check just now — try again in a moment.</span>
+        ) : lastChecked ? (
+          <span className="text-chalk-dim">Still pending — checked at {lastChecked.format('HH:mm')}</span>
+        ) : null}
       </div>
     </div>
   );

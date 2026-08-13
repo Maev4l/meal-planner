@@ -19,6 +19,7 @@ const DefaultSchedulePage = () => {
   const { fetchSchedules, loading } = useSchedules();
   const toast = useToast();
   const [schedule, setSchedule] = useState(null);
+  const [groupTitle, setGroupTitle] = useState(decodeURIComponent(groupName));
   const [error, setError] = useState(null);
 
   // One load path, callable again. Previously this was an async IIFE with no
@@ -32,6 +33,7 @@ const DefaultSchedulePage = () => {
       const schedules = await fetchSchedules(force);
       const group = schedules.find((g) => g.groupId === groupId);
       if (!group) return setError("This group isn't here any more.");
+      if (group.groupName) setGroupTitle(group.groupName);
       const me = group.members[user.memberId];
       if (!me) return setError("You're no longer a member of this group.");
       setSchedule({ ...me.default });
@@ -57,7 +59,7 @@ const DefaultSchedulePage = () => {
 
   return (
     <div className="min-h-dvh">
-      <TopBar title={decodeURIComponent(groupName)}
+      <TopBar title={groupTitle}
         left={<IconButton name="back" label="Back" onClick={() => navigate(-1)} className="ml-0" />} />
       <div className="px-5 pt-4 pb-6">
         {loading || !schedule ? (

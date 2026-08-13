@@ -32,6 +32,10 @@ const GroupSchedulePage = () => {
   const [year, setYear] = useState(location.state?.year ?? current.year);
   const [week, setWeek] = useState(location.state?.week ?? current.week);
   const [view, setView] = useState('personal');
+  // The URL carries a name for readability, but it is a snapshot from whenever the
+  // link was made. The loaded group is the current truth; the param is the fallback
+  // for the first paint.
+  const [groupTitle, setGroupTitle] = useState(decodeURIComponent(groupName));
   const [schedule, setSchedule] = useState(null);
   const [usual, setUsual] = useState(null); // the member's default schedule for this group
   const [comments, setComments] = useState(null);
@@ -48,6 +52,7 @@ const GroupSchedulePage = () => {
       const data = await api.getSchedules(periodOf(year, week));
       const group = data.schedules?.find((g) => g.groupId === groupId);
       if (!group) { setError("This group isn't here any more."); return; }
+      if (group.groupName) setGroupTitle(group.groupName);
       setMembers(group.members);
       const me = group.members[user.memberId];
       if (!me) { setError("You're no longer a member of this group."); return; }
@@ -120,7 +125,7 @@ const GroupSchedulePage = () => {
   return (
     <div className="min-h-dvh flex flex-col">
       <TopBar
-        title={decodeURIComponent(groupName)}
+        title={groupTitle}
         sub={members ? `${Object.keys(members).length} ${Object.keys(members).length === 1 ? 'member' : 'members'}` : undefined}
         left={<IconButton name="back" label="Back" onClick={() => navigate('/')} className="ml-0" />}
         right={<IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />}

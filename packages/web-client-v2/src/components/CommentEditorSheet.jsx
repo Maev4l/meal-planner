@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { api } from '../services/api';
+import { api, errorMessage } from '../services/api';
 import { DAYS, DAY_LABELS, fullDateOf } from '../constants/schedule';
 import BottomSheet from './ui/BottomSheet';
 import Textarea from './ui/Textarea';
@@ -32,13 +32,18 @@ const CommentEditorSheet = ({ open, onClose, day, dayIndex, year, week, groupId,
     const week7 = Object.fromEntries(
       DAYS.map((d) => [d, d === day ? { lunch, dinner } : (allComments?.[d] ?? { lunch: '', dinner: '' })])
     );
+    // Claim the snapshot before awaiting. Dismissing by scrim blurs the textarea
+    // and closes the sheet, so persist runs twice; updating `initial` only after
+    // the request meant the second call still saw a change and posted again.
+    const previous = initial.current;
+    initial.current = { lunch, dinner };
     try {
       await api.createComments(groupId, { year, weekNumber: week, ...week7 });
-      initial.current = { lunch, dinner };
       onSaved?.(week7);
       toast?.('Saved', 'success');
-    } catch {
-      toast?.('Failed to save note', 'error');
+    } catch (err) {
+      initial.current = previous; // let the next dismiss retry
+      toast?.(errorMessage(err, { fallback: "Couldn't save that note." }), 'error');
     }
   }, [readOnly, lunch, dinner, day, allComments, groupId, year, week, onSaved, toast]);
 
