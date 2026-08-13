@@ -40,7 +40,7 @@ const SignUpPage = () => {
     try { await signUp(email, password, name); setSuccess(true); }
     catch (err) {
       if (err.name === 'UsernameExistsException') setError('An account with this email already exists');
-      else setError(err.message || 'Sign up failed');
+      else setError(err.message || "Couldn't create your account. Try again in a moment.");
     } finally { setIsSubmitting(false); }
   };
 

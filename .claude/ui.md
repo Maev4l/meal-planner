@@ -132,14 +132,13 @@ Hand-built, Tailwind-based primitives replacing MUI:
 | `/login` | LoginPage | Public | Login form |
 | `/signup` | SignUpPage | Public | Registration |
 | `/invite/:code` | InvitePage | Public (no guard) | Invite landing; branches on auth state internally |
-| `*` | NotFoundPage | Required | Catch-all for unmatched paths |
 | `/` | GroupsPage | Required | Groups list (home) |
 | `/groups/:groupId/:groupName` | GroupSchedulePage | Required | Weekly schedule (My week / Everyone) |
 | `/groups/:groupId/:groupName/default` | DefaultSchedulePage | Required | Default schedule ("the usual") |
 | `/groups/:groupId/settings` | GroupSettingsPage | Required | Group admin panel (role-adaptive) |
 | `/settings` | SettingsPage | Required | Identity, Account row, and the version/update foot |
 | `/settings/account` | AccountPage | Required | Change password + sign out |
-| `*` | NotFoundPage | Required | Catch-all for unmatched paths |
+| `*` | NotFoundPage | Public | Catch-all for unmatched paths; explains the dead link instead of bouncing to /login |
 
 **Removed route (periphery distill):**
 - `/settings/about` (AboutPage) — deleted. Its crest, two boxed info rows, update button and tagline

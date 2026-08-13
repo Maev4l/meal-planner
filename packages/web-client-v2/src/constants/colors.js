@@ -1,5 +1,9 @@
 // Deterministic name → Ardoise accent color, for avatars/marks. Everyone (incl. "you") is uniform.
-const PALETTE = ['#e9806a', '#e7c24d', '#9cc08a', '#df6253', '#cbb9e8'];
+// Four pigments, not five: coral (#e9806a) and red (#df6253) measure only ΔE76
+// 12.5 apart, so they read as one colour on a roster, while every remaining pair
+// is ≥44.9. Dropping red also keeps it reserved for meal state and error, which
+// is what DESIGN.md says it means.
+const PALETTE = ['#e9806a', '#e7c24d', '#9cc08a', '#cbb9e8'];
 
 export const colorForName = (name = '') => {
   let hash = 0;

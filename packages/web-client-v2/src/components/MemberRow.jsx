@@ -1,11 +1,12 @@
 import Icon from './Icon';
-import { colorForName, initialsOf } from '../constants/colors';
+import { initialsOf } from '../constants/colors';
 
 // One roster row. `onRemove` (admin, non-self, non-admin targets) renders a trash button.
-const MemberRow = ({ name, isAdmin, isYou, onRemove }) => (
+// `color` comes from colorsForNames upstream so adjacent rows never collide.
+const MemberRow = ({ name, color, isAdmin, isYou, onRemove }) => (
   <div className="flex items-center gap-3.5 py-3 border-b border-line last:border-b-0">
     <span className="w-[38px] h-[38px] rounded-full grid place-items-center text-[13px] font-bold text-[#1b1f1c] flex-none"
-      style={{ background: colorForName(name) }}>{initialsOf(name)}</span>
+      style={{ background: color }}>{initialsOf(name)}</span>
     <div className="flex-1 min-w-0 text-[15px] font-semibold flex items-center gap-2 flex-wrap">
       {name}
       {isAdmin && (

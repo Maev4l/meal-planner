@@ -46,11 +46,11 @@ const BottomSheet = ({ open, onClose, label, initialFocus, children }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-40 flex flex-col justify-end">
-      <div className="absolute inset-0 bg-black/55 animate-[fadeIn_0.16s_ease-out]" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/55 animate-[fadeIn_0.16s_ease-out] motion-reduce:animate-none" onClick={onClose} />
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="relative bg-slate-2 rounded-t-[22px] border-t border-line px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 max-h-[80vh] overflow-y-auto animate-[rise_0.16s_ease-out] outline-none"
+        className="relative bg-slate-2 rounded-t-[22px] border-t border-line px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 max-h-[80vh] overflow-y-auto animate-[rise_0.16s_ease-out] motion-reduce:animate-none outline-none"
         role="dialog"
         aria-modal="true"
         aria-label={label}

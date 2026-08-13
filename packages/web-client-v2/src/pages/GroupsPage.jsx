@@ -76,7 +76,12 @@ const GroupsPage = () => {
   return (
     <div>
       <TopBar title="Your groups" sub={`${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}
-        right={<IconButton name="plus" label="New group" onClick={() => setCreateOpen(true)} />} />
+        right={<>
+          {/* Pull-to-refresh is the only other way to reload this screen, and a
+              gesture is unreachable by keyboard or screen reader. */}
+          <IconButton name="refresh" label="Refresh groups" onClick={() => fetchSchedules(true)} />
+          <IconButton name="plus" label="New group" onClick={() => setCreateOpen(true)} />
+        </>} />
       <PullToRefresh onRefresh={() => fetchSchedules(true)} pullingContent="">
       <div className="px-5 pb-6">
         {loading ? (

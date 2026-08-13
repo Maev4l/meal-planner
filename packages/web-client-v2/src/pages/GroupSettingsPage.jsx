@@ -12,7 +12,7 @@ import RenameGroupSheet from '../components/RenameGroupSheet';
 import DeleteGroupSheet from '../components/DeleteGroupSheet';
 import MemberRow from '../components/MemberRow';
 import ConfirmSheet from '../components/ConfirmSheet';
-import { colorForName, initialsOf } from '../constants/colors';
+import { colorForName, colorsForNames, initialsOf } from '../constants/colors';
 import { useToast } from '../components/ui/Toast';
 
 const SectionLabel = ({ children, danger }) => (
@@ -75,6 +75,11 @@ const GroupSettingsPage = () => {
 
   const isAdmin = group.members[user.memberId]?.admin === true;
   const memberCount = Object.keys(group.members).length;
+  // Sort once, then resolve colours across the sorted list so the nudge that
+  // separates neighbouring duplicates actually applies to the roster.
+  const roster = Object.entries(group.members)
+    .sort(([, a], [, b]) => a.memberName.localeCompare(b.memberName, undefined, { sensitivity: 'base' }));
+  const rosterColors = colorsForNames(roster.map(([, m]) => m.memberName));
 
   const handleRename = async (name) => {
     try { await api.renameGroup(groupId, name); await fetchSchedules(true); setRenameOpen(false); toast?.('Group renamed', 'success'); }
@@ -147,18 +152,15 @@ const GroupSettingsPage = () => {
           <span className="w-16 h-16 rounded-[18px] grid place-items-center font-hand font-bold text-[36px] text-slate-0 -rotate-3 flex-none"
             style={{ background: colorForName(group.groupName) }}>{initialsOf(group.groupName)}</span>
           <div className="flex-1 min-w-0">
-            <div className="font-hand font-bold text-[30px] leading-none truncate">{group.groupName}</div>
-            <div className="text-xs text-chalk-dim mt-1">{memberCount} {memberCount === 1 ? 'member' : 'members'}</div>
+            <div className="text-[15px] font-semibold text-chalk">{memberCount} {memberCount === 1 ? 'member' : 'members'}</div>
           </div>
           {isAdmin && <IconButton name="pencil" label="Rename group" onClick={() => setRenameOpen(true)} />}
         </div>
 
         {/* Members / Invites / Danger zone are added in Tasks 8–10, gated by isAdmin. */}
         <SectionLabel>Members &middot; {memberCount}</SectionLabel>
-        {Object.entries(group.members)
-          .sort(([, a], [, b]) => a.memberName.localeCompare(b.memberName, undefined, { sensitivity: 'base' }))
-          .map(([memberId, m]) => (
-          <MemberRow key={memberId} name={m.memberName} isAdmin={m.admin === true}
+        {roster.map(([memberId, m], i) => (
+          <MemberRow key={memberId} name={m.memberName} color={rosterColors[i]} isAdmin={m.admin === true}
             isYou={memberId === user.memberId}
             onRemove={isAdmin && !m.admin && memberId !== user.memberId ? () => setKickFor({ id: memberId, name: m.memberName }) : undefined} />
         ))}

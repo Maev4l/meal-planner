@@ -12,19 +12,19 @@ const CountCell = ({ letter, n, tone }) => (
     className={`flex items-center justify-center gap-[3px] h-[25px] rounded-[8px] border tabular-nums
       ${n ? tone : 'border-line text-chalk-dim'}`}
   >
-    <small className="text-[8.5px] tracking-[0.1em] font-bold">{letter}</small>
+    <small className="text-[9px] tracking-[0.12em] font-bold">{letter}</small>
     <b className="text-[13px] font-bold leading-none">{n || '–'}</b>
   </span>
 );
 
 // One column of the week board: an inverting day header over Lunch and Dinner
 // counts. The whole column is the tap target that selects the day below.
-const DayColumn = ({ label, date, lunch, dinner, hasNotes, selected, isToday, onSelect }) => (
+const DayColumn = ({ label, date, fullDate, lunch, dinner, hasNotes, selected, isToday, onSelect }) => (
   <button
     type="button"
     onClick={onSelect}
     aria-pressed={selected}
-    aria-label={`${label} ${date} — ${lunch} for lunch, ${dinner} for dinner${hasNotes ? ', has notes' : ''}`}
+    aria-label={`${label} ${fullDate || date} — ${lunch} for lunch, ${dinner} for dinner${hasNotes ? ', has notes' : ''}`}
     className={`flex-1 min-w-0 flex flex-col gap-1 p-1 rounded-[12px] border-[1.5px] bg-transparent cursor-pointer transition active:scale-[0.96]
       ${selected ? 'border-chalk-dim bg-chalk/[0.06]' : 'border-transparent hover:bg-chalk/[0.03]'}`}
   >
@@ -33,7 +33,7 @@ const DayColumn = ({ label, date, lunch, dinner, hasNotes, selected, isToday, on
       className={`flex flex-col items-center py-[3px] rounded-[8px]
         ${selected ? 'bg-chalk text-slate-0' : isToday ? 'text-coral' : 'text-chalk-dim'}`}
     >
-      <small className="text-[8.5px] tracking-[0.1em] uppercase leading-none">{label.slice(0, 3)}</small>
+      <small className="text-[9px] tracking-[0.12em] uppercase leading-none">{label.slice(0, 3)}</small>
       <b className="text-[14px] font-semibold leading-tight">{date}</b>
     </span>
     <CountCell letter="L" n={lunch} tone="border-mustard/45 bg-mustard/15 text-mustard" />
@@ -45,8 +45,7 @@ const DayColumn = ({ label, date, lunch, dinner, hasNotes, selected, isToday, on
   </button>
 );
 
-// One meal's attendees for the selected day. `unconfirmed` is the set of names
-// whose attendance came from their usual rather than from them.
+// One meal's attendees for the selected day.
 const MealBlock = ({ title, tone, attendees }) => (
   <div>
     <div className="flex items-baseline gap-2.5 mb-2.5">
@@ -97,6 +96,7 @@ const MembersScheduleView = ({ members, dates, year, week }) => {
             key={day}
             label={DAY_LABELS[i]}
             date={(dates[i] || '').split(' ')[0]}
+            fullDate={dates[i]}
             lunch={countFor(day, MEAL.LUNCH)}
             dinner={countFor(day, MEAL.DINNER)}
             hasNotes={hasNotes(day)}

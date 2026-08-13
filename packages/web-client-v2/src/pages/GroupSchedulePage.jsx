@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PullToRefresh from 'react-simple-pull-to-refresh';
 import { useAuth } from '../contexts/AuthContext';
@@ -70,7 +70,13 @@ const GroupSchedulePage = () => {
     }
   }, [groupId, user.memberId, year, week]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  // Only the first load blanks the screen; later loads (week changes, refresh)
+  // keep the outgoing week in place.
+  const hasLoaded = useRef(false);
+  useEffect(() => {
+    loadData(!hasLoaded.current);
+    hasLoaded.current = true;
+  }, [loadData]);
 
   const handleToggle = useCallback(async (day, meal) => {
     const next = { ...schedule, [day]: (schedule[day] ?? 0) ^ meal };
@@ -128,7 +134,10 @@ const GroupSchedulePage = () => {
         title={groupTitle}
         sub={members ? `${Object.keys(members).length} ${Object.keys(members).length === 1 ? 'member' : 'members'}` : undefined}
         left={<IconButton name="back" label="Back" onClick={() => navigate('/')} className="ml-0" />}
-        right={<IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />}
+        right={<>
+          <IconButton name="refresh" label="Refresh this week" onClick={() => loadData(false)} />
+          <IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />
+        </>}
       />
       <div className="px-5 pt-4">
         <div className="flex gap-1.5 bg-chalk/[0.06] border border-line p-1.5 rounded-[14px] mb-[18px]">

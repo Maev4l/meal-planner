@@ -21,7 +21,7 @@ const DeleteGroupSheet = ({ open, onClose, groupName, memberCount, onConfirm, bu
       </p>
       <Field
         label="Type the group name to confirm" inputRef={inputRef} value={text}
-        placeholder={groupName} autoCapitalize="none" autoCorrect="off"
+        autoCapitalize="none" autoCorrect="off"
         onChange={(e) => setText(e.target.value)}
       />
       <Button variant="danger" onClick={onConfirm} disabled={!armed || busy}>

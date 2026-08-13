@@ -56,7 +56,7 @@ const App = () => {
     <PWAProvider>
       <ToastProvider>
       <ChalkSprite />
-      <div className="mx-auto w-full max-w-md min-h-dvh pb-[90px]">
+      <div className={`mx-auto w-full max-w-md min-h-dvh ${isAuthenticated && isApproved ? 'pb-[90px]' : ''}`}>
         <SchedulesProvider>
           <PendingInviteHandler />
           <Routes>
@@ -70,7 +70,7 @@ const App = () => {
             <Route path="/settings/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/invite/:code" element={<InvitePage />} />
             {/* Catch-all: an unmatched path used to render the shell with an empty body */}
-            <Route path="*" element={<ProtectedRoute><NotFoundPage /></ProtectedRoute>} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </SchedulesProvider>
       </div>
