@@ -11,10 +11,7 @@ const ConfirmSheet = ({ open, onClose, title, body, confirmLabel, onConfirm, ico
     <h2 className="font-hand font-bold text-[30px] leading-none m-0 mb-1.5">{title}</h2>
     <p className="text-[13px] text-chalk-dim leading-relaxed m-0 mb-4">{body}</p>
     <Button variant="danger" onClick={onConfirm} disabled={busy}>{confirmLabel}</Button>
-    <button onClick={onClose} disabled={busy}
-      className="w-full mt-3 font-body font-bold uppercase tracking-[0.1em] text-[13px] py-[15px] rounded-[14px] bg-transparent text-chalk-dim border border-line hover:text-chalk disabled:opacity-40">
-      Cancel
-    </button>
+    <div className="mt-3"><Button variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button></div>
   </BottomSheet>
 );
 

@@ -9,7 +9,7 @@ const MealTile = ({ label, day, on, onClick, disabled }) => (
     aria-pressed={on}
     aria-label={day ? `${label} on ${day}` : label}
     className={[
-      'w-[74px] h-[54px] rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-0.5 select-none transition active:scale-[0.93]',
+      'w-[clamp(64px,20vw,74px)] h-[54px] rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-0.5 select-none transition active:scale-[0.93]',
       disabled ? 'cursor-default' : 'cursor-pointer',
       on ? 'border-sage bg-sage/15 text-sage' : 'border-red bg-red/15 text-red',
     ].join(' ')}

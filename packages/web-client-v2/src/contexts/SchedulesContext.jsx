@@ -63,46 +63,6 @@ export const SchedulesProvider = ({ children }) => {
     return schedules.find((g) => g.groupId === groupId) || null;
   }, [schedules]);
 
-  const updateMemberSchedule = useCallback((groupId, memberId, newDefault) => {
-    setSchedules((prev) => {
-      const updated = prev.map((group) => {
-        if (group.groupId !== groupId) return group;
-        return {
-          ...group,
-          members: {
-            ...group.members,
-            [memberId]: {
-              ...group.members[memberId],
-              default: newDefault,
-            },
-          },
-        };
-      });
-      cacheRef.current = { ...cacheRef.current, schedules: updated };
-      return updated;
-    });
-  }, []);
-
-  const updateMemberPersonalSchedule = useCallback((groupId, memberId, newSchedule) => {
-    setSchedules((prev) => {
-      const updated = prev.map((group) => {
-        if (group.groupId !== groupId) return group;
-        return {
-          ...group,
-          members: {
-            ...group.members,
-            [memberId]: {
-              ...group.members[memberId],
-              schedule: newSchedule,
-            },
-          },
-        };
-      });
-      cacheRef.current = { ...cacheRef.current, schedules: updated };
-      return updated;
-    });
-  }, []);
-
   const value = useMemo(() => ({
     schedules,
     period,
@@ -110,9 +70,7 @@ export const SchedulesProvider = ({ children }) => {
     error,
     fetchSchedules,
     getGroup,
-    updateMemberSchedule,
-    updateMemberPersonalSchedule,
-  }), [schedules, period, loading, error, fetchSchedules, getGroup, updateMemberSchedule, updateMemberPersonalSchedule]);
+  }), [schedules, period, loading, error, fetchSchedules, getGroup]);
 
   return (
     <SchedulesContext.Provider value={value}>

@@ -182,7 +182,7 @@ const AccountPage = () => {
         </Card>
 
         {/* Sign out */}
-        <Button variant="danger" onClick={handleSignOut}>
+        <Button variant="ghost" onClick={handleSignOut}>
           <Icon name="logout" className="w-4 h-4" />
           Sign out
         </Button>

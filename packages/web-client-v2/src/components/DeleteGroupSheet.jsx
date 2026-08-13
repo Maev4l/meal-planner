@@ -29,10 +29,7 @@ const DeleteGroupSheet = ({ open, onClose, groupName, memberCount, onConfirm, bu
       <Button variant="danger" onClick={onConfirm} disabled={!armed || busy}>
         <Icon name="trash" className="w-[17px] h-[17px]" />Delete forever
       </Button>
-      <button onClick={onClose} disabled={busy}
-        className="w-full mt-3 font-body font-bold uppercase tracking-[0.1em] text-[13px] py-[15px] rounded-[14px] bg-transparent text-chalk-dim border border-line hover:text-chalk disabled:opacity-40">
-        Cancel
-      </button>
+      <div className="mt-3"><Button variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button></div>
     </BottomSheet>
   );
 };

@@ -31,21 +31,25 @@ const AboutPage = () => {
   const navigate = useNavigate();
   const { needRefresh, checkForUpdate, applyUpdate } = usePWA();
   const [isChecking, setIsChecking] = useState(false);
-  const [checkComplete, setCheckComplete] = useState(false);
+  const [checkResult, setCheckResult] = useState(null); // null | 'current' | 'failed'
 
   const handleCheckUpdate = useCallback(async () => {
     if (isChecking) return;
     setIsChecking(true);
-    setCheckComplete(false);
+    setCheckResult(null);
 
-    await checkForUpdate();
+    // A rejected update() (offline, or no service worker registered) used to leave
+    // the button stuck on "Checking…" and then claim "Up to date" — reporting
+    // success for a check that never happened.
+    let ok = false;
+    try { ok = await checkForUpdate(); } catch { ok = false; }
 
     // Brief delay so the "checking" state is visible, then show the result. If an
     // update was found, needRefresh flips and the button becomes "tap to install".
     setTimeout(() => {
       setIsChecking(false);
-      setCheckComplete(true);
-      setTimeout(() => setCheckComplete(false), 2000);
+      setCheckResult(ok ? 'current' : 'failed');
+      setTimeout(() => setCheckResult(null), 2500);
     }, 500);
   }, [checkForUpdate, isChecking]);
 
@@ -101,10 +105,15 @@ const AboutPage = () => {
                 <Icon name="refresh" className="w-[18px] h-[18px] animate-spin" />
                 Checking…
               </>
-            ) : checkComplete ? (
+            ) : checkResult === 'current' ? (
               <>
-                <span className="text-sage font-bold">✓</span>
+                <Icon name="check" className="w-[17px] h-[17px] text-sage" />
                 Up to date
+              </>
+            ) : checkResult === 'failed' ? (
+              <>
+                <Icon name="info" className="w-[17px] h-[17px] text-red" />
+                Couldn&apos;t check
               </>
             ) : (
               <>

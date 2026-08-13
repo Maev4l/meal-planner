@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import Icon from '../Icon';
 
 const ToastContext = createContext(null);
@@ -14,10 +14,15 @@ const NEUTRAL = { className: 'border-line text-chalk', icon: null };
 
 export const ToastProvider = ({ children }) => {
   const [toast, setToast] = useState(null); // { text, type } | null
+  const timerRef = useRef(null);
+  // Each toast owns the dismiss timer. Without clearing the previous one, a second
+  // toast inherited the first's remaining time and vanished early.
   const show = useCallback((message, type) => {
+    clearTimeout(timerRef.current);
     setToast({ text: message, type });
-    setTimeout(() => setToast(null), 2400);
+    timerRef.current = setTimeout(() => setToast(null), 2400);
   }, []);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
   const variant = (toast && VARIANTS[toast.type]) || NEUTRAL;
   return (
     <ToastContext.Provider value={show}>

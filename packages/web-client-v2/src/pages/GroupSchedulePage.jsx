@@ -68,15 +68,19 @@ const GroupSchedulePage = () => {
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleToggle = useCallback(async (day, meal) => {
-    const prev = schedule;
     const next = { ...schedule, [day]: (schedule[day] ?? 0) ^ meal };
     setSchedule(next);
     setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: next } }));
     try {
       await api.createSchedule(groupId, { period: periodOf(year, week), schedule: next });
     } catch (err) {
-      setSchedule(prev);
-      setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: prev } }));
+      // Undo only this meal's bit, against whatever the state is now. Restoring a
+      // whole pre-tap snapshot silently discarded any edit that succeeded in the
+      // meantime — tap Lunch, tap Dinner, Lunch fails, and Dinner's save was lost.
+      // XOR is its own inverse, so re-applying it reverts exactly one bit.
+      const undo = (s) => ({ ...s, [day]: (s?.[day] ?? 0) ^ meal });
+      setSchedule(undo);
+      setMembers((m) => ({ ...m, [user.memberId]: { ...m[user.memberId], schedule: undo(m[user.memberId]?.schedule) } }));
       toast?.(errorMessage(err, { fallback: "Couldn't save — tap the meal again." }), 'error');
     }
   }, [schedule, groupId, year, week, user.memberId, toast]);

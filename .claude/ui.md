@@ -64,6 +64,7 @@
 
 - `LoginPage.jsx` — login form + Google OAuth
 - `SignUpPage.jsx` — registration (pending approval)
+- `NotFoundPage.jsx` — any unmatched route (stale bookmark, removed route). Renders `ErrorState` with "Go to your groups"; previously an unmatched path rendered the app shell with an empty body
 - `PendingApprovalPage.jsx` — shown by `ProtectedRoute` for an authenticated-but-unapproved user (e.g. a fresh Google signup, which creates a session immediately, before an admin clicks Approve). "Check again" calls `refreshSession()`; once the admin approves (`custom:Approved` → `"true"`) the refreshed claim lets the app render. Prevents the raw 403 an unapproved user used to hit on GroupsPage.
 - `GroupsPage.jsx` — lists user's groups; `＋` TopBar button + empty-state CTA to create a group; per-row gear button navigates directly to `GroupSettingsPage`; after creating a group, navigates to that group's `GroupSettingsPage` (Invites section) so the new admin can create + share an invite inline
 - `GroupSchedulePage.jsx` — weekly schedule with "My week" / "Everyone" toggle:
@@ -113,6 +114,7 @@ Hand-built, Tailwind-based primitives replacing MUI:
 - `UsualStatus` — "My week" only: names whether the week is served from the member's default ("On the usual") or has been edited ("Adjusted this week — N days differ"). Action is `Edit usual` → `DefaultSchedulePage` or `Reset week` → rewrites the default into this week. Compares **values**, not the API's `overriden` flag (a reset week stays flagged as overridden), and only over days that are still editable, so a reset can always reach its goal
 - `MembersScheduleView` — "Everyone" tab: week board (7 columns of L/D headcounts, no horizontal scroll; column = day selector) + selected-day heading with full date + Lunch/Dinner badge blocks + inline Notes block. Selection re-anchors to today (or Monday) when the week changes
 - `CommentEditorSheet` — bottom sheet for editing a meal note; autosaves on close
+- `ErrorState` — shared failed-load block: message + "Try again". Used by GroupsPage, GroupSchedulePage, DefaultSchedulePage and NotFoundPage. Copy comes from `errorMessage(err, overrides)` in `services/api.js`, never from `err.message` (which is always the diagnostic `API error: <status>`)
 
 ### Group Management Components
 
@@ -130,6 +132,7 @@ Hand-built, Tailwind-based primitives replacing MUI:
 | `/login` | LoginPage | Public | Login form |
 | `/signup` | SignUpPage | Public | Registration |
 | `/invite/:code` | InvitePage | Public (no guard) | Invite landing; branches on auth state internally |
+| `*` | NotFoundPage | Required | Catch-all for unmatched paths |
 | `/` | GroupsPage | Required | Groups list (home) |
 | `/groups/:groupId` | GroupSchedulePage | Required | Weekly schedule (My week / Everyone) |
 | `/groups/:groupId/default` | DefaultSchedulePage | Required | Default schedule |

@@ -115,13 +115,13 @@ components:
     backgroundColor: "rgba(156, 192, 138, 0.15)"
     textColor: "{colors.sage}"
     rounded: "{rounded.md}"
-    width: "74px"
+    width: "clamp(64px, 20vw, 74px)"
     height: "54px"
   meal-tile-off:
     backgroundColor: "rgba(223, 98, 83, 0.15)"
     textColor: "{colors.red}"
     rounded: "{rounded.md}"
-    width: "74px"
+    width: "clamp(64px, 20vw, 74px)"
     height: "54px"
   member-badge:
     backgroundColor: "rgba(241, 234, 217, 0.05)"
@@ -218,8 +218,10 @@ that read as pastel on dark without ever going neon.
 - **Chalk Faint** (26% chalk): **decoration only** — dashed rules, the sheet grab handle, indicator
   dots, the empty-state ring illustration. It measures ~2.1:1 and must never carry text.
 - **Hairline** (18% chalk): every solid border and divider in the system.
-- **Warm Slate** (`#171b18` → `#1f2421` → `#262c28`): app bar base, page surface, raised surface
-  (sheets, toasts). Under all of it, **Slate Void** (`#0d100e`) with a radial warm lift at 30% 0%
+- **Warm Slate**: `slate-0` (`#171b18`) is the app-bar base and `slate-2` (`#262c28`) the raised
+  surface (sheets, toasts). `slate-1` (`#1f2421`) is **not** a page surface despite its name — it
+  survives only as the ring separating stacked avatars and as the update prompt's gradient end.
+  The page itself is **Slate Void** (`#0d100e`) with a radial warm lift at 30% 0% toward `#16201a`,
   and an `feTurbulence` grain blended `soft-light` into the body background.
 - **Accent Ink** (`#1b1f1c`, and `#221311` on coral): the near-black used for text sitting *on* a
   pigment — avatar initials, primary button labels, the "Now" chip. Never used as a background.
@@ -285,7 +287,7 @@ column on desktop rather than pretending to be responsive. The page gutter is a 
 (`px-5`); vertical rhythm is built from 14px/18px row padding with hairline separators rather than
 from card stacks.
 
-The shell is three fixed parts: a **sticky top bar** that fades from `slate-1` to transparent over
+The shell is three fixed parts: a **sticky top bar** that fades from `slate-0` to transparent over
 its bottom 28% (so content scrolls under it rather than colliding with it), the **scrolling
 content**, and a **fixed bottom nav** 74px tall plus safe-area inset. The content column reserves
 90px of bottom padding for the nav. Transient overlays (toast, update prompt) sit at 96px from the
@@ -309,8 +311,9 @@ not resize when the "Now" chip appears. Layout must not shift as state changes.
 
 The board is flat. There is no ambient shadow vocabulary, no elevation scale, and no lit-card
 metaphor: depth is made by laying translucent chalk over slate (`rgba(241,234,217,0.04–0.06)`) and
-drawing a hairline around it, plus the three-step slate ramp for genuinely stacked surfaces
-(`slate-0` bar → `slate-1` page → `slate-2` sheet). Blur appears exactly once, as
+drawing a hairline around it, plus the slate steps for genuinely stacked surfaces
+(`slate-0` bar over the slate-void page → `slate-2` sheet). The bar must never be *lighter* than
+the board it sits on; `slate-0` is chosen to sit within a shade of the page ground's top value. Blur appears exactly once, as
 `backdrop-blur-md` behind the 90%-opaque bottom nav.
 
 The single exception is for elements that float *free of the board* — the toast and the update
@@ -390,7 +393,7 @@ imported icon set, no icon font, no emoji, no filled/solid icon styles.
   auto-grows to content.
 
 ### Navigation
-- **Top bar:** sticky, gradient-faded from `slate-1`, safe-area padded. Caveat 30px title with an
+- **Top bar:** sticky, gradient-faded from `slate-0`, safe-area padded. Caveat 30px title with an
   optional 11px/0.2em uppercase sub-line, an optional leading slot (back) and trailing slots
   (actions), all icon buttons.
 - **Bottom nav:** fixed, 74px + safe-area, `slate-0/90` with `backdrop-blur-md` and a top hairline.
@@ -419,8 +422,9 @@ no dialog, popover, or drawer anywhere else in the system.
   and on dismiss; past days render read-only with a Caveat murmur instead of a disabled banner.
 
 ### Meal Tile (signature)
-The product's core control. A 74×54px rounded rectangle (14px) with a 1.5px border, holding a
-17px verdict glyph over a 9.5px uppercase caption.
+The product's core control. A 54px-tall rounded rectangle (14px) with a 1.5px border, holding a
+17px verdict glyph over a 9.5px uppercase caption. Width is `clamp(64px, 20vw, 74px)`: 74px on a
+normal phone, yielding to 64px at 320px so the day name beside it never collides.
 
 - **On:** sage border, `sage/15` fill, sage `✓`.
 - **Off:** red border, `red/15` fill, red `✕`.

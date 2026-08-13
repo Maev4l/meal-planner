@@ -36,7 +36,7 @@
       },
       "slate-1": {
         "role": "neutral",
-        "displayName": "Warm Slate 1 — page surface",
+        "displayName": "Warm Slate 1 — NOT a page surface: avatar ring and update-prompt gradient end only",
         "canonical": "oklch(26% 0.008 150)",
         "tonalRamp": [
           "oklch(15% 0.008 150)",
@@ -291,7 +291,7 @@
       "refersTo": "meal-tile-on",
       "description": "The product's core control: one tap flips lunch or dinner. Sage check = in, red cross = out. There is no unset state and no save.",
       "html": "<div class=\"ds-tiles\"><button class=\"ds-tile ds-tile-on\"><span class=\"ds-tile-mark\">✓</span><span class=\"ds-tile-cap\">Lunch</span></button><button class=\"ds-tile ds-tile-off\"><span class=\"ds-tile-mark\">✕</span><span class=\"ds-tile-cap\">Dinner</span></button></div>",
-      "css": ".ds-tiles { display: flex; gap: 10px; } .ds-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 74px; height: 54px; border-radius: 14px; border-width: 1.5px; border-style: solid; background: transparent; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s; } .ds-tile:active { transform: scale(0.93); } .ds-tile:focus-visible { outline: 2px solid var(--color-chalk, #f1ead9); outline-offset: 2px; } .ds-tile-mark { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 17px; line-height: 1; } .ds-tile-cap { font-family: Archivo, system-ui, sans-serif; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.16em; } .ds-tile-on { border-color: var(--color-sage, #9cc08a); background: rgba(156,192,138,0.15); color: var(--color-sage, #9cc08a); } .ds-tile-off { border-color: var(--color-red, #df6253); background: rgba(223,98,83,0.15); color: var(--color-red, #df6253); }"
+      "css": ".ds-tiles { display: flex; gap: 10px; } .ds-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: clamp(64px, 20vw, 74px); height: 54px; border-radius: 14px; border-width: 1.5px; border-style: solid; background: transparent; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s; } .ds-tile:active { transform: scale(0.93); } .ds-tile:focus-visible { outline: 2px solid var(--color-chalk, #f1ead9); outline-offset: 2px; } .ds-tile-mark { font-family: Archivo, system-ui, sans-serif; font-weight: 800; font-size: 17px; line-height: 1; } .ds-tile-cap { font-family: Archivo, system-ui, sans-serif; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.16em; } .ds-tile-on { border-color: var(--color-sage, #9cc08a); background: rgba(156,192,138,0.15); color: var(--color-sage, #9cc08a); } .ds-tile-off { border-color: var(--color-red, #df6253); background: rgba(223,98,83,0.15); color: var(--color-red, #df6253); }"
     },
     {
       "name": "Member Badge",
@@ -440,6 +440,11 @@
         "name": "The Two-Tier Text Rule",
         "body": "Text and meaningful icons get exactly two tiers: chalk and chalk-dim. There is no third, fainter legible tier and there cannot be one — on this ground any alpha that clears 4.5:1 is brighter than chalk-dim, so \"fainter but still readable\" is arithmetically impossible. When a label feels too loud at 60%, make it smaller or shorter; never dimmer. chalk-faint is decoration.",
         "section": "colors"
+      },
+      {
+        "name": "The Bar-Is-Not-Lighter Rule",
+        "body": "The sticky top bar fades from slate-0, chosen to sit within a shade of the page ground's top value. A bar lighter than the board it sits on reads as a floating panel, which this system does not have.",
+        "section": "elevation"
       }
     ],
     "dos": [

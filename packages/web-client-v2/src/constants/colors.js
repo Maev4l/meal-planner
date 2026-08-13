@@ -28,5 +28,13 @@ export const colorsForNames = (names = []) => {
   return out;
 };
 
-export const initialsOf = (name = '') =>
-  name.trim().slice(0, 2).toUpperCase() || '?';
+// Real initials, not the first two characters: "The Sue Family" was rendering as
+// "TH" and "Jean-Raymond" as "JE". Words split on whitespace, hyphens and
+// apostrophes, so "Jean-Raymond" gives JR and "O'Brien" gives OB. A single word
+// keeps two letters, because one letter reads as an accident at avatar sizes.
+export const initialsOf = (name = '') => {
+  const words = name.trim().split(/[\s\-'’]+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+};

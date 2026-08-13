@@ -1,6 +1,6 @@
 // Sticky top bar. `left`/`right` are optional slots (e.g. IconButton); title in Caveat.
 const TopBar = ({ title, sub, left, right }) => (
-  <div className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3.5 pt-[max(1rem,env(safe-area-inset-top))] bg-gradient-to-b from-slate-1 from-[72%] to-transparent">
+  <div className="sticky top-0 z-10 flex items-center gap-3 px-5 pb-3.5 pt-[max(1rem,env(safe-area-inset-top))] bg-gradient-to-b from-slate-0 from-[72%] to-transparent">
     {left}
     <div className="min-w-0">
       {/* An <h1>, not a <div>: six of the app's screens previously contained no

@@ -20,6 +20,7 @@ import UpdatePrompt from './components/UpdatePrompt';
 import SplashScreen from './components/SplashScreen';
 import PendingInviteHandler from './components/PendingInviteHandler';
 import PendingApprovalPage from './pages/PendingApprovalPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Long enough that the crest reads as intentional rather than a flash, short enough
 // that it is not a visible tax on a session the product measures in seconds. Auth
@@ -70,6 +71,8 @@ const App = () => {
             <Route path="/settings/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/settings/about" element={<ProtectedRoute><AboutPage /></ProtectedRoute>} />
             <Route path="/invite/:code" element={<InvitePage />} />
+            {/* Catch-all: an unmatched path used to render the shell with an empty body */}
+            <Route path="*" element={<ProtectedRoute><NotFoundPage /></ProtectedRoute>} />
           </Routes>
         </SchedulesProvider>
       </div>

@@ -16,11 +16,11 @@ const PersonalScheduleView = ({ schedule, dates, onToggle, year, week, comments,
           <div key={day}
             className={`relative flex items-center gap-2.5 py-3 border-b border-line ${isPast ? 'opacity-45' : ''}
               ${isToday ? "before:content-[''] before:absolute before:-left-5 before:inset-y-0 before:w-1 before:bg-coral before:rounded-r-[3px]" : ''}`}>
-            <div className="w-[62px] flex-none">
-              <b className={`block font-semibold text-sm ${isToday ? 'text-coral' : ''}`}>{DAY_LABELS[i]}</b>
+            <div className="flex-1 min-w-0">
+              <b className={`block font-semibold text-sm truncate ${isToday ? 'text-coral' : ''}`}>{DAY_LABELS[i]}</b>
               <small className="text-chalk-dim text-[11px]">{dates[i]}</small>
             </div>
-            <div className="ml-auto flex gap-2.5 items-center">
+            <div className="flex-none flex gap-2.5 items-center">
               <MealTile label="Lunch" day={DAY_LABELS[i]} on={(attendance & MEAL.LUNCH) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.LUNCH)} />
               <MealTile label="Dinner" day={DAY_LABELS[i]} on={(attendance & MEAL.DINNER) !== 0} disabled={isPast} onClick={() => onToggle(day, MEAL.DINNER)} />
               <button onClick={() => onDayClick(day, i)} aria-label={`Notes for ${DAY_LABELS[i]}`}
