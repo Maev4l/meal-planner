@@ -25,7 +25,11 @@ const DayColumn = ({ label, date, fullDate, lunch, dinner, hasNotes, selected, i
     onClick={onSelect}
     aria-pressed={selected}
     aria-label={`${label} ${fullDate || date} — ${lunch} for lunch, ${dinner} for dinner${hasNotes ? ', has notes' : ''}`}
-    className={`flex-1 min-w-0 flex flex-col gap-1 p-1 rounded-[12px] border-[1.5px] bg-transparent cursor-pointer transition active:scale-[0.96]
+    // `items-stretch` is load-bearing, not redundant: WebKit's UA stylesheet sets
+    // `align-items: flex-start` on <button>, so on iOS the chip and count cells
+    // shrank to their text width and hugged the column's left edge while this
+    // border still spanned the full column — the selected day looked misaligned.
+    className={`flex-1 min-w-0 flex flex-col items-stretch gap-1 p-1 rounded-[12px] border-[1.5px] bg-transparent cursor-pointer transition active:scale-[0.96]
       ${selected ? 'border-chalk-dim bg-chalk/[0.06]' : 'border-transparent hover:bg-chalk/[0.03]'}`}
   >
     {/* Header chip inverts to solid chalk on the selected day (day-strip convention) */}
