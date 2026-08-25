@@ -272,9 +272,11 @@ that instructions never compete with names. JetBrains Mono appears only where a 
   "nobody yet — quiet one". The one place Caveat is set italic, and deliberately below the Title
   tier: it sits directly under a 24px meal heading and must read as a note in the margin rather
   than compete with the heading above it.
-- **Label** (Archivo 600/700, 9–11px, uppercase, letter-spacing 0.12–0.24em): field labels and
-  section labels at 10.5px/0.24em; nav tabs at 10px/0.1em; meal-tile captions at 9.5px/0.16em;
-  badge text at 9.5px/0.12em; week-board day abbreviations and `L`/`D` letters at 9px/0.12em.
+- **Label** (Archivo 600/700, 9–11px, uppercase, letter-spacing 0.12–0.28em): field labels and
+  section labels at 10.5px/0.24em; nav tabs at 10px/0.12em; meal-tile captions at 9.5px/0.16em;
+  badge text at 9.5px/0.12em; week-board day abbreviations and `L`/`D` letters at 9px/0.12em. The
+  top of the range is an accent, not a default: 0.28em is reserved for the invite screen's arrival
+  line ("You've been invited"), where the widest tracking in the product marks a one-off moment.
 - **Button** (Archivo 700, 13px, uppercase, letter-spacing 0.1em): all button labels, so they read
   as small-caps chalk labels rather than sentences.
 
@@ -415,7 +417,7 @@ task rather than completing this one — is a text link, not a third slab.
   optional 11px/0.2em uppercase sub-line, an optional leading slot (back) and trailing slots
   (actions), all icon buttons.
 - **Bottom nav:** fixed, 74px + safe-area, `slate-0/90` with `backdrop-blur-md` and a top hairline.
-  Two tabs, each a 20px chalk icon over a 10px/0.1em uppercase label; active is full chalk,
+  Two tabs, each a 20px chalk icon over a 10px/0.12em uppercase label; active is full chalk,
   inactive is chalk-dim. No indicator bar, no pill, no colour — presence *is* the indicator.
 
 ### Focus
@@ -508,7 +510,7 @@ no skeleton screen in this system.
   (18% chalk), not from shadow. Reserve `0 18px 44px -12px rgba(0,0,0,0.7)` for the toast and the
   update prompt.
 - **Do** set every name in Caveat and every instruction in Archivo — the Chalk-Hand Rule.
-- **Do** letter-space and uppercase anything under 12px (0.12–0.24em).
+- **Do** letter-space and uppercase anything under 12px (0.12–0.28em).
 - **Do** keep text and meaningful icons on `chalk` or `chalk-dim` only — the Two-Tier Text Rule.
   `chalk-faint` is for dashed rules, grab handles, indicator dots, and empty-state illustration.
 - **Do** signal focus with more than colour: the field underline turns coral **and** thickens to 2px.

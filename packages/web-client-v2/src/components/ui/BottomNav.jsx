@@ -17,7 +17,9 @@ const BottomNav = () => {
           key={t.path}
           onClick={() => navigate(t.path)}
           aria-current={i === activeIdx ? 'page' : undefined}
-          className={`flex-1 flex flex-col items-center justify-center gap-1.5 bg-transparent border-0 cursor-pointer text-[10px] tracking-[0.1em] uppercase ${i === activeIdx ? 'text-chalk' : 'text-chalk-dim'}`}
+          // 0.12em, not 0.1em: the Small-Caps Rule sets that floor for sub-12px text,
+          // and these tabs were the only label in the product sitting under it.
+          className={`flex-1 flex flex-col items-center justify-center gap-1.5 bg-transparent border-0 cursor-pointer text-[10px] tracking-[0.12em] uppercase ${i === activeIdx ? 'text-chalk' : 'text-chalk-dim'}`}
         >
           <Icon name={t.name} className="w-5 h-5" />
           {t.label}
