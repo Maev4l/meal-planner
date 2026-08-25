@@ -268,9 +268,13 @@ that instructions never compete with names. JetBrains Mono appears only where a 
 - **Body** (Archivo 400/500/600, 13–16px, line-height 1.4–1.6): everything a user reads to act.
   Inputs are 16px specifically to stop iOS zooming on focus; member names are 15px/600; helper and
   note text is 13px in chalk-dim.
+- **Aside** (Caveat 400 *italic*, 19px): the handwritten murmur that stands in for an empty list —
+  "nobody yet — quiet one". The one place Caveat is set italic, and deliberately below the Title
+  tier: it sits directly under a 24px meal heading and must read as a note in the margin rather
+  than compete with the heading above it.
 - **Label** (Archivo 600/700, 9–11px, uppercase, letter-spacing 0.12–0.24em): field labels and
   section labels at 10.5px/0.24em; nav tabs at 10px/0.1em; meal-tile captions at 9.5px/0.16em;
-  badge text at 9.5px/0.12em.
+  badge text at 9.5px/0.12em; week-board day abbreviations and `L`/`D` letters at 9px/0.12em.
 - **Button** (Archivo 700, 13px, uppercase, letter-spacing 0.1em): all button labels, so they read
   as small-caps chalk labels rather than sentences.
 
@@ -467,9 +471,9 @@ whole week fits the phone column and **nothing scrolls sideways**. Each column c
 chip over two headcount cells and a reserved 5px marker slot, and the whole column is the tap target
 that selects the day detailed below.
 
-- **Header chip** (8px radius): 8.5px uppercase day abbreviation over a 14px date. Chalk-dim at
+- **Header chip** (8px radius): 9px/0.12em uppercase day abbreviation over a 14px date. Chalk-dim at
   rest, coral on today, and it **inverts** to solid chalk with slate text on the selected day.
-- **Headcount cells** (8px radius, 25px tall): an 8.5px `L` / `D` letter beside a 13px tabular
+- **Headcount cells** (8px radius, 25px tall): a 9px/0.12em `L` / `D` letter beside a 13px tabular
   number. A count carries its meal's tone (mustard for lunch, coral for dinner) as a 45%-opacity
   border over a 15% fill; a zero is a hairline border with a chalk-dim em-dash. The letter means
   the board never depends on colour alone to say which meal a number belongs to.
