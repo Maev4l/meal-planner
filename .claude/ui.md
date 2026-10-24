@@ -68,12 +68,12 @@
 - `PendingApprovalPage.jsx` — shown by `ProtectedRoute` for an authenticated-but-unapproved user (e.g. a fresh Google signup, which creates a session immediately, before an admin clicks Approve). "Check again" calls `refreshSession()`; once the admin approves (`custom:Approved` → `"true"`) the refreshed claim lets the app render. Prevents the raw 403 an unapproved user used to hit on GroupsPage.
 - `GroupsPage.jsx` — lists user's groups; `＋` TopBar button + empty-state CTA to create a group; per-row gear button navigates directly to `GroupSettingsPage`; after creating a group, navigates to that group's `GroupSettingsPage` (Invites section) so the new admin can create + share an invite inline
 - `GroupSchedulePage.jsx` — weekly schedule with "My week" / "Everyone" toggle:
-  - **My week** → `UsualStatus` row (says whether this week is running on the member's default or has been adjusted, with Edit usual / Reset week) above `PersonalScheduleView`: one-tap `MealTile` grid + note trigger per day
+  - **My week** → `UsualStatus` row (says whether this week is running on the member's default or has been adjusted, with Reset week when adjusted) above `PersonalScheduleView`: one-tap `MealTile` grid + note trigger per day
   - **Everyone** → `MembersScheduleView`: day-centric view — week board (7 day columns, each showing its own lunch/dinner headcount), then the selected day's Lunch/Dinner badge blocks and inline Notes block
   - Shared `WeekNavigator` for week navigation
   - `CommentEditorSheet` — autosave bottom sheet for editing notes
-  - TopBar: back button (left) + "Default schedule" repeat button (right); no settings gear
-- `DefaultSchedulePage.jsx` — default ("the usual") schedule settings
+  - TopBar: back button (left) + text-only **My usual** button (right, aria-label "My usual week") → `DefaultSchedulePage`. Text, not icon: members could not find their default behind a bare glyph; "My" so it reads as the member's own on the Everyone tab. In the top bar so it survives both tabs and the adjusted state. No settings gear, no refresh button (pull-to-refresh only)
+- `DefaultSchedulePage.jsx` — default ("My usual") schedule settings. Copy states the real rule: every week starts from it, but days already changed in My week stay changed (the API only serves the default for weeks with no record)
 - `AccountPage.jsx` — change password (three fields, requirements revealed only once a new password is typed, eye reveal toggles) + sign out. No cards: the form is the page
 - `SettingsPage.jsx` — identity (avatar, name, email + copy), one hairline row to Account, then a foot carrying the wordmark, `v<version> · <build>`, the update check and "à table."
 - `GroupSettingsPage.jsx` — role-adaptive group admin panel:
@@ -111,7 +111,7 @@ Hand-built, Tailwind-based primitives replacing MUI:
 
 - `WeekNavigator` — prev/next week controls, shared between views
 - `PersonalScheduleView` — "My week" tab: grid of `MealTile`s + per-day note trigger
-- `UsualStatus` — "My week" only: names whether the week is served from the member's default ("On the usual") or has been edited ("Adjusted this week — N days differ"). Action is `Edit usual` → `DefaultSchedulePage` or `Reset week` → rewrites the default into this week. Compares **values**, not the API's `overriden` flag (a reset week stays flagged as overridden), and only over days that are still editable, so a reset can always reach its goal
+- `UsualStatus` — "My week" only: names whether the week is served from the member's default ("On the usual") or has been edited ("Adjusted this week — N days differ"). Its only action is `Reset week` (shown when adjusted) → rewrites the default into this week; editing the usual lives in the TopBar **My usual** button, which the steady-state copy names ("Tap My usual above to change it."). Compares **values**, not the API's `overriden` flag (a reset week stays flagged as overridden), and only over days that are still editable, so a reset can always reach its goal
 - `MembersScheduleView` — "Everyone" tab: week board (7 columns of L/D headcounts, no horizontal scroll; column = day selector) + selected-day heading with full date + Lunch/Dinner badge blocks + inline Notes block. Selection re-anchors to today (or Monday) when the week changes
 - `CommentEditorSheet` — bottom sheet for editing a meal note; autosaves on close
 - `ErrorState` — shared failed-load block: message + "Try again". Used by GroupsPage, GroupSchedulePage, DefaultSchedulePage and NotFoundPage. Copy comes from `errorMessage(err, overrides)` in `services/api.js`, never from `err.message` (which is always the diagnostic `API error: <status>`)

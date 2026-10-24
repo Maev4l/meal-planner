@@ -67,8 +67,15 @@ const DefaultSchedulePage = () => {
         ) : (
           <>
             <div className="text-center mb-4">
-              <div className="font-hand font-bold text-[34px] leading-none">The usual</div>
-              <div className="text-chalk-dim text-[13px] mt-1">applied to new weeks automatically</div>
+              {/* A real heading: the top bar's <h1> is the group name, so without this the page's
+                  subject was invisible to heading navigation. Named "My usual" to match the button
+                  that leads here. */}
+              <h2 className="font-hand font-bold text-[34px] leading-none m-0">My usual</h2>
+              {/* The usual only pre-fills weeks the member has not touched (the API serves the default
+                  only when no week record exists). "Applied to new weeks automatically" let members
+                  expect an edit here to rewrite a week they had already adjusted, which then looked
+                  like a bug. */}
+              <p className="text-chalk-dim text-[13px] mt-1 mb-0">Every week starts from this. Days you change in My week stay changed.</p>
             </div>
             <Card dashed className="p-4">
               {DAYS.map((day, i) => {

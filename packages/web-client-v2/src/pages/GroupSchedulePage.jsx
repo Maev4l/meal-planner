@@ -134,10 +134,19 @@ const GroupSchedulePage = () => {
         title={groupTitle}
         sub={members ? `${Object.keys(members).length} ${Object.keys(members).length === 1 ? 'member' : 'members'}` : undefined}
         left={<IconButton name="back" label="Back" onClick={() => navigate('/')} className="ml-0" />}
-        right={<>
-          <IconButton name="refresh" label="Refresh this week" onClick={() => loadData(false)} />
-          <IconButton name="repeat" label="Default schedule" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)} />
-        </>}
+        // Text, not an icon: members could not find their default schedule behind a bare glyph, and no
+        // glyph tested at this size said "recurring week". "My usual", not "Usual": on the read-only
+        // Everyone tab a bare "Usual" could read as the group's usual rather than the member's own.
+        // It lives in the top bar so it stays reachable on both tabs and after the week has been
+        // adjusted (where UsualStatus offers Reset week instead). No refresh button: pull-to-refresh
+        // covers it, and a second control here crowded out the group name.
+        right={
+          // The accessible name starts with the visible text so voice control ("tap My usual") matches.
+          <button type="button" aria-label="My usual week" onClick={() => navigate(`/groups/${groupId}/${groupName}/default`)}
+            className="flex-none min-h-[44px] px-3 rounded-[12px] border border-line bg-transparent text-chalk-dim font-body font-bold text-[10.5px] leading-none tracking-[0.12em] uppercase cursor-pointer transition hover:text-chalk hover:border-chalk-dim active:scale-95">
+            My usual
+          </button>
+        }
       />
       <div className="px-5 pt-4">
         <div className="flex gap-1.5 bg-chalk/[0.06] border border-line p-1.5 rounded-[14px] mb-[18px]">
@@ -159,7 +168,6 @@ const GroupSchedulePage = () => {
               <>
                 {usual && (
                   <UsualStatus schedule={schedule} usual={usual} days={editableDays} busy={resetting}
-                    onEdit={() => navigate(`/groups/${groupId}/${groupName}/default`)}
                     onReset={handleReset} />
                 )}
                 <PersonalScheduleView schedule={schedule} dates={dates} onToggle={handleToggle}

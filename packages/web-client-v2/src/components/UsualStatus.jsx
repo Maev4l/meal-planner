@@ -3,7 +3,8 @@ import { DAYS } from '../constants/schedule';
 // Names the mechanism the API already performs silently: an untouched week is
 // served from the member's default ("the usual"), so tiles a member never set
 // still look like decisions they made. This row says which of the two you are
-// looking at, and offers the matching way out.
+// looking at, and offers Reset week once the week has drifted. Editing the usual itself lives in the
+// top bar, so it stays reachable in both states and on both tabs instead of vanishing once a day changes.
 //
 // Truth comes from comparing values, not from the API's `overriden` flag: once a
 // week has been written it stays flagged as overridden even if it is reset back
@@ -14,7 +15,7 @@ import { DAYS } from '../constants/schedule';
 export const daysDifferingFromUsual = (schedule, usual, days = DAYS) =>
   days.filter((d) => (schedule?.[d] ?? 0) !== (usual?.[d] ?? 0));
 
-const UsualStatus = ({ schedule, usual, days, onEdit, onReset, busy }) => {
+const UsualStatus = ({ schedule, usual, days, onReset, busy }) => {
   const differing = daysDifferingFromUsual(schedule, usual, days);
   const adjusted = differing.length > 0;
 
@@ -30,17 +31,19 @@ const UsualStatus = ({ schedule, usual, days, onEdit, onReset, busy }) => {
               state stays one line — it is read once and then lives above the grid forever. */}
           {adjusted
             ? `${differing.length} ${differing.length === 1 ? 'day differs' : 'days differ'} from your usual — this week only.`
-            : 'Your usual, until you change a day.'}
+            : 'Your usual, until you change a day. Tap My usual above to change it.'}
         </p>
       </div>
+      {adjusted && (
       <button
         type="button"
-        onClick={adjusted ? onReset : onEdit}
+        onClick={onReset}
         disabled={busy}
         className="flex-none min-h-[44px] px-3.5 rounded-[12px] border border-line bg-transparent text-chalk-dim font-body font-bold text-[10.5px] tracking-[0.12em] uppercase cursor-pointer transition hover:text-chalk hover:border-chalk-dim active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
       >
-        {adjusted ? 'Reset week' : 'Edit usual'}
+        Reset week
       </button>
+      )}
     </div>
   );
 };

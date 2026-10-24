@@ -415,7 +415,10 @@ task rather than completing this one — is a text link, not a third slab.
 ### Navigation
 - **Top bar:** sticky, gradient-faded from `slate-0`, safe-area padded. Caveat 30px title with an
   optional 11px/0.2em uppercase sub-line, an optional leading slot (back) and trailing slots
-  (actions), all icon buttons.
+  (actions), icon buttons by default. **One exception:** an action users must *find* rather than
+  recognise gets a text label — the schedule's **My usual** button: text only, 10.5px/0.12em
+  uppercase in a 12px-radius hairline outline (44px tall, chalk-dim). Never coral: it is a way in, not
+  the screen's action. No glyph: none tested at 18px said "recurring week".
 - **Bottom nav:** fixed, 74px + safe-area, `slate-0/90` with `backdrop-blur-md` and a top hairline.
   Two tabs, each a 20px chalk icon over a 10px/0.12em uppercase label; active is full chalk,
   inactive is chalk-dim. No indicator bar, no pill, no colour — presence *is* the indicator.
